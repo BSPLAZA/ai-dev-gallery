@@ -38,6 +38,23 @@ namespace AIDevGallery.Pages
             }
         }
 
+        private string? selectedEvaluationType;
+        public string? SelectedEvaluationType
+        {
+            get => selectedEvaluationType;
+            set
+            {
+                if (selectedEvaluationType != value)
+                {
+                    selectedEvaluationType = value;
+                    OnPropertyChanged(nameof(SelectedEvaluationType));
+                    OnPropertyChanged(nameof(IsEvaluationTypeSelected));
+                }
+            }
+        }
+
+        public bool IsEvaluationTypeSelected => !string.IsNullOrEmpty(SelectedEvaluationType);
+
         public EvaluatePage()
         {
             this.InitializeComponent();
@@ -102,7 +119,9 @@ namespace AIDevGallery.Pages
 
         private void NewEvaluationButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement new evaluation logic
+            SelectedEvaluationType = null;
+            EvaluationWizardDialog.XamlRoot = this.Content.XamlRoot;
+            _ = EvaluationWizardDialog.ShowAsync();
         }
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
@@ -117,6 +136,14 @@ namespace AIDevGallery.Pages
                 var dataPackage = new DataPackage();
                 dataPackage.SetText($"Evaluation: {SelectedEvaluation.Name}");
                 Clipboard.SetContentWithOptions(dataPackage, null);
+            }
+        }
+
+        private void EvaluationType_Checked(object sender, RoutedEventArgs e)
+        {
+            if (sender is RadioButton rb && rb.Tag is string tag)
+            {
+                SelectedEvaluationType = tag;
             }
         }
 
