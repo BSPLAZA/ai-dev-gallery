@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="AIDevGallery.Pages.Evaluate.Dialogs.SelectEvaluationTypeDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="New Evaluation Project"
+    PrimaryButtonText="Next"
+    PrimaryButtonStyle="{StaticResource AccentButtonStyle}"
+    IsPrimaryButtonEnabled="{x:Bind IsEvaluationTypeSelected, Mode=OneWay}"
+    DefaultButton="Primary"
+    SecondaryButtonText="Cancel">
+    <StackPanel MinWidth="300" Spacing="12">
+        <TextBlock
+            Text="Select Evaluation Type"
+            Style="{StaticResource SubtitleTextBlockStyle}" />
+        <StackPanel Spacing="4">
+            <RadioButton
+                Content="Image Description"
+                GroupName="EvaluationTypeGroup"
+                Checked="EvaluationType_Checked"
+                Tag="ImageDescription" />
+            <RadioButton Content="Text Summarization" GroupName="EvaluationTypeGroup" IsEnabled="False">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Coming soon" />
+                </ToolTipService.ToolTip>
+            </RadioButton>
+            <RadioButton Content="Translation" GroupName="EvaluationTypeGroup" IsEnabled="False">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Coming soon" />
+                </ToolTipService.ToolTip>
+            </RadioButton>
+            <RadioButton Content="Question Answering" GroupName="EvaluationTypeGroup" IsEnabled="False">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Coming soon" />
+                </ToolTipService.ToolTip>
+            </RadioButton>
+            <RadioButton Content="Custom Task" GroupName="EvaluationTypeGroup" IsEnabled="False">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Coming soon" />
+                </ToolTipService.ToolTip>
+            </RadioButton>
+        </StackPanel>
+    </StackPanel>
+</ContentDialog>

@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using AIDevGallery.Pages.Evaluate.Dialogs;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -117,11 +118,20 @@ namespace AIDevGallery.Pages
             ApplySearchFilter(SearchBox.Text);
         }
 
-        private void NewEvaluationButton_Click(object sender, RoutedEventArgs e)
+        private async void NewEvaluationButton_Click(object sender, RoutedEventArgs e)
         {
             SelectedEvaluationType = null;
-            EvaluationWizardDialog.XamlRoot = this.Content.XamlRoot;
-            _ = EvaluationWizardDialog.ShowAsync();
+
+            var dialog = new Dialogs.SelectEvaluationTypeDialog
+            {
+                XamlRoot = this.Content.XamlRoot
+            };
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                SelectedEvaluationType = dialog.SelectedEvaluationType;
+            }
         }
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
@@ -139,13 +149,6 @@ namespace AIDevGallery.Pages
             }
         }
 
-        private void EvaluationType_Checked(object sender, RoutedEventArgs e)
-        {
-            if (sender is RadioButton rb && rb.Tag is string tag)
-            {
-                SelectedEvaluationType = tag;
-            }
-        }
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
