@@ -104,6 +104,10 @@
                     Content="AI APIs"
                     Icon="{ui:FontIcon Glyph=&#xE81E;}"
                     Tag="APIs" />
+                <NavigationViewItem
+                    Content="Evaluate"
+                    Icon="{ui:FontIcon Glyph=&#xE9D9;}"
+                    Tag="Evaluate" />
             </NavigationView.MenuItems>
             <NavigationView.FooterMenuItems>
                 <NavigationViewItem
