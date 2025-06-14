@@ -1,0 +1,224 @@
+<Page  
+    x:Class="AIDevGallery.Pages.SelectEvaluationTypePage"  
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"  
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"  
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"  
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"  
+    mc:Ignorable="d">  
+
+    <!--  
+    Step 1: Choose What to Test  
+    Purpose: User selects what type of AI task they want to evaluate  
+    Currently only Image Description is available as the MVP feature  
+    -->  
+
+    <ScrollViewer MaxHeight="600" Padding="24">
+        <StackPanel Spacing="24">
+
+            <!-- Step Header -->
+            <StackPanel Spacing="8">  
+                <TextBlock   
+                    Style="{StaticResource SubtitleTextBlockStyle}"  
+                    Text="What do you want to test?" />  
+                <TextBlock   
+                    Style="{StaticResource BodyTextBlockStyle}"  
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"  
+                    Text="Choose the type of AI task you want to evaluate." />  
+            </StackPanel>
+
+            <!-- Evaluation Types Grid -->
+            <Grid>  
+                <Grid.ColumnDefinitions>  
+                    <ColumnDefinition Width="*" />  
+                    <ColumnDefinition Width="*" />  
+                </Grid.ColumnDefinitions>  
+                <Grid.RowDefinitions>  
+                    <RowDefinition Height="Auto" />  
+                    <RowDefinition Height="Auto" />  
+                    <RowDefinition Height="Auto" />  
+                </Grid.RowDefinitions>  
+
+                <!-- Image Description - Enabled (MVP Feature) -->  
+                <Grid   
+                    Grid.Row="0"   
+                    Grid.Column="0"  
+                    Margin="0,0,8,20"  
+                    Style="{StaticResource CardGridStyle}"  
+                    Padding="0">  
+                    <RadioButton   
+                        x:Name="ImageDescriptionRadio"  
+                        GroupName="EvaluationType"  
+                        Checked="EvaluationType_Checked"  
+                        Padding="16"  
+                        AutomationProperties.Name="Image Description evaluation type"  
+                        AutomationProperties.HelpText="Evaluate models' ability to describe and analyze images with accuracy and detail">  
+                        <StackPanel Spacing="8">  
+                            <TextBlock   
+                                Text="Image Description"   
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />  
+                            <TextBlock   
+                                Text="Evaluate models' ability to describe and analyze images with accuracy and detail."  
+                                Style="{StaticResource CaptionTextBlockStyle}"  
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"  
+                                TextWrapping="Wrap" />  
+                        </StackPanel>  
+                    </RadioButton>  
+                </Grid>  
+
+                <!-- Text Summarization - Future Feature -->  
+                <Grid   
+                    Grid.Row="0"   
+                    Grid.Column="1"  
+                    Margin="8,0,0,20"  
+                    Style="{StaticResource CardGridStyle}"  
+                    Padding="0"  
+                    Opacity="0.6">  
+                    <Grid Padding="20">  
+                        <Grid.RowDefinitions>  
+                            <RowDefinition Height="Auto" />  
+                            <RowDefinition Height="Auto" />  
+                        </Grid.RowDefinitions>  
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">  
+                            <Ellipse   
+                                Width="12"   
+                                Height="12"   
+                                Fill="Transparent"   
+                                Stroke="{ThemeResource TextFillColorDisabledBrush}"   
+                                StrokeThickness="1" />  
+                            <TextBlock   
+                                Text="Text Summarization"   
+                                Style="{StaticResource BodyStrongTextBlockStyle}"  
+                                Foreground="{ThemeResource TextFillColorDisabledBrush}" />  
+                        </StackPanel>  
+                        <TextBlock   
+                            Grid.Row="1"  
+                            Margin="0,8,0,0"  
+                            Text="Evaluate models' ability to create concise and accurate summaries of longer texts."  
+                            Style="{StaticResource CaptionTextBlockStyle}"  
+                            Foreground="{ThemeResource TextFillColorDisabledBrush}"  
+                            TextWrapping="Wrap" />  
+                        <ToolTipService.ToolTip>  
+                            <ToolTip Content="Coming soon" />  
+                        </ToolTipService.ToolTip>  
+                    </Grid>  
+                </Grid>  
+
+                <!-- Translation - Future Feature -->  
+                <Grid   
+                    Grid.Row="1"   
+                    Grid.Column="0"  
+                    Margin="0,0,8,20"  
+                    Style="{StaticResource CardGridStyle}"  
+                    Padding="0"  
+                    Opacity="0.6">  
+                    <Grid Padding="16">  
+                        <Grid.RowDefinitions>  
+                            <RowDefinition Height="Auto" />  
+                            <RowDefinition Height="Auto" />  
+                        </Grid.RowDefinitions>  
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">  
+                            <Ellipse   
+                                Width="12"   
+                                Height="12"   
+                                Fill="Transparent"   
+                                Stroke="{ThemeResource TextFillColorDisabledBrush}"   
+                                StrokeThickness="1" />  
+                            <TextBlock   
+                                Text="Translation"   
+                                Style="{StaticResource BodyStrongTextBlockStyle}"  
+                                Foreground="{ThemeResource TextFillColorDisabledBrush}" />  
+                        </StackPanel>  
+                        <TextBlock   
+                            Grid.Row="1"  
+                            Margin="0,8,0,0"  
+                            Text="Evaluate models' ability to accurately translate text between different languages."  
+                            Style="{StaticResource CaptionTextBlockStyle}"  
+                            Foreground="{ThemeResource TextFillColorDisabledBrush}"  
+                            TextWrapping="Wrap" />  
+                        <ToolTipService.ToolTip>  
+                            <ToolTip Content="Coming soon" />  
+                        </ToolTipService.ToolTip>  
+                    </Grid>  
+                </Grid>  
+
+                <!-- Question Answering - Future Feature -->  
+                <Grid   
+                    Grid.Row="1"   
+                    Grid.Column="1"  
+                    Margin="8,0,0,20"  
+                    Style="{StaticResource CardGridStyle}"  
+                    Padding="0"  
+                    Opacity="0.6">  
+                    <Grid Padding="16">  
+                        <Grid.RowDefinitions>  
+                            <RowDefinition Height="Auto" />  
+                            <RowDefinition Height="Auto" />  
+                        </Grid.RowDefinitions>  
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">  
+                            <Ellipse   
+                                Width="12"   
+                                Height="12"   
+                                Fill="Transparent"   
+                                Stroke="{ThemeResource TextFillColorDisabledBrush}"   
+                                StrokeThickness="1" />  
+                            <TextBlock   
+                                Text="Question Answering"   
+                                Style="{StaticResource BodyStrongTextBlockStyle}"  
+                                Foreground="{ThemeResource TextFillColorDisabledBrush}" />  
+                        </StackPanel>  
+                        <TextBlock   
+                            Grid.Row="1"  
+                            Margin="0,8,0,0"  
+                            Text="Evaluate models' ability to provide accurate answers to questions based on context."  
+                            Style="{StaticResource CaptionTextBlockStyle}"  
+                            Foreground="{ThemeResource TextFillColorDisabledBrush}"  
+                            TextWrapping="Wrap" />  
+                        <ToolTipService.ToolTip>  
+                            <ToolTip Content="Coming soon" />  
+                        </ToolTipService.ToolTip>  
+                    </Grid>  
+                </Grid>  
+
+                <!-- Custom Task - Future Feature -->  
+                <Grid   
+                    Grid.Row="2"   
+                    Grid.Column="0"  
+                    Grid.ColumnSpan="2"  
+                    Margin="0,0,0,16"  
+                    Style="{StaticResource CardGridStyle}"  
+                    Padding="0"  
+                    Opacity="0.6">  
+                    <Grid Padding="16">  
+                        <Grid.RowDefinitions>  
+                            <RowDefinition Height="Auto" />  
+                            <RowDefinition Height="Auto" />  
+                        </Grid.RowDefinitions>  
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">  
+                            <Ellipse   
+                                Width="12"   
+                                Height="12"   
+                                Fill="Transparent"   
+                                Stroke="{ThemeResource TextFillColorDisabledBrush}"   
+                                StrokeThickness="1" />  
+                            <TextBlock   
+                                Text="Custom Task"   
+                                Style="{StaticResource BodyStrongTextBlockStyle}"  
+                                Foreground="{ThemeResource TextFillColorDisabledBrush}" />  
+                        </StackPanel>  
+                        <TextBlock   
+                            Grid.Row="1"  
+                            Margin="0,8,0,0"  
+                            Text="Create a custom evaluation for your specific use case and requirements."  
+                            Style="{StaticResource CaptionTextBlockStyle}"  
+                            Foreground="{ThemeResource TextFillColorDisabledBrush}"  
+                            TextWrapping="Wrap" />  
+                        <ToolTipService.ToolTip>  
+                            <ToolTip Content="Coming soon" />  
+                        </ToolTipService.ToolTip>  
+                    </Grid>  
+                </Grid>  
+
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
