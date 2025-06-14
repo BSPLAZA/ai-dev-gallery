@@ -19,6 +19,17 @@ internal sealed partial class WizardDialog : ContentDialog
         this.InitializeComponent();
     }
 
+    /// <summary>
+    /// Updates the progress indicator and step title following existing progress patterns
+    /// </summary>
+    public void UpdateProgress(int currentStep, string stepTitle, int totalSteps = 5)
+    {
+        WizardProgressBar.Value = currentStep;
+        WizardProgressBar.Maximum = totalSteps;
+        StepProgressText.Text = $"Step {currentStep} of {totalSteps}";
+        StepTitleText.Text = stepTitle;
+    }
+
     private void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
         args.Cancel = true;

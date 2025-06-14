@@ -9,5 +9,41 @@
     PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
     SecondaryButtonClick="ContentDialog_SecondaryButtonClick"
     AutomationProperties.Name="Create evaluation wizard">
-    <Frame x:Name="ContentFrame"/>
+    
+    <ContentDialog.Resources>
+        <ResourceDictionary Source="ms-appx:///Styles/Colors.xaml"/>
+    </ContentDialog.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Progress Header following existing system patterns -->
+        <Border Grid.Row="0" 
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                BorderThickness="0,0,0,1" 
+                Padding="24,16">
+            <StackPanel Spacing="8">
+                <TextBlock x:Name="StepTitleText" 
+                           Text="Create New Evaluation" 
+                           Style="{StaticResource SubtitleTextBlockStyle}"/>
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <ProgressBar x:Name="WizardProgressBar" 
+                                 Value="1" 
+                                 Maximum="5" 
+                                 Width="200" 
+                                 Height="4"/>
+                    <TextBlock x:Name="StepProgressText" 
+                               Text="Step 1 of 5" 
+                               Style="{StaticResource CaptionTextBlockStyle}" 
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+        
+        <Frame x:Name="ContentFrame" Grid.Row="1"/>
+    </Grid>
 </ContentDialog>

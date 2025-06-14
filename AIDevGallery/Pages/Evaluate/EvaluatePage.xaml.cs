@@ -151,6 +151,8 @@ namespace AIDevGallery.Pages
                         dialog.IsSecondaryButtonEnabled = false;
                         dialog.PrimaryButtonText = "Next";
                         currentStep = 0;
+                        // Update progress following system patterns
+                        dialog.UpdateProgress(1, "Choose Evaluation Type");
                     }
                     else if (args.Content is Evaluate.EvaluationDetailsStep detailsPage)
                     {
@@ -162,6 +164,8 @@ namespace AIDevGallery.Pages
                         dialog.IsSecondaryButtonEnabled = true;
                         dialog.PrimaryButtonText = "Next";
                         currentStep = 1;
+                        // Update progress following system patterns
+                        dialog.UpdateProgress(2, "Evaluation Setup");
                     }
                 };
                 
