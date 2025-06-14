@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
 using AIDevGallery.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -11,7 +14,15 @@ namespace AIDevGallery.Pages;
 /// </summary>
 public sealed partial class SelectEvaluationTypePage : Page
 {
+    /// <summary>
+    /// Delegate for validation state change events.
+    /// </summary>
+    /// <param name="isValid">Whether the current state is valid.</param>
     public delegate void ValidationChangedEventHandler(bool isValid);
+
+    /// <summary>
+    /// Event fired when validation state changes.
+    /// </summary>
     public event ValidationChangedEventHandler? ValidationChanged;
 
     private EvaluationType? selectedEvaluationType;
@@ -22,8 +33,9 @@ public sealed partial class SelectEvaluationTypePage : Page
     }
 
     /// <summary>
-    /// Gets the currently selected evaluation type
+    /// Gets the currently selected evaluation type.
     /// </summary>
+    /// <value>The selected evaluation type, or null if none selected.</value>
     internal EvaluationType? SelectedEvaluationType => selectedEvaluationType;
 
     /// <summary>
@@ -43,7 +55,7 @@ public sealed partial class SelectEvaluationTypePage : Page
 
             // Notify parent dialog that validation state has changed
             ValidationChanged?.Invoke(IsValid);
-            
+
             // Enable Next button in parent dialog - navigate up the visual tree
             UpdateParentDialogState();
         }
@@ -63,6 +75,7 @@ public sealed partial class SelectEvaluationTypePage : Page
                 dialog.IsPrimaryButtonEnabled = IsValid;
                 break;
             }
+
             current = (current as FrameworkElement)?.Parent;
         }
     }
@@ -73,6 +86,7 @@ public sealed partial class SelectEvaluationTypePage : Page
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+
         // Ensure parent dialog starts with disabled Next button
         UpdateParentDialogState();
     }
@@ -80,7 +94,8 @@ public sealed partial class SelectEvaluationTypePage : Page
     /// <summary>
     /// Gets the evaluation data for this step to pass to next steps
     /// </summary>
-    public EvaluationTypeData GetStepData()
+    /// <returns>The evaluation type data containing the selected type</returns>
+    internal EvaluationTypeData GetStepData()
     {
         return new EvaluationTypeData
         {
@@ -100,9 +115,12 @@ public sealed partial class SelectEvaluationTypePage : Page
 }
 
 /// <summary>
-/// Data model for evaluation type selection step
+/// Data model for evaluation type selection step.
 /// </summary>
 internal class EvaluationTypeData
 {
+    /// <summary>
+    /// Gets or sets the selected evaluation type.
+    /// </summary>
     public required EvaluationType EvaluationType { get; set; }
 }
