@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Models;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -222,6 +223,37 @@ namespace AIDevGallery.Pages.Evaluate
                 SelectedModelName = selectedModelName ?? string.Empty,
                 ApiEndpoint = ApiEndpointTextBox.Text.Trim(),
                 BaselinePrompt = BaselinePromptTextBox.Text.Trim()
+            };
+        }
+
+        /// <summary>
+        /// Creates a complete EvaluationConfiguration from the current step data
+        /// Following the new comprehensive data model
+        /// </summary>
+        public EvaluationConfiguration CreateEvaluationConfiguration(EvaluationType evaluationType)
+        {
+            // Save API key securely if provided
+            if (!string.IsNullOrWhiteSpace(ApiKeyPasswordBox.Password) && selectedModelId != null)
+            {
+                string credentialKey = GetCredentialKey();
+                CredentialManager.WriteCredential(credentialKey, ApiKeyPasswordBox.Password);
+            }
+
+            return new EvaluationConfiguration
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = EvaluationNameTextBox.Text.Trim(),
+                Type = evaluationType,
+                Goal = string.IsNullOrWhiteSpace(EvaluationGoalTextBox.Text) ? null : EvaluationGoalTextBox.Text.Trim(),
+                Created = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow,
+                SelectedModelId = selectedModelId ?? string.Empty,
+                SelectedModelName = selectedModelName ?? string.Empty,
+                ApiEndpoint = ApiEndpointTextBox.Text.Trim(),
+                BaselinePrompt = BaselinePromptTextBox.Text.Trim(),
+                Status = EvaluationStatus.Draft,
+                Criteria = null, // Will be set in Step 3
+                Dataset = null   // Will be set in Step 4
             };
         }
 

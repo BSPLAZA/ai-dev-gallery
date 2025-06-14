@@ -1,4 +1,6 @@
-﻿using Microsoft.UI.Xaml;
+using AIDevGallery.Models;
+using AIDevGallery.Utils;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System.Collections.ObjectModel;
@@ -84,19 +86,60 @@ namespace AIDevGallery.Pages
         private void LoadEvaluations()
         {
             AllEvaluations.Clear();
-            // Example data
-            AllEvaluations.Add(new Evaluation
+            
+            // Load evaluations asynchronously but don't block UI
+            _ = Task.Run(async () =>
             {
-                Name = "gpt4o eval",
-                Status = "Succeeded",
-                Progress = 65,
-                Dataset = "gpt4o eval",
-                Rows = 1001,
-                Criteria = 1
+                try
+                {
+                    var appData = await AppData.GetForApp();
+                    
+                    // Load evaluations from the data model
+                    if (appData.EvaluationHistory != null)
+                    {
+                        await DispatcherQueue.TryEnqueue(() =>
+                        {
+                            foreach (var config in appData.EvaluationHistory)
+                            {
+                                var evaluation = new Evaluation
+                                {
+                                    Name = config.Name,
+                                    Status = config.Status.ToString(),
+                                    Progress = config.Status == EvaluationStatus.Completed ? 100 : 
+                                              config.Status == EvaluationStatus.Running ? 50 : 0,
+                                    Dataset = config.Dataset?.Name ?? "Not configured",
+                                    Rows = config.Dataset?.EstimatedItemCount ?? 0,
+                                    Criteria = config.Criteria?.Count ?? 0
+                                };
+                                AllEvaluations.Add(evaluation);
+                            }
+                        });
+                    }
+                    
+                    // Add example data if no evaluations exist
+                    if (appData.EvaluationHistory?.Count == 0)
+                    {
+                        await DispatcherQueue.TryEnqueue(() =>
+                        {
+                            AllEvaluations.Add(new Evaluation
+                            {
+                                Name = "gpt4o eval",
+                                Status = "Succeeded",
+                                Progress = 65,
+                                Dataset = "gpt4o eval",
+                                Rows = 1001,
+                                Criteria = 1
+                            });
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error loading evaluations: {ex.Message}");
+                }
+                
+                await DispatcherQueue.TryEnqueue(() => ApplySearchFilter(SearchBox.Text));
             });
-            // Add more evaluations as needed
-
-            ApplySearchFilter(SearchBox.Text);
         }
 
         private void ApplySearchFilter(string? searchText)
@@ -183,17 +226,19 @@ namespace AIDevGallery.Pages
                     }
                     else if (currentStep == 1)
                     {
-                        // Move from Step 2 to Step 3 (future: criteria selection)
-                        if (dialog.Frame.Content is Evaluate.EvaluationDetailsStep currentStep2Page)
+                        // Complete wizard and save evaluation configuration
+                        if (dialog.Frame.Content is Evaluate.EvaluationDetailsStep currentStep2Page && evaluationTypeData != null)
                         {
                             evaluationDetailsData = currentStep2Page.GetStepData();
                             
-                            // TODO: Navigate to Step 3 (Criteria Selection) when implemented
-                            // For now, close dialog and show message about next steps
+                            // Create and save the complete evaluation configuration
+                            var evaluationConfig = currentStep2Page.CreateEvaluationConfiguration(evaluationTypeData.EvaluationType);
+                            await SaveEvaluationConfiguration(evaluationConfig);
+                            
                             dialog.Hide();
                             
-                            // Temporary: Show debug message about what would happen next
-                            System.Diagnostics.Debug.WriteLine($"Next: Navigate to Step 3 (Criteria Selection) for evaluation: {evaluationDetailsData.EvaluationName}");
+                            // Refresh the evaluations list to show the new evaluation
+                            LoadEvaluations();
                         }
                     }
                 };
@@ -237,6 +282,24 @@ namespace AIDevGallery.Pages
             }
         }
         
+        /// <summary>
+        /// Saves an evaluation configuration using the new data model
+        /// </summary>
+        private async Task SaveEvaluationConfiguration(EvaluationConfiguration config)
+        {
+            try
+            {
+                var appData = await AppData.GetForApp();
+                await appData.AddOrUpdateEvaluationAsync(config);
+                
+                System.Diagnostics.Debug.WriteLine($"Created evaluation: {config.Name} with type: {config.Type}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving evaluation: {ex.Message}");
+            }
+        }
+
         private void CreateNewEvaluation(EvaluationTypeData? typeData, Evaluate.EvaluationDetailsData? detailsData)
         {
             if (typeData == null || detailsData == null) return;
@@ -303,14 +366,5 @@ namespace AIDevGallery.Pages
         private void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-    }
-
-    public enum EvaluationType
-    {
-        ImageDescription,
-        TextSummarization,
-        Translation,
-        QuestionAnswering,
-        CustomTask
     }
 }
