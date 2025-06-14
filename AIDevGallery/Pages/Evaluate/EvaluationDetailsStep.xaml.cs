@@ -230,7 +230,7 @@ namespace AIDevGallery.Pages.Evaluate
         /// Creates a complete EvaluationConfiguration from the current step data
         /// Following the new comprehensive data model
         /// </summary>
-        public EvaluationConfiguration CreateEvaluationConfiguration(EvaluationType evaluationType)
+        internal EvaluationConfiguration CreateEvaluationConfiguration(EvaluationType evaluationType)
         {
             // Save API key securely if provided
             if (!string.IsNullOrWhiteSpace(ApiKeyPasswordBox.Password) && selectedModelId != null)
