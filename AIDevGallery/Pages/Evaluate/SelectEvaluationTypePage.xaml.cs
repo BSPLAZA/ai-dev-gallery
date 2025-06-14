@@ -24,7 +24,7 @@ public sealed partial class SelectEvaluationTypePage : Page
     /// <summary>
     /// Gets the currently selected evaluation type
     /// </summary>
-    public EvaluationType? SelectedEvaluationType => selectedEvaluationType;
+    internal EvaluationType? SelectedEvaluationType => selectedEvaluationType;
 
     /// <summary>
     /// Checks if this step has valid input (an evaluation type is selected)
@@ -102,7 +102,7 @@ public sealed partial class SelectEvaluationTypePage : Page
 /// <summary>
 /// Data model for evaluation type selection step
 /// </summary>
-public class EvaluationTypeData
+internal class EvaluationTypeData
 {
     public required EvaluationType EvaluationType { get; set; }
 }
