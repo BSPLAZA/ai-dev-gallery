@@ -1,0 +1,188 @@
+<Page
+    x:Class="AIDevGallery.Pages.Evaluate.EvaluationDetailsStep"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <!-- 
+    Step 2: Project Setup
+    Purpose: Configure the evaluation project and select the model to test
+    -->
+
+    <ScrollViewer MaxHeight="600" Padding="24">
+        <StackPanel Spacing="24">
+            
+            <!-- Header -->
+            <StackPanel Spacing="8">
+                <TextBlock 
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Text="Project Setup" />
+                <TextBlock 
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="Give your evaluation a name and choose the AI model you want to test."
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!-- Section 1: Project Details -->
+            <StackPanel Spacing="16">
+                <TextBlock 
+                    Text="Project Details" 
+                    Style="{StaticResource BodyStrongTextBlockStyle}" 
+                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                
+                <!-- Evaluation Name -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Evaluation Name *" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBox 
+                        x:Name="EvaluationNameTextBox"
+                        PlaceholderText="e.g., Image Description Test"
+                        TextChanged="RequiredField_TextChanged"
+                        MaxLength="100"
+                        AutomationProperties.Name="Evaluation name"
+                        AutomationProperties.HelpText="Enter a name for your evaluation. The model name will be automatically added" />
+                    <TextBlock 
+                        x:Name="EvaluationNamePreview"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="We'll automatically add the model name to your evaluation"
+                        Margin="0,4,0,0" />
+                </StackPanel>
+
+                <!-- Project Goal -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="What are you trying to achieve?" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBox 
+                        x:Name="ProjectGoalTextBox"
+                        PlaceholderText="e.g., Find the best model for generating accurate image descriptions"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        Height="80"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        AutomationProperties.Name="Project goal"
+                        AutomationProperties.HelpText="Optional description of what you want to achieve with this evaluation" />
+                    <TextBlock 
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Optional: Helps you remember why you created this evaluation" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Section 2: Model Selection -->
+            <StackPanel Spacing="16">
+                <TextBlock 
+                    Text="AI Model Selection" 
+                    Style="{StaticResource BodyStrongTextBlockStyle}" 
+                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+
+                <!-- Model Selection -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Which AI model do you want to test? *" 
+                               Style="{StaticResource BodyStrongTextBlockStyle}" 
+                               TextWrapping="Wrap" />
+                    <ComboBox 
+                        x:Name="ModelSelectionComboBox"
+                        PlaceholderText="Choose the model you want to evaluate"
+                        SelectionChanged="ModelSelectionComboBox_SelectionChanged"
+                        HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="AI model selection"
+                        AutomationProperties.HelpText="Select which AI model you want to test in this evaluation">
+                        <ComboBoxItem Content="GPT-4o" Tag="gpt-4o" AutomationProperties.Name="GPT-4o model" />
+                        <ComboBoxItem Content="Phi-4 Multimodal" Tag="phi-4-multimodal" AutomationProperties.Name="Phi-4 Multimodal model" />
+                        <ComboBoxItem Content="Azure AI Vision (Image Analysis 4.0)" Tag="azure-ai-vision" AutomationProperties.Name="Azure AI Vision Image Analysis 4.0" />
+                    </ComboBox>
+                    <TextBlock 
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="This is the AI model that will be tested in your evaluation" />
+                </StackPanel>
+
+                <!-- Model Configuration (shows when model selected) -->
+                <StackPanel x:Name="ModelConfigurationPanel" Spacing="12" Visibility="Collapsed">
+                    <TextBlock 
+                        Text="API Configuration" 
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBlock 
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="Connect to your AI model with these API settings"
+                        Margin="0,0,0,8" />
+
+                    <!-- API Endpoint -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="API Endpoint *" Style="{StaticResource BodyTextBlockStyle}" />
+                        <TextBox 
+                            x:Name="ApiEndpointTextBox"
+                            PlaceholderText="https://api.openai.com/v1/chat/completions"
+                            TextChanged="RequiredField_TextChanged"
+                            AutomationProperties.Name="API endpoint URL"
+                            AutomationProperties.HelpText="Enter the full URL where your AI model can be accessed" />
+                        <TextBlock 
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="The URL where your AI model can be accessed" />
+                    </StackPanel>
+
+                    <!-- API Key -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="API Key *" Style="{StaticResource BodyTextBlockStyle}" />
+                        <PasswordBox 
+                            x:Name="ApiKeyPasswordBox"
+                            PlaceholderText="Enter your API key (starts with sk-...)"
+                            PasswordChanged="RequiredField_PasswordChanged"
+                            AutomationProperties.Name="API key"
+                            AutomationProperties.HelpText="Enter your API key. It will be stored securely on this computer" />
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                            <FontIcon 
+                                Glyph="&#xE72E;" 
+                                FontSize="12" 
+                                Foreground="{ThemeResource SystemColorGrayTextBrush}" />
+                            <TextBlock 
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Foreground="{ThemeResource SystemColorGrayTextBrush}"
+                                Text="Your API key is encrypted and stored securely on this computer" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Section 3: Evaluation Prompt -->
+            <StackPanel Spacing="16">
+                <TextBlock 
+                    Text="Evaluation Prompt" 
+                    Style="{StaticResource BodyStrongTextBlockStyle}" 
+                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+
+                <StackPanel Spacing="4">
+                    <TextBlock Text="What prompt should be used to evaluate the candidate model? *" 
+                               Style="{StaticResource BodyStrongTextBlockStyle}" 
+                               TextWrapping="Wrap" />
+                    <TextBox 
+                        x:Name="BaselinePromptTextBox"
+                        PlaceholderText="Describe this image in detail, focusing on the main subject and key visual elements."
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        Height="100"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        TextChanged="RequiredField_TextChanged"
+                        AutomationProperties.Name="AI model instructions"
+                        AutomationProperties.HelpText="Enter the instructions that will be sent to the AI model for each test case" />
+                    <TextBlock 
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="This prompt will be used to evaluate the model's performance across all test cases" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Validation Summary -->
+            <InfoBar 
+                x:Name="ValidationInfoBar"
+                Severity="Warning"
+                IsOpen="False"
+                Message="Please complete all required fields (marked with *) to continue" />
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>
