@@ -10,6 +10,12 @@ namespace AIDevGallery.Utils;
 [JsonSourceGenerationOptions(WriteIndented = true, AllowTrailingCommas = true)]
 [JsonSerializable(typeof(AppData))]
 [JsonSerializable(typeof(List<CachedModel>))]
+[JsonSerializable(typeof(LinkedList<EvaluationConfiguration>))]
+[JsonSerializable(typeof(LinkedList<EvaluationRun>))]
+[JsonSerializable(typeof(EvaluationConfiguration))]
+[JsonSerializable(typeof(EvaluationRun))]
+[JsonSerializable(typeof(EvaluationCriteria))]
+[JsonSerializable(typeof(DatasetConfiguration))]
 internal partial class AppDataSourceGenerationContext : JsonSerializerContext
 {
 }

@@ -39,6 +39,10 @@ internal class AppData
 
     public WinMlSampleOptions WinMLSampleOptions { get; set; }
 
+    // Evaluation Management (following existing patterns)
+    public LinkedList<EvaluationConfiguration>? EvaluationHistory { get; set; }
+    public LinkedList<EvaluationRun>? EvaluationRuns { get; set; }
+
     private Dictionary<string, Dictionary<string, string>>? SampleData { get; set; }
 
     public AppData()
@@ -231,6 +235,129 @@ internal class AppData
         }
 
         return ModelTypeToUserAddedModelsMapping.TryGetValue(type.ToString(), out modelIds);
+    }
+
+    /// <summary>
+    /// Adds or updates an evaluation configuration following existing MRU patterns
+    /// </summary>
+    public async Task AddOrUpdateEvaluationAsync(EvaluationConfiguration evaluation)
+    {
+        EvaluationHistory ??= new LinkedList<EvaluationConfiguration>();
+
+        // Remove existing evaluation with same ID (update scenario)
+        var existing = EvaluationHistory.FirstOrDefault(e => e.Id == evaluation.Id);
+        if (existing != null)
+        {
+            EvaluationHistory.Remove(existing);
+        }
+
+        // Add to front (most recent first, following MRU pattern)
+        EvaluationHistory.AddFirst(evaluation);
+
+        // Keep only last 20 evaluations (following existing capacity patterns)
+        while (EvaluationHistory.Count > 20)
+        {
+            EvaluationHistory.RemoveLast();
+        }
+
+        await SaveAsync();
+    }
+
+    /// <summary>
+    /// Gets an evaluation configuration by ID
+    /// </summary>
+    public EvaluationConfiguration? GetEvaluation(string evaluationId)
+    {
+        return EvaluationHistory?.FirstOrDefault(e => e.Id == evaluationId);
+    }
+
+    /// <summary>
+    /// Deletes an evaluation configuration
+    /// </summary>
+    public async Task DeleteEvaluationAsync(string evaluationId)
+    {
+        if (EvaluationHistory == null) return;
+
+        var evaluation = EvaluationHistory.FirstOrDefault(e => e.Id == evaluationId);
+        if (evaluation != null)
+        {
+            EvaluationHistory.Remove(evaluation);
+            await SaveAsync();
+        }
+    }
+
+    /// <summary>
+    /// Adds an evaluation run record (following existing usage tracking patterns)
+    /// </summary>
+    public async Task AddEvaluationRunAsync(EvaluationRun run)
+    {
+        EvaluationRuns ??= new LinkedList<EvaluationRun>();
+
+        // Add to front (most recent first)
+        EvaluationRuns.AddFirst(run);
+
+        // Keep only last 100 runs (reasonable for performance tracking)
+        while (EvaluationRuns.Count > 100)
+        {
+            EvaluationRuns.RemoveLast();
+        }
+
+        await SaveAsync();
+    }
+
+    /// <summary>
+    /// Gets evaluation runs for a specific evaluation
+    /// </summary>
+    public List<EvaluationRun> GetEvaluationRuns(string evaluationId)
+    {
+        if (EvaluationRuns == null) return new List<EvaluationRun>();
+        
+        return EvaluationRuns.Where(r => r.EvaluationId == evaluationId)
+                            .OrderByDescending(r => r.Started)
+                            .ToList();
+    }
+
+    /// <summary>
+    /// Validates dataset file paths and removes invalid evaluations (following ModelCache validation pattern)
+    /// </summary>
+    public async Task ValidateEvaluationsAsync()
+    {
+        if (EvaluationHistory == null) return;
+
+        var validEvaluations = new List<EvaluationConfiguration>();
+        
+        foreach (var evaluation in EvaluationHistory)
+        {
+            bool isValid = true;
+            
+            // Validate dataset file if specified
+            if (evaluation.Dataset?.FilePath != null)
+            {
+                try
+                {
+                    isValid = File.Exists(evaluation.Dataset.FilePath);
+                }
+                catch
+                {
+                    isValid = false;
+                }
+            }
+            
+            if (isValid)
+            {
+                validEvaluations.Add(evaluation);
+            }
+        }
+
+        if (validEvaluations.Count != EvaluationHistory.Count)
+        {
+            EvaluationHistory.Clear();
+            foreach (var evaluation in validEvaluations)
+            {
+                EvaluationHistory.AddLast(evaluation);
+            }
+            await SaveAsync();
+        }
     }
 
     private static AppData GetDefault()
