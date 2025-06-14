@@ -9,8 +9,8 @@ using System;
 namespace AIDevGallery.Pages.Evaluate
 {
     /// <summary>
-    /// Step 2: Project Setup
-    /// Collects evaluation project details and configures the AI model to test.
+    /// Step 2: Evaluation Setup
+    /// Collects evaluation details and configures the AI model to test.
     /// Handles secure API key storage using Windows Credential Manager.
     /// </summary>
     public sealed partial class EvaluationDetailsStep : Page
@@ -217,7 +217,7 @@ namespace AIDevGallery.Pages.Evaluate
             {
                 EvaluationName = EvaluationNameTextBox.Text.Trim(),
                 FinalEvaluationName = GetFinalEvaluationName(),
-                ProjectGoal = ProjectGoalTextBox.Text.Trim(),
+                EvaluationGoal = EvaluationGoalTextBox.Text.Trim(),
                 SelectedModelId = selectedModelId ?? string.Empty,
                 SelectedModelName = selectedModelName ?? string.Empty,
                 ApiEndpoint = ApiEndpointTextBox.Text.Trim(),
@@ -231,7 +231,7 @@ namespace AIDevGallery.Pages.Evaluate
         public void Reset()
         {
             EvaluationNameTextBox.Text = string.Empty;
-            ProjectGoalTextBox.Text = string.Empty;
+            EvaluationGoalTextBox.Text = string.Empty;
             ModelSelectionComboBox.SelectedItem = null;
             ApiEndpointTextBox.Text = string.Empty;
             ApiKeyPasswordBox.Password = string.Empty;
@@ -245,13 +245,13 @@ namespace AIDevGallery.Pages.Evaluate
     }
 
     /// <summary>
-    /// Data collected from the Project Setup step
+    /// Data collected from the Evaluation Setup step
     /// </summary>
     public class EvaluationDetailsData
     {
         public required string EvaluationName { get; set; }
         public required string FinalEvaluationName { get; set; }
-        public string ProjectGoal { get; set; } = string.Empty;
+        public string EvaluationGoal { get; set; } = string.Empty;
         public required string SelectedModelId { get; set; }
         public required string SelectedModelName { get; set; }
         public required string ApiEndpoint { get; set; }

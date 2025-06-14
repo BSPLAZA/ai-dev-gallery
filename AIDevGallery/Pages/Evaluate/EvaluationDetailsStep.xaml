@@ -6,9 +6,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <ResourceDictionary Source="ms-appx:///Styles/Colors.xaml"/>
+    </Page.Resources>
+
     <!-- 
-    Step 2: Project Setup
-    Purpose: Configure the evaluation project and select the model to test
+    Step 2: Evaluation Setup
+    Purpose: Configure the evaluation details and select the model to test
     -->
 
     <ScrollViewer MaxHeight="600" Padding="24">
@@ -18,7 +22,7 @@
             <StackPanel Spacing="8">
                 <TextBlock 
                     Style="{StaticResource SubtitleTextBlockStyle}"
-                    Text="Project Setup" />
+                    Text="Evaluation Setup" />
                 <TextBlock 
                     Style="{StaticResource BodyTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -26,10 +30,10 @@
                     TextWrapping="Wrap" />
             </StackPanel>
 
-            <!-- Section 1: Project Details -->
+            <!-- Section 1: Evaluation Details -->
             <StackPanel Spacing="16">
                 <TextBlock 
-                    Text="Project Details" 
+                    Text="Evaluation Details" 
                     Style="{StaticResource BodyStrongTextBlockStyle}" 
                     Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                 
@@ -51,17 +55,17 @@
                         Margin="0,4,0,0" />
                 </StackPanel>
 
-                <!-- Project Goal -->
+                <!-- Evaluation Goal -->
                 <StackPanel Spacing="4">
                     <TextBlock Text="What are you trying to achieve?" Style="{StaticResource BodyStrongTextBlockStyle}" />
                     <TextBox 
-                        x:Name="ProjectGoalTextBox"
+                        x:Name="EvaluationGoalTextBox"
                         PlaceholderText="e.g., Find the best model for generating accurate image descriptions"
                         AcceptsReturn="True"
                         TextWrapping="Wrap"
                         Height="80"
                         ScrollViewer.VerticalScrollBarVisibility="Auto"
-                        AutomationProperties.Name="Project goal"
+                        AutomationProperties.Name="Evaluation goal"
                         AutomationProperties.HelpText="Optional description of what you want to achieve with this evaluation" />
                     <TextBlock 
                         Style="{StaticResource CaptionTextBlockStyle}"
@@ -112,7 +116,31 @@
 
                     <!-- API Endpoint -->
                     <StackPanel Spacing="4">
-                        <TextBlock Text="API Endpoint *" Style="{StaticResource BodyTextBlockStyle}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="API Endpoint *" Style="{StaticResource BodyTextBlockStyle}" />
+                            <Button AutomationProperties.Name="API endpoint help" 
+                                    ToolTipService.ToolTip="Learn about API endpoints"
+                                    Style="{StaticResource TertiaryButtonStyle}"
+                                    VerticalAlignment="Center"
+                                    Content="&#xE946;">
+                                <Button.Flyout>
+                                    <Flyout ShouldConstrainToRootBounds="False">
+                                        <StackPanel MaxWidth="360" Spacing="12">
+                                            <TextBlock Text="API Endpoint" FontWeight="SemiBold"/>
+                                            <TextBlock TextWrapping="Wrap">
+                                                The URL where your AI model can be accessed.
+                                            </TextBlock>
+                                            <TextBlock FontWeight="SemiBold" Text="Common Endpoints:"/>
+                                            <TextBlock TextWrapping="Wrap" FontFamily="Consolas" FontSize="12">
+                                                • OpenAI: https://api.openai.com/v1/chat/completions
+                                                • Azure OpenAI: https://[name].openai.azure.com/openai/deployments/[model]/chat/completions?api-version=2024-02-15-preview
+                                                • Azure AI Vision: https://[region].api.cognitive.microsoft.com/computervision/imageanalysis:analyze?api-version=2024-02-01
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
                         <TextBox 
                             x:Name="ApiEndpointTextBox"
                             PlaceholderText="https://api.openai.com/v1/chat/completions"
