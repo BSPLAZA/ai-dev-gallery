@@ -147,7 +147,7 @@ namespace AIDevGallery.Pages.Evaluate
 
         private void RequiredField_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (sender == EvaluationNameTextBox)
+            if (ReferenceEquals(sender, EvaluationNameTextBox))
             {
                 UpdateEvaluationNamePreview();
             }
