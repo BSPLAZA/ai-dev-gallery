@@ -97,7 +97,7 @@ namespace AIDevGallery.Pages
                     // Load evaluations from the data model
                     if (appData.EvaluationHistory != null)
                     {
-                        await DispatcherQueue.TryEnqueue(() =>
+                        _ = DispatcherQueue.TryEnqueue(() =>
                         {
                             foreach (var config in appData.EvaluationHistory)
                             {
@@ -119,7 +119,7 @@ namespace AIDevGallery.Pages
                     // Add example data if no evaluations exist
                     if (appData.EvaluationHistory?.Count == 0)
                     {
-                        await DispatcherQueue.TryEnqueue(() =>
+                        _ = DispatcherQueue.TryEnqueue(() =>
                         {
                             AllEvaluations.Add(new Evaluation
                             {
@@ -138,7 +138,7 @@ namespace AIDevGallery.Pages
                     System.Diagnostics.Debug.WriteLine($"Error loading evaluations: {ex.Message}");
                 }
                 
-                await DispatcherQueue.TryEnqueue(() => ApplySearchFilter(SearchBox.Text));
+                _ = DispatcherQueue.TryEnqueue(() => ApplySearchFilter(SearchBox.Text));
             });
         }
 
@@ -233,7 +233,7 @@ namespace AIDevGallery.Pages
                             
                             // Create and save the complete evaluation configuration
                             var evaluationConfig = currentStep2Page.CreateEvaluationConfiguration(evaluationTypeData.EvaluationType);
-                            await SaveEvaluationConfiguration(evaluationConfig);
+                            _ = Task.Run(async () => await SaveEvaluationConfiguration(evaluationConfig));
                             
                             dialog.Hide();
                             
