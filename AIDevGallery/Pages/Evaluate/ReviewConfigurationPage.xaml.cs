@@ -292,30 +292,62 @@ namespace AIDevGallery.Pages.Evaluate
         
         private void EditEvaluationType_Click(object sender, RoutedEventArgs e)
         {
-            // Navigate back to Step 1 (SelectEvaluationTypePage)
-            _wizardFrame?.Navigate(typeof(SelectEvaluationTypePage));
+            // Create state to pass during navigation
+            var state = new EvaluationWizardState
+            {
+                EvaluationType = _evaluationType,
+                Workflow = _workflow,
+                ModelConfig = _modelConfig,
+                Dataset = _dataset,
+                Metrics = _metrics,
+                CurrentStep = 1
+            };
+            _wizardFrame?.Navigate(typeof(SelectEvaluationTypePage), state);
         }
         
         private void EditModelConfig_Click(object sender, RoutedEventArgs e)
         {
-            // Navigate back to Step 3 (ModelConfigurationStep)
-            _wizardFrame?.Navigate(typeof(ModelConfigurationStep));
+            // Create state to pass during navigation
+            var state = new EvaluationWizardState
+            {
+                EvaluationType = _evaluationType,
+                Workflow = _workflow,
+                ModelConfig = _modelConfig,
+                Dataset = _dataset,
+                Metrics = _metrics,
+                CurrentStep = 3
+            };
+            _wizardFrame?.Navigate(typeof(ModelConfigurationStep), state);
         }
         
         private void EditDataset_Click(object sender, RoutedEventArgs e)
         {
-            // Navigate back to Step 4 (DatasetUploadPage)
-            if (_wizardFrame?.Content is DatasetUploadPage datasetPage)
+            // Create state to pass during navigation
+            var state = new EvaluationWizardState
             {
-                datasetPage.SetWorkflow(_workflow);
-            }
-            _wizardFrame?.Navigate(typeof(DatasetUploadPage));
+                EvaluationType = _evaluationType,
+                Workflow = _workflow,
+                ModelConfig = _modelConfig,
+                Dataset = _dataset,
+                Metrics = _metrics,
+                CurrentStep = 4
+            };
+            _wizardFrame?.Navigate(typeof(DatasetUploadPage), state);
         }
         
         private void EditMetrics_Click(object sender, RoutedEventArgs e)
         {
-            // Navigate back to Step 5 (MetricsSelectionPage)
-            _wizardFrame?.Navigate(typeof(MetricsSelectionPage));
+            // Create state to pass during navigation
+            var state = new EvaluationWizardState
+            {
+                EvaluationType = _evaluationType,
+                Workflow = _workflow,
+                ModelConfig = _modelConfig,
+                Dataset = _dataset,
+                Metrics = _metrics,
+                CurrentStep = 5
+            };
+            _wizardFrame?.Navigate(typeof(MetricsSelectionPage), state);
         }
         
         #endregion

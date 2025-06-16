@@ -325,11 +325,15 @@ namespace AIDevGallery.Pages.Evaluate
                         var entry = ParseJsonlEntry(line, lineNumber, jsonlDirectory);
                         if (entry != null)
                         {
-                            config.Entries.Add(entry);
-                            
-                            // Track folder structure
-                            var folder = Path.GetDirectoryName(entry.OriginalImagePath) ?? "root";
-                            folderCounts[folder] = folderCounts.GetValueOrDefault(folder) + 1;
+                            // Only add up to MaxDatasetSize entries
+                            if (config.Entries.Count < MaxDatasetSize)
+                            {
+                                config.Entries.Add(entry);
+                                
+                                // Track folder structure
+                                var folder = Path.GetDirectoryName(entry.OriginalImagePath) ?? "root";
+                                folderCounts[folder] = folderCounts.GetValueOrDefault(folder) + 1;
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -351,6 +355,9 @@ namespace AIDevGallery.Pages.Evaluate
             config.FolderStructure = folderCounts;
             config.ValidationResult.Issues = issues;
             config.ValidationResult.IsValid = config.ValidEntries > 0 && issues.All(i => i.Type != IssueType.Error);
+            
+            // Debug logging
+            System.Diagnostics.Debug.WriteLine($"Dataset validation: TotalEntries={config.TotalEntries}, ValidEntries={config.ValidEntries}, ExceedsLimit={config.ExceedsLimit}");
 
             if (config.ExceedsLimit)
             {
@@ -569,17 +576,26 @@ namespace AIDevGallery.Pages.Evaluate
             // Update validation status
             if (_datasetConfig.ValidationResult.IsValid)
             {
-                ValidationInfoBar.Severity = InfoBarSeverity.Success;
-                ValidationInfoBar.Title = "Dataset Valid";
-                ValidationInfoBar.Message = $"{_datasetConfig.ValidEntries} entries loaded successfully";
-                
+                // Check if dataset exceeds limit FIRST
                 if (_datasetConfig.ExceedsLimit)
                 {
                     ValidationInfoBar.Severity = InfoBarSeverity.Warning;
-                    ValidationInfoBar.Message += $". Dataset exceeds limit - only first {MaxDatasetSize} images will be processed.";
+                    ValidationInfoBar.Title = "Dataset Too Large";
+                    ValidationInfoBar.Message = $"Dataset contains {_datasetConfig.TotalEntries:N0} entries but only the first {MaxDatasetSize:N0} will be processed.";
                     
-                    // Show prominent warning dialog
-                    _ = ShowDatasetLimitWarningAsync();
+                    // Show prominent warning dialog immediately
+                    _ = DispatcherQueue.TryEnqueue(async () =>
+                    {
+                        // Small delay to ensure UI is fully rendered
+                        await Task.Delay(100);
+                        await ShowDatasetLimitWarningAsync();
+                    });
+                }
+                else
+                {
+                    ValidationInfoBar.Severity = InfoBarSeverity.Success;
+                    ValidationInfoBar.Title = "Dataset Valid";
+                    ValidationInfoBar.Message = $"{_datasetConfig.ValidEntries} entries loaded successfully";
                 }
 
                 // Show statistics
