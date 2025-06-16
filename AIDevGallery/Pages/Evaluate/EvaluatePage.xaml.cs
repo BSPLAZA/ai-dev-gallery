@@ -265,7 +265,8 @@ namespace AIDevGallery.Pages
                         dialog.IsPrimaryButtonEnabled = reviewPage.IsReadyToExecute;
                         dialog.IsSecondaryButtonEnabled = true;
                         dialog.PrimaryButtonText = "Start Evaluation";
-                        currentStep = 5;
+                        // Set current step based on workflow
+                        currentStep = workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults ? 4 : 5;
                         // Update progress - Final step
                         dialog.UpdateProgress(totalSteps, "Review Configuration", totalSteps);
                     }
@@ -389,7 +390,20 @@ namespace AIDevGallery.Pages
                 // Handle Back button clicks
                 dialog.BackClicked += (_, __) =>
                 {
-                    if (currentStep == 4)
+                    if (currentStep == 5)
+                    {
+                        // Go back from Review Configuration to Metrics Selection
+                        // Skip metrics for ImportResults workflow
+                        if (workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults)
+                        {
+                            dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage));
+                        }
+                        else
+                        {
+                            dialog.Frame.Navigate(typeof(MetricsSelectionPage));
+                        }
+                    }
+                    else if (currentStep == 4)
                     {
                         // Go back from Metrics Selection to Dataset Upload
                         dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage));
