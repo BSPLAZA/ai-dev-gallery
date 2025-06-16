@@ -243,6 +243,22 @@ namespace AIDevGallery.Pages.Evaluate
                 if (config != null)
                 {
                     _datasetConfig = config;
+                    
+                    // Check if dataset exceeds limit BEFORE showing results
+                    if (_datasetConfig.ExceedsLimit)
+                    {
+                        HideLoadingState();
+                        
+                        System.Diagnostics.Debug.WriteLine($"Dataset exceeds limit: {_datasetConfig.TotalEntries} > {MaxDatasetSize}");
+                        
+                        var shouldContinue = await ShowDatasetLimitWarningAsync();
+                        if (!shouldContinue)
+                        {
+                            // User chose to select a different dataset
+                            return;
+                        }
+                    }
+                    
                     ShowValidationResults();
                 }
             }
@@ -267,6 +283,22 @@ namespace AIDevGallery.Pages.Evaluate
                 if (config != null)
                 {
                     _datasetConfig = config;
+                    
+                    // Check if dataset exceeds limit BEFORE showing results
+                    if (_datasetConfig.ExceedsLimit)
+                    {
+                        HideLoadingState();
+                        
+                        System.Diagnostics.Debug.WriteLine($"Folder exceeds limit: {_datasetConfig.TotalEntries} > {MaxDatasetSize}");
+                        
+                        var shouldContinue = await ShowDatasetLimitWarningAsync();
+                        if (!shouldContinue)
+                        {
+                            // User chose to select a different dataset
+                            return;
+                        }
+                    }
+                    
                     ShowValidationResults();
                     
                     // Offer to save generated JSONL
@@ -502,34 +534,40 @@ namespace AIDevGallery.Pages.Evaluate
 
             var folderCounts = new Dictionary<string, int>();
             var searchOption = SearchOption.AllDirectories; // Support subfolders
+            var allImageFiles = new List<string>();
 
+            // First, get ALL image files to count total
             foreach (var extension in SupportedImageExtensions)
             {
                 var files = Directory.GetFiles(folderPath, $"*{extension}", searchOption)
-                    .Union(Directory.GetFiles(folderPath, $"*{extension.ToUpper()}", searchOption))
-                    .Distinct()
-                    .Take(MaxDatasetSize - config.Entries.Count);
+                    .Union(Directory.GetFiles(folderPath, $"*{extension.ToUpper()}", searchOption));
+                allImageFiles.AddRange(files);
+            }
+            
+            // Remove duplicates and get total count
+            allImageFiles = allImageFiles.Distinct().ToList();
+            config.TotalEntries = allImageFiles.Count;
+            
+            System.Diagnostics.Debug.WriteLine($"CreateDatasetFromFolder: Found {config.TotalEntries} total images");
 
-                foreach (var file in files)
+            // Now add entries up to the limit
+            foreach (var file in allImageFiles.Take(MaxDatasetSize))
+            {
+                var relativePath = Path.GetRelativePath(folderPath, file);
+                var folder = Path.GetDirectoryName(relativePath) ?? "root";
+                
+                config.Entries.Add(new DatasetEntry
                 {
-                    if (config.Entries.Count >= MaxDatasetSize) break;
+                    OriginalImagePath = relativePath,
+                    ResolvedImagePath = file,
+                    Prompt = "" // For TestModel, prompt will come from model config
+                });
 
-                    var relativePath = Path.GetRelativePath(folderPath, file);
-                    var folder = Path.GetDirectoryName(relativePath) ?? "root";
-                    
-                    config.Entries.Add(new DatasetEntry
-                    {
-                        OriginalImagePath = relativePath,
-                        ResolvedImagePath = file,
-                        Prompt = "" // For TestModel, prompt will come from model config
-                    });
-
-                    folderCounts[folder] = folderCounts.GetValueOrDefault(folder) + 1;
-                }
+                folderCounts[folder] = folderCounts.GetValueOrDefault(folder) + 1;
             }
 
-            config.TotalEntries = config.Entries.Count;
             config.ValidEntries = config.Entries.Count;
+            config.ExceedsLimit = config.TotalEntries > MaxDatasetSize;
             config.FolderStructure = folderCounts;
             config.ValidationResult.IsValid = config.ValidEntries > 0;
 
@@ -540,6 +578,11 @@ namespace AIDevGallery.Pages.Evaluate
                     Type = IssueType.Error,
                     Message = "No supported image files found in the selected folder."
                 });
+            }
+            
+            if (config.ExceedsLimit)
+            {
+                config.ValidationResult.Warnings.Add($"Folder contains {config.TotalEntries:N0} images. Only the first {MaxDatasetSize:N0} will be processed.");
             }
 
             return config;
@@ -576,28 +619,14 @@ namespace AIDevGallery.Pages.Evaluate
             // Update validation status
             if (_datasetConfig.ValidationResult.IsValid)
             {
-                // Check if dataset exceeds limit FIRST
+                // Check if dataset exceeds limit
                 if (_datasetConfig.ExceedsLimit)
                 {
                     ValidationInfoBar.Severity = InfoBarSeverity.Warning;
                     ValidationInfoBar.Title = "Dataset Too Large";
                     ValidationInfoBar.Message = $"Dataset contains {_datasetConfig.TotalEntries:N0} entries but only the first {MaxDatasetSize:N0} will be processed.";
                     
-                    // Show prominent warning dialog immediately
-                    _ = DispatcherQueue.TryEnqueue(async () =>
-                    {
-                        System.Diagnostics.Debug.WriteLine($"=== Dataset Warning Dialog ===");
-                        System.Diagnostics.Debug.WriteLine($"ExceedsLimit: {_datasetConfig.ExceedsLimit}");
-                        System.Diagnostics.Debug.WriteLine($"TotalEntries: {_datasetConfig.TotalEntries}");
-                        System.Diagnostics.Debug.WriteLine($"ValidEntries: {_datasetConfig.ValidEntries}");
-                        System.Diagnostics.Debug.WriteLine($"About to show warning dialog...");
-                        
-                        // Small delay to ensure UI is fully rendered
-                        await Task.Delay(100);
-                        await ShowDatasetLimitWarningAsync();
-                        
-                        System.Diagnostics.Debug.WriteLine($"Warning dialog completed");
-                    });
+                    // Note: Warning dialog already shown during ProcessJsonlFile/ProcessImageFolder
                 }
                 else
                 {
@@ -960,14 +989,14 @@ namespace AIDevGallery.Pages.Evaluate
 
         #endregion
 
-        private async Task ShowDatasetLimitWarningAsync()
+        private async Task<bool> ShowDatasetLimitWarningAsync()
         {
             System.Diagnostics.Debug.WriteLine($"ShowDatasetLimitWarningAsync called");
             
             if (_datasetConfig == null) 
             {
                 System.Diagnostics.Debug.WriteLine($"WARNING: _datasetConfig is null, returning");
-                return;
+                return false;
             }
             
             System.Diagnostics.Debug.WriteLine($"Creating ContentDialog for dataset warning...");
@@ -1022,10 +1051,12 @@ namespace AIDevGallery.Pages.Evaluate
                 System.Diagnostics.Debug.WriteLine($"User chose to select different dataset");
                 // Clear current dataset and let user choose again
                 Reset();
+                return false; // User wants to choose different dataset
             }
             else
             {
                 System.Diagnostics.Debug.WriteLine($"User chose to continue with first 1000 items");
+                return true; // User wants to continue with truncated dataset
             }
         }
     }
