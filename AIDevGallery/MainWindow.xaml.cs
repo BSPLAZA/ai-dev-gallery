@@ -256,6 +256,10 @@ internal sealed partial class MainWindow : WindowEx
         {
             NavView.SelectedItem = NavView.MenuItems[3];
         }
+        else if (e.SourcePageType == typeof(EvaluatePage))
+        {
+            NavView.SelectedItem = NavView.MenuItems[4];
+        }
         else if (e.SourcePageType == typeof(SettingsPage))
         {
             NavView.SelectedItem = NavView.FooterMenuItems[1];
