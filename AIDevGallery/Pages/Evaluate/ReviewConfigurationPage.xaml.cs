@@ -35,6 +35,24 @@ namespace AIDevGallery.Pages.Evaluate
             this.InitializeComponent();
         }
         
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            
+            // Check if we have state from navigation
+            if (e.Parameter is EvaluationWizardState state)
+            {
+                _evaluationType = state.EvaluationType ?? EvaluationType.ImageDescription;
+                _workflow = state.Workflow ?? EvaluationWorkflow.TestModel;
+                _modelConfig = state.ModelConfig;
+                _dataset = state.Dataset;
+                _metrics = state.Metrics;
+                
+                // Update display with state data
+                UpdateDisplay();
+            }
+        }
+        
         /// <summary>
         /// Sets all configuration data from the wizard
         /// </summary>

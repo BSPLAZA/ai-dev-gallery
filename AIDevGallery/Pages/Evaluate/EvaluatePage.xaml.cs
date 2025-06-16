@@ -185,6 +185,9 @@ namespace AIDevGallery.Pages
                 DatasetConfiguration? datasetConfiguration = null;
                 EvaluationMetrics? metricsConfiguration = null;
                 
+                // Create wizard state object to maintain data across navigation
+                var wizardState = new EvaluationWizardState();
+                
                 // Set up event handlers BEFORE navigation
                 dialog.Frame.Navigated += (_, args) =>
                 {
@@ -281,7 +284,9 @@ namespace AIDevGallery.Pages
                         if (dialog.Frame.Content is SelectEvaluationTypePage currentStep1Page)
                         {
                             evaluationTypeData = currentStep1Page.GetStepData();
-                            dialog.Frame.Navigate(typeof(WorkflowSelectionPage));
+                            wizardState.EvaluationType = evaluationTypeData.EvaluationType;
+                            wizardState.CurrentStep = 2;
+                            dialog.Frame.Navigate(typeof(WorkflowSelectionPage), wizardState);
                         }
                     }
                     else if (currentStep == 1)
@@ -290,6 +295,7 @@ namespace AIDevGallery.Pages
                         if (dialog.Frame.Content is WorkflowSelectionPage currentStep2Page)
                         {
                             workflowSelectionData = currentStep2Page.GetStepData();
+                            wizardState.Workflow = workflowSelectionData.Workflow;
                             
                             // Update total steps based on workflow
                             // TestModel: 6 steps (all)
@@ -301,12 +307,14 @@ namespace AIDevGallery.Pages
                             // Only show ModelConfigurationStep for TestModel workflow
                             if (workflowSelectionData.Workflow == EvaluationWorkflow.TestModel)
                             {
-                                dialog.Frame.Navigate(typeof(Evaluate.ModelConfigurationStep));
+                                wizardState.CurrentStep = 3;
+                                dialog.Frame.Navigate(typeof(Evaluate.ModelConfigurationStep), wizardState);
                             }
                             else
                             {
                                 // Skip to DatasetUploadPage for other workflows (skip ModelConfiguration)
-                                dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage));
+                                wizardState.CurrentStep = 4;
+                                dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage), wizardState);
                             }
                         }
                     }
@@ -316,7 +324,9 @@ namespace AIDevGallery.Pages
                         if (dialog.Frame.Content is Evaluate.ModelConfigurationStep currentStep3Page)
                         {
                             modelConfigurationData = currentStep3Page.GetStepData();
-                            dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage));
+                            wizardState.ModelConfig = modelConfigurationData;
+                            wizardState.CurrentStep = 4;
+                            dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage), wizardState);
                         }
                     }
                     else if (currentStep == 3)
@@ -325,12 +335,14 @@ namespace AIDevGallery.Pages
                         if (dialog.Frame.Content is Evaluate.DatasetUploadPage datasetPage)
                         {
                             datasetConfiguration = datasetPage.GetStepData();
+                            wizardState.Dataset = datasetConfiguration;
                             
                             // Skip metrics for ImportResults workflow
                             if (workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults)
                             {
                                 // Navigate directly to ReviewConfigurationPage
-                                dialog.Frame.Navigate(typeof(ReviewConfigurationPage));
+                                wizardState.CurrentStep = 6;
+                                dialog.Frame.Navigate(typeof(ReviewConfigurationPage), wizardState);
                                 
                                 // Pass configuration data
                                 if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
@@ -347,7 +359,8 @@ namespace AIDevGallery.Pages
                             else
                             {
                                 // Navigate to MetricsSelectionPage for other workflows
-                                dialog.Frame.Navigate(typeof(MetricsSelectionPage));
+                                wizardState.CurrentStep = 5;
+                                dialog.Frame.Navigate(typeof(MetricsSelectionPage), wizardState);
                             }
                         }
                     }
@@ -357,9 +370,11 @@ namespace AIDevGallery.Pages
                         if (dialog.Frame.Content is MetricsSelectionPage metricsPage)
                         {
                             metricsConfiguration = metricsPage.GetStepData();
+                            wizardState.Metrics = metricsConfiguration;
+                            wizardState.CurrentStep = 6;
                             
                             // Navigate to ReviewConfigurationPage
-                            dialog.Frame.Navigate(typeof(ReviewConfigurationPage));
+                            dialog.Frame.Navigate(typeof(ReviewConfigurationPage), wizardState);
                             
                             // Pass all configuration data to the review page
                             if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
@@ -396,17 +411,20 @@ namespace AIDevGallery.Pages
                         // Skip metrics for ImportResults workflow
                         if (workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults)
                         {
-                            dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage));
+                            wizardState.CurrentStep = 4;
+                            dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage), wizardState);
                         }
                         else
                         {
-                            dialog.Frame.Navigate(typeof(MetricsSelectionPage));
+                            wizardState.CurrentStep = 5;
+                            dialog.Frame.Navigate(typeof(MetricsSelectionPage), wizardState);
                         }
                     }
                     else if (currentStep == 4)
                     {
                         // Go back from Metrics Selection to Dataset Upload
-                        dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage));
+                        wizardState.CurrentStep = 4;
+                        dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage), wizardState);
                     }
                     else if (currentStep == 3)
                     {
@@ -414,23 +432,27 @@ namespace AIDevGallery.Pages
                         if (workflowSelectionData?.Workflow == EvaluationWorkflow.TestModel)
                         {
                             // TestModel: go back to ModelConfiguration
-                            dialog.Frame.Navigate(typeof(Evaluate.ModelConfigurationStep));
+                            wizardState.CurrentStep = 3;
+                            dialog.Frame.Navigate(typeof(Evaluate.ModelConfigurationStep), wizardState);
                         }
                         else
                         {
                             // Other workflows: go back to WorkflowSelection
-                            dialog.Frame.Navigate(typeof(WorkflowSelectionPage));
+                            wizardState.CurrentStep = 2;
+                            dialog.Frame.Navigate(typeof(WorkflowSelectionPage), wizardState);
                         }
                     }
                     else if (currentStep == 2)
                     {
                         // Go back to Step 2 (Workflow Selection)
-                        dialog.Frame.Navigate(typeof(WorkflowSelectionPage));
+                        wizardState.CurrentStep = 2;
+                        dialog.Frame.Navigate(typeof(WorkflowSelectionPage), wizardState);
                     }
                     else if (currentStep == 1)
                     {
                         // Go back to Step 1 (Evaluation Type)
-                        dialog.Frame.Navigate(typeof(SelectEvaluationTypePage));
+                        wizardState.CurrentStep = 1;
+                        dialog.Frame.Navigate(typeof(SelectEvaluationTypePage), wizardState);
                     }
                     else
                     {
@@ -443,8 +465,9 @@ namespace AIDevGallery.Pages
                 dialog.IsSecondaryButtonEnabled = false;
                 dialog.IsPrimaryButtonEnabled = false;
                 
-                // Navigate to Step 1 AFTER setting up handlers
-                dialog.Frame.Navigate(typeof(SelectEvaluationTypePage));
+                // Navigate to Step 1 AFTER setting up handlers with initial state
+                wizardState.CurrentStep = 1;
+                dialog.Frame.Navigate(typeof(SelectEvaluationTypePage), wizardState);
                 
                 await dialog.ShowAsync();
             }
