@@ -15,6 +15,7 @@ internal class EvaluationConfiguration
     public required string Id { get; set; }
     public required string Name { get; set; }
     public EvaluationType Type { get; set; }
+    public EvaluationWorkflow Workflow { get; set; } = EvaluationWorkflow.TestModel;
     public string? Goal { get; set; }
     public DateTime Created { get; set; }
     public DateTime? LastModified { get; set; }
@@ -88,6 +89,17 @@ internal enum EvaluationType
     Translation,
     QuestionAnswering,
     CustomTask
+}
+
+/// <summary>
+/// Evaluation workflow type
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<EvaluationWorkflow>))]
+internal enum EvaluationWorkflow
+{
+    TestModel,          // Generate responses + evaluate
+    EvaluateResponses,  // Evaluate existing responses
+    ImportResults       // Import completed results
 }
 
 /// <summary>

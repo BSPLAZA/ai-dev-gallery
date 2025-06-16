@@ -179,6 +179,7 @@ namespace AIDevGallery.Pages
                 // Track wizard progress and data
                 int currentStep = 0;
                 EvaluationTypeData? evaluationTypeData = null;
+                WorkflowSelectionData? workflowSelectionData = null;
                 Evaluate.EvaluationDetailsData? evaluationDetailsData = null;
                 
                 // Set up event handlers BEFORE navigation
@@ -195,7 +196,20 @@ namespace AIDevGallery.Pages
                         dialog.PrimaryButtonText = "Next";
                         currentStep = 0;
                         // Update progress following system patterns
-                        dialog.UpdateProgress(1, "Choose Evaluation Type");
+                        dialog.UpdateProgress(1, "Choose Evaluation Type", 6);
+                    }
+                    else if (args.Content is WorkflowSelectionPage workflowPage)
+                    {
+                        workflowPage.ValidationChanged += (isValid) =>
+                        {
+                            dialog.IsPrimaryButtonEnabled = isValid;
+                        };
+                        dialog.IsPrimaryButtonEnabled = workflowPage.IsValid;
+                        dialog.IsSecondaryButtonEnabled = true;
+                        dialog.PrimaryButtonText = "Next";
+                        currentStep = 1;
+                        // Update progress following system patterns
+                        dialog.UpdateProgress(2, "Choose Your Workflow", 6);
                     }
                     else if (args.Content is Evaluate.EvaluationDetailsStep detailsPage)
                     {
@@ -206,9 +220,9 @@ namespace AIDevGallery.Pages
                         dialog.IsPrimaryButtonEnabled = detailsPage.IsValid;
                         dialog.IsSecondaryButtonEnabled = true;
                         dialog.PrimaryButtonText = "Next";
-                        currentStep = 1;
+                        currentStep = 2;
                         // Update progress following system patterns
-                        dialog.UpdateProgress(2, "Evaluation Setup");
+                        dialog.UpdateProgress(3, "Model Configuration", 6);
                     }
                 };
                 
@@ -217,22 +231,33 @@ namespace AIDevGallery.Pages
                 {
                     if (currentStep == 0)
                     {
-                        // Move from Step 1 to Step 2
+                        // Move from Step 1 (Evaluation Type) to Step 2 (Workflow Selection)
                         if (dialog.Frame.Content is SelectEvaluationTypePage currentStep1Page)
                         {
                             evaluationTypeData = currentStep1Page.GetStepData();
-                            dialog.Frame.Navigate(typeof(Evaluate.EvaluationDetailsStep));
+                            dialog.Frame.Navigate(typeof(WorkflowSelectionPage));
                         }
                     }
                     else if (currentStep == 1)
                     {
-                        // Complete wizard and save evaluation configuration
-                        if (dialog.Frame.Content is Evaluate.EvaluationDetailsStep currentStep2Page && evaluationTypeData != null)
+                        // Move from Step 2 (Workflow Selection) to Step 3 (Model Configuration)
+                        if (dialog.Frame.Content is WorkflowSelectionPage currentStep2Page)
                         {
-                            evaluationDetailsData = currentStep2Page.GetStepData();
+                            workflowSelectionData = currentStep2Page.GetStepData();
+                            dialog.Frame.Navigate(typeof(Evaluate.EvaluationDetailsStep));
+                        }
+                    }
+                    else if (currentStep == 2)
+                    {
+                        // Complete wizard and save evaluation configuration
+                        if (dialog.Frame.Content is Evaluate.EvaluationDetailsStep currentStep3Page && 
+                            evaluationTypeData != null && workflowSelectionData != null)
+                        {
+                            evaluationDetailsData = currentStep3Page.GetStepData();
                             
                             // Create and save the complete evaluation configuration
-                            var evaluationConfig = currentStep2Page.CreateEvaluationConfiguration(evaluationTypeData.EvaluationType);
+                            var evaluationConfig = currentStep3Page.CreateEvaluationConfiguration(evaluationTypeData.EvaluationType);
+                            evaluationConfig.Workflow = workflowSelectionData.Workflow;
                             _ = Task.Run(async () => await SaveEvaluationConfiguration(evaluationConfig));
                             
                             dialog.Hide();
@@ -246,9 +271,14 @@ namespace AIDevGallery.Pages
                 // Handle Back button clicks
                 dialog.BackClicked += (_, __) =>
                 {
-                    if (currentStep == 1)
+                    if (currentStep == 2)
                     {
-                        // Go back to Step 1
+                        // Go back to Step 2 (Workflow Selection)
+                        dialog.Frame.Navigate(typeof(WorkflowSelectionPage));
+                    }
+                    else if (currentStep == 1)
+                    {
+                        // Go back to Step 1 (Evaluation Type)
                         dialog.Frame.Navigate(typeof(SelectEvaluationTypePage));
                     }
                     else
