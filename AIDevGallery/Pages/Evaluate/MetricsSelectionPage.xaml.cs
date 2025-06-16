@@ -72,7 +72,7 @@ namespace AIDevGallery.Pages.Evaluate
             if (metrics.UseAIJudge && metrics.CustomCriteria != null && metrics.CustomCriteria.Any())
             {
                 // Clear any existing criteria
-                CriteriaPanel.Children.Clear();
+                CriteriaContainer.Children.Clear();
                 _criteriaControls.Clear();
                 _criteriaCount = 0;
                 

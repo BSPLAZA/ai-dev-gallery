@@ -2,12 +2,11 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
-using AIDevGallery.Utils;
-using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -22,7 +21,6 @@ using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI;
-using Microsoft.UI.Dispatching;
 
 namespace AIDevGallery.Pages.Evaluate
 {
@@ -33,8 +31,8 @@ namespace AIDevGallery.Pages.Evaluate
     /// </summary>
     public sealed partial class DatasetUploadPage : Page, INotifyPropertyChanged
     {
-        public delegate void ValidationChangedEventHandler(bool isValid);
-        public event ValidationChangedEventHandler? ValidationChanged;
+        private const long MaxFileSizeBytes = 100 * 1024 * 1024; // 100MB
+        private const int MaxDatasetSize = 1000; // Maximum number of images
 
         // Supported image extensions (case-insensitive)
         private static readonly HashSet<string> SupportedImageExtensions = new(StringComparer.OrdinalIgnoreCase)
@@ -42,8 +40,8 @@ namespace AIDevGallery.Pages.Evaluate
             ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"
         };
 
-        private const long MaxFileSizeBytes = 100 * 1024 * 1024; // 100MB
-        private const int MaxDatasetSize = 1000; // Maximum number of images
+        public delegate void ValidationChangedEventHandler(bool isValid);
+        public event ValidationChangedEventHandler? ValidationChanged;
 
         // Current state
         private DatasetConfiguration? _datasetConfig;
@@ -372,12 +370,12 @@ namespace AIDevGallery.Pages.Evaluate
                 Name = Path.GetFileNameWithoutExtension(filePath),
                 SourcePath = filePath,
                 SourceType = DatasetSourceType.JsonlFile,
-                BaseDirectory = Path.GetDirectoryName(filePath) ?? "",
+                BaseDirectory = Path.GetDirectoryName(filePath) ?? string.Empty,
                 Entries = new List<DatasetEntry>(),
                 ValidationResult = new ValidationResult { Issues = new List<ValidationIssue>() }
             };
 
-            var jsonlDirectory = Path.GetDirectoryName(filePath) ?? "";
+            var jsonlDirectory = Path.GetDirectoryName(filePath) ?? string.Empty;
             var folderCounts = new Dictionary<string, int>();
             var issues = new List<ValidationIssue>();
             var lineNumber = 0;
@@ -446,15 +444,15 @@ namespace AIDevGallery.Pages.Evaluate
                 throw new JsonException("Missing required field: image_path");
             }
 
-            var imagePath = imagePathElement.GetString() ?? "";
-            string prompt = "";
+            var imagePath = imagePathElement.GetString() ?? string.Empty;
+            string prompt = string.Empty;
             
             // For TestModel workflow, prompt is optional (will use model config prompt)
             if (_currentWorkflow == EvaluationWorkflow.TestModel)
             {
                 if (root.TryGetProperty("prompt", out var promptElement))
                 {
-                    prompt = promptElement.GetString() ?? "";
+                    prompt = promptElement.GetString() ?? string.Empty;
                 }
                 // If no prompt provided, we'll use the one from model config
             }
@@ -465,7 +463,7 @@ namespace AIDevGallery.Pages.Evaluate
                 {
                     throw new JsonException("Missing required field: prompt");
                 }
-                prompt = promptElement.GetString() ?? "";
+                prompt = promptElement.GetString() ?? string.Empty;
             }
 
             // Resolve image path
@@ -576,7 +574,7 @@ namespace AIDevGallery.Pages.Evaluate
             foreach (var extension in SupportedImageExtensions)
             {
                 var files = Directory.GetFiles(folderPath, $"*{extension}", searchOption)
-                    .Union(Directory.GetFiles(folderPath, $"*{extension.ToUpper()}", searchOption));
+                    .Union(Directory.GetFiles(folderPath, $"*{extension.ToUpperInvariant()}", searchOption));
                 allImageFiles.AddRange(files);
             }
             
@@ -595,7 +593,7 @@ namespace AIDevGallery.Pages.Evaluate
                 {
                     OriginalImagePath = relativePath,
                     ResolvedImagePath = file,
-                    Prompt = "" // For TestModel, prompt will come from model config
+                    Prompt = string.Empty // For TestModel, prompt will come from model config
                 });
 
                 folderCounts[folder] = folderCounts.GetValueOrDefault(folder) + 1;
@@ -1019,7 +1017,7 @@ namespace AIDevGallery.Pages.Evaluate
             // Update the total entries count
             if (_datasetConfig != null)
             {
-                TotalEntriesRun.Text = _datasetConfig.TotalEntries.ToString("N0");
+                TotalEntriesRun.Text = _datasetConfig.TotalEntries.ToString("N0", System.Globalization.CultureInfo.CurrentCulture);
             }
             
             // Ensure dialog buttons are disabled since dataset is invalid
@@ -1037,8 +1035,8 @@ namespace AIDevGallery.Pages.Evaluate
 
     public class DatasetPreviewItem
     {
-        public string ImagePath { get; set; } = "";
-        public string Prompt { get; set; } = "";
+        public string ImagePath { get; set; } = string.Empty;
+        public string Prompt { get; set; } = string.Empty;
     }
 
     #endregion

@@ -115,20 +115,9 @@ public sealed partial class SelectEvaluationTypePage : Page
         switch (_wizardState.EvaluationType)
         {
             case EvaluationType.ImageDescription:
-                ImageDescriptionRadioButton.IsChecked = true;
+                ImageDescriptionRadio.IsChecked = true;
                 break;
-            case EvaluationType.TextSummarization:
-                TextSummarizationRadioButton.IsChecked = true;
-                break;
-            case EvaluationType.Translation:
-                TranslationRadioButton.IsChecked = true;
-                break;
-            case EvaluationType.QuestionAnswering:
-                QuestionAnsweringRadioButton.IsChecked = true;
-                break;
-            case EvaluationType.Custom:
-                CustomRadioButton.IsChecked = true;
-                break;
+            // Future evaluation types would be handled here
         }
     }
 

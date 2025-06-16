@@ -122,13 +122,13 @@ public sealed partial class WorkflowSelectionPage : Page
         switch (_wizardState.Workflow)
         {
             case EvaluationWorkflow.TestModel:
-                TestModelRadioButton.IsChecked = true;
+                TestModelRadio.IsChecked = true;
                 break;
             case EvaluationWorkflow.EvaluateResponses:
-                EvaluateResponsesRadioButton.IsChecked = true;
+                EvaluateResponsesRadio.IsChecked = true;
                 break;
             case EvaluationWorkflow.ImportResults:
-                ImportResultsRadioButton.IsChecked = true;
+                ImportResultsRadio.IsChecked = true;
                 break;
         }
     }

@@ -229,32 +229,27 @@ namespace AIDevGallery.Pages.Evaluate
             EvaluationNameTextBox.Text = config.EvaluationName;
             EvaluationGoalTextBox.Text = config.EvaluationGoal ?? "";
             
-            // Restore provider selection
-            var providerMap = new Dictionary<string, string>
-            {
-                { "https://api.openai.com", "OpenAI" },
-                { "custom", "Custom Endpoint" }
-            };
-            
-            if (config.ApiEndpoint.Contains("openai.azure.com"))
-            {
-                ProviderComboBox.SelectedValue = "Azure OpenAI";
-            }
-            else if (providerMap.TryGetValue(config.ApiEndpoint, out var provider))
-            {
-                ProviderComboBox.SelectedValue = provider;
-            }
+            // Restore API endpoint
+            ApiEndpointTextBox.Text = config.ApiEndpoint;
             
             // Restore model selection
             if (!string.IsNullOrEmpty(config.SelectedModelId))
             {
                 selectedModelId = config.SelectedModelId;
                 selectedModelName = config.SelectedModelName;
-                ModelComboBox.SelectedValue = config.SelectedModelId;
+                // Find and select the matching ComboBoxItem
+                foreach (ComboBoxItem item in ModelSelectionComboBox.Items)
+                {
+                    if (item.Tag?.ToString() == config.SelectedModelId)
+                    {
+                        ModelSelectionComboBox.SelectedItem = item;
+                        break;
+                    }
+                }
             }
             
-            // Restore prompt template
-            PromptTemplateTextBox.Text = config.BaselinePrompt;
+            // Restore baseline prompt
+            BaselinePromptTextBox.Text = config.BaselinePrompt;
             
             // Note: API key is not restored for security reasons
             // User will need to re-enter it if they navigate back
