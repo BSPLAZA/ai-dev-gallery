@@ -55,11 +55,72 @@ internal class EvaluationCriteria
 /// </summary>
 internal class DatasetConfiguration
 {
-    public required string Name { get; set; }
-    public required string FilePath { get; set; }  // Local file path provided by user
-    public DatasetFormat Format { get; set; }
-    public DateTime? LastValidated { get; set; }
-    public int? EstimatedItemCount { get; set; }
+    // Source information
+    public required string SourcePath { get; set; }  // JSONL file or folder path
+    public DatasetSourceType SourceType { get; set; }
+    public string BaseDirectory { get; set; } = "";  // For relative path resolution
+    
+    // Dataset statistics
+    public int TotalEntries { get; set; }
+    public int ValidEntries { get; set; }
+    public bool ExceedsLimit { get; set; }
+    
+    // Organization
+    public Dictionary<string, int> FolderStructure { get; set; } = new();
+    public PathType PathTypes { get; set; }  // Absolute, Relative, or Mixed
+    
+    // Entries (limited to 1,000)
+    public List<DatasetEntry> Entries { get; set; } = new();
+    
+    // Validation results
+    public ValidationResult ValidationResult { get; set; } = new();
+}
+
+/// <summary>
+/// Individual dataset entry
+/// </summary>
+internal class DatasetEntry
+{
+    public required string OriginalImagePath { get; set; }  // As specified in JSONL
+    public required string ResolvedImagePath { get; set; }  // Full resolved path
+    public required string Prompt { get; set; }
+    
+    // Workflow-specific fields
+    public string? Response { get; set; }  // For EvaluateResponses
+    public string? Model { get; set; }  // For EvaluateResponses
+    public Dictionary<string, object>? Scores { get; set; }  // For ImportResults
+}
+
+/// <summary>
+/// Validation result for dataset
+/// </summary>
+internal class ValidationResult
+{
+    public bool IsValid { get; set; }
+    public List<ValidationIssue> Issues { get; set; } = new();
+    public List<string> Warnings { get; set; } = new();
+    public ValidationSummary? Summary { get; set; }
+}
+
+/// <summary>
+/// Individual validation issue
+/// </summary>
+internal class ValidationIssue
+{
+    public IssueType Type { get; set; }
+    public required string Message { get; set; }
+    public int? LineNumber { get; set; }
+}
+
+/// <summary>
+/// Validation summary statistics
+/// </summary>
+internal class ValidationSummary
+{
+    public int TotalFiles { get; set; }
+    public int ValidFiles { get; set; }
+    public int MissingFiles { get; set; }
+    public int UnsupportedFormats { get; set; }
 }
 
 /// <summary>
@@ -151,4 +212,36 @@ internal enum RunStatus
     Completed,
     Failed,
     Cancelled
+}
+
+/// <summary>
+/// Dataset source type
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<DatasetSourceType>))]
+internal enum DatasetSourceType
+{
+    JsonlFile,
+    ImageFolder
+}
+
+/// <summary>
+/// Path type in dataset
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<PathType>))]
+internal enum PathType
+{
+    Absolute,
+    Relative,
+    Mixed
+}
+
+/// <summary>
+/// Issue type for validation
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter<IssueType>))]
+internal enum IssueType
+{
+    Error,
+    Warning,
+    Info
 }

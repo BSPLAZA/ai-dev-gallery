@@ -182,6 +182,7 @@ namespace AIDevGallery.Pages
                 EvaluationTypeData? evaluationTypeData = null;
                 WorkflowSelectionData? workflowSelectionData = null;
                 Evaluate.ModelConfigurationData? modelConfigurationData = null;
+                DatasetConfiguration? datasetConfiguration = null;
                 
                 // Set up event handlers BEFORE navigation
                 dialog.Frame.Navigated += (_, args) =>
@@ -225,6 +226,24 @@ namespace AIDevGallery.Pages
                         // Update progress following system patterns
                         dialog.UpdateProgress(3, "Model Configuration", totalSteps);
                     }
+                    else if (args.Content is Evaluate.DatasetUploadPage datasetPage)
+                    {
+                        datasetPage.ValidationChanged += (isValid) =>
+                        {
+                            dialog.IsPrimaryButtonEnabled = isValid;
+                        };
+                        // Pass workflow information to dataset page
+                        if (workflowSelectionData != null)
+                        {
+                            datasetPage.SetWorkflow(workflowSelectionData.Workflow);
+                        }
+                        dialog.IsPrimaryButtonEnabled = datasetPage.IsValid;
+                        dialog.IsSecondaryButtonEnabled = true;
+                        dialog.PrimaryButtonText = "Next";
+                        currentStep = 3;
+                        // Update progress - Step 4 for all workflows
+                        dialog.UpdateProgress(4, "Upload Dataset", totalSteps);
+                    }
                 };
                 
                 // Handle Next/Create button clicks
@@ -257,32 +276,53 @@ namespace AIDevGallery.Pages
                             }
                             else
                             {
-                                // Skip to CriteriaDefinitionPage for other workflows
-                                // TODO: Navigate to CriteriaDefinitionPage once implemented
-                                // dialog.Frame.Navigate(typeof(Evaluate.CriteriaDefinitionPage));
-                                
-                                // For now, just hide the dialog since next steps aren't implemented
-                                dialog.Hide();
+                                // Skip to DatasetUploadPage for other workflows (skip ModelConfiguration)
+                                dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage));
                             }
                         }
                     }
                     else if (currentStep == 2)
                     {
-                        // Complete wizard and save evaluation configuration
-                        if (dialog.Frame.Content is Evaluate.ModelConfigurationStep currentStep3Page && 
-                            evaluationTypeData != null && workflowSelectionData != null)
+                        // Move from Step 3 (Model Configuration) to Step 4 (Dataset Upload)
+                        if (dialog.Frame.Content is Evaluate.ModelConfigurationStep currentStep3Page)
                         {
                             modelConfigurationData = currentStep3Page.GetStepData();
+                            dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage));
+                        }
+                    }
+                    else if (currentStep == 3)
+                    {
+                        // Move from Step 4 (Dataset Upload) to Step 5 (Metrics Selection)
+                        if (dialog.Frame.Content is Evaluate.DatasetUploadPage datasetPage)
+                        {
+                            datasetConfiguration = datasetPage.GetStepData();
                             
-                            // Create and save the complete evaluation configuration
-                            var evaluationConfig = currentStep3Page.CreateEvaluationConfiguration(evaluationTypeData.EvaluationType);
-                            evaluationConfig.Workflow = workflowSelectionData.Workflow;
-                            _ = Task.Run(async () => await SaveEvaluationConfiguration(evaluationConfig));
+                            // TODO: Navigate to MetricsSelectionPage once implemented
+                            // dialog.Frame.Navigate(typeof(Evaluate.MetricsSelectionPage));
                             
-                            dialog.Hide();
-                            
-                            // Refresh the evaluations list to show the new evaluation
-                            LoadEvaluations();
+                            // For now, complete the wizard with what we have
+                            if (evaluationTypeData != null && workflowSelectionData != null && modelConfigurationData != null)
+                            {
+                                var evaluationConfig = new EvaluationConfiguration
+                                {
+                                    Id = Guid.NewGuid().ToString(),
+                                    Name = modelConfigurationData.FinalEvaluationName,
+                                    Type = evaluationTypeData.EvaluationType,
+                                    Workflow = workflowSelectionData.Workflow,
+                                    Goal = modelConfigurationData.EvaluationGoal,
+                                    Created = DateTime.UtcNow,
+                                    SelectedModelId = modelConfigurationData.SelectedModelId,
+                                    SelectedModelName = modelConfigurationData.SelectedModelName,
+                                    ApiEndpoint = modelConfigurationData.ApiEndpoint,
+                                    BaselinePrompt = modelConfigurationData.BaselinePrompt,
+                                    Dataset = datasetConfiguration,
+                                    Status = EvaluationStatus.Draft
+                                };
+                                
+                                _ = Task.Run(async () => await SaveEvaluationConfiguration(evaluationConfig));
+                                dialog.Hide();
+                                LoadEvaluations();
+                            }
                         }
                     }
                 };
@@ -290,7 +330,21 @@ namespace AIDevGallery.Pages
                 // Handle Back button clicks
                 dialog.BackClicked += (_, __) =>
                 {
-                    if (currentStep == 2)
+                    if (currentStep == 3)
+                    {
+                        // Go back from Dataset Upload
+                        if (workflowSelectionData?.Workflow == EvaluationWorkflow.TestModel)
+                        {
+                            // TestModel: go back to ModelConfiguration
+                            dialog.Frame.Navigate(typeof(Evaluate.ModelConfigurationStep));
+                        }
+                        else
+                        {
+                            // Other workflows: go back to WorkflowSelection
+                            dialog.Frame.Navigate(typeof(WorkflowSelectionPage));
+                        }
+                    }
+                    else if (currentStep == 2)
                     {
                         // Go back to Step 2 (Workflow Selection)
                         dialog.Frame.Navigate(typeof(WorkflowSelectionPage));
@@ -305,11 +359,6 @@ namespace AIDevGallery.Pages
                         // Close dialog from Step 1
                         dialog.Hide();
                     }
-                    
-                    // TODO: Update back navigation when CriteriaDefinitionPage is implemented
-                    // For Step 3+ (CriteriaDefinitionPage and beyond):
-                    // - If TestModel workflow: go back to ModelConfigurationStep
-                    // - If other workflows: go back to WorkflowSelectionPage
                 };
                 
                 // Initialize dialog state
