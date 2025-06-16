@@ -586,9 +586,17 @@ namespace AIDevGallery.Pages.Evaluate
                     // Show prominent warning dialog immediately
                     _ = DispatcherQueue.TryEnqueue(async () =>
                     {
+                        System.Diagnostics.Debug.WriteLine($"=== Dataset Warning Dialog ===");
+                        System.Diagnostics.Debug.WriteLine($"ExceedsLimit: {_datasetConfig.ExceedsLimit}");
+                        System.Diagnostics.Debug.WriteLine($"TotalEntries: {_datasetConfig.TotalEntries}");
+                        System.Diagnostics.Debug.WriteLine($"ValidEntries: {_datasetConfig.ValidEntries}");
+                        System.Diagnostics.Debug.WriteLine($"About to show warning dialog...");
+                        
                         // Small delay to ensure UI is fully rendered
                         await Task.Delay(100);
                         await ShowDatasetLimitWarningAsync();
+                        
+                        System.Diagnostics.Debug.WriteLine($"Warning dialog completed");
                     });
                 }
                 else
@@ -954,7 +962,15 @@ namespace AIDevGallery.Pages.Evaluate
 
         private async Task ShowDatasetLimitWarningAsync()
         {
-            if (_datasetConfig == null) return;
+            System.Diagnostics.Debug.WriteLine($"ShowDatasetLimitWarningAsync called");
+            
+            if (_datasetConfig == null) 
+            {
+                System.Diagnostics.Debug.WriteLine($"WARNING: _datasetConfig is null, returning");
+                return;
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"Creating ContentDialog for dataset warning...");
             
             var dialog = new ContentDialog
             {
@@ -995,12 +1011,21 @@ namespace AIDevGallery.Pages.Evaluate
                 DefaultButton = ContentDialogButton.Secondary
             };
 
+            System.Diagnostics.Debug.WriteLine($"Showing dataset warning dialog...");
+            
             var result = await dialog.ShowAsync();
+            
+            System.Diagnostics.Debug.WriteLine($"Dialog result: {result}");
             
             if (result == ContentDialogResult.Secondary)
             {
+                System.Diagnostics.Debug.WriteLine($"User chose to select different dataset");
                 // Clear current dataset and let user choose again
                 Reset();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"User chose to continue with first 1000 items");
             }
         }
     }
