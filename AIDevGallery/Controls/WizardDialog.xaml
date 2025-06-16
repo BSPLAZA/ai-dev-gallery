@@ -14,7 +14,7 @@
         <ResourceDictionary Source="ms-appx:///Styles/Colors.xaml"/>
     </ContentDialog.Resources>
     
-    <Grid MinWidth="650">
+    <Grid MinWidth="500" MaxWidth="650">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
