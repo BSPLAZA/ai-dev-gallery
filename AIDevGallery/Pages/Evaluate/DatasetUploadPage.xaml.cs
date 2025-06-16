@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Utils;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
@@ -576,11 +577,21 @@ namespace AIDevGallery.Pages.Evaluate
                 {
                     ValidationInfoBar.Severity = InfoBarSeverity.Warning;
                     ValidationInfoBar.Message += $". Dataset exceeds limit - only first {MaxDatasetSize} images will be processed.";
+                    
+                    // Show prominent warning dialog
+                    _ = ShowDatasetLimitWarningAsync();
                 }
 
                 // Show statistics
                 StatisticsPanel.Visibility = Visibility.Visible;
-                EntryCountText.Text = $"📊 {_datasetConfig.ValidEntries} valid entries";
+                if (_datasetConfig.ExceedsLimit)
+                {
+                    EntryCountText.Text = $"📊 {MaxDatasetSize:N0} of {_datasetConfig.TotalEntries:N0} entries will be processed";
+                }
+                else
+                {
+                    EntryCountText.Text = $"📊 {_datasetConfig.ValidEntries} valid entries";
+                }
                 BaseDirectoryText.Text = $"📁 Base: {_datasetConfig.BaseDirectory}";
 
                 // Show folder structure if applicable
@@ -924,6 +935,57 @@ namespace AIDevGallery.Pages.Evaluate
         }
 
         #endregion
+
+        private async Task ShowDatasetLimitWarningAsync()
+        {
+            var dialog = new ContentDialog
+            {
+                XamlRoot = this.XamlRoot,
+                Title = "Large Dataset Warning",
+                Content = new StackPanel
+                {
+                    Spacing = 12,
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = $"Your dataset contains {_datasetConfig.TotalEntries:N0} items, but the evaluation wizard has a limit of {MaxDatasetSize:N0} items.",
+                            TextWrapping = TextWrapping.Wrap
+                        },
+                        new TextBlock
+                        {
+                            Text = "Only the first 1,000 items will be processed. This limitation exists to ensure reasonable evaluation times and system performance.",
+                            TextWrapping = TextWrapping.Wrap,
+                            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+                        },
+                        new TextBlock
+                        {
+                            Text = "To evaluate more items, consider:",
+                            FontWeight = FontWeights.SemiBold,
+                            Margin = new Thickness(0, 8, 0, 0)
+                        },
+                        new TextBlock
+                        {
+                            Text = "• Splitting your dataset into smaller batches\n• Using a representative sample\n• Running multiple evaluations",
+                            TextWrapping = TextWrapping.Wrap,
+                            Margin = new Thickness(16, 0, 0, 0)
+                        }
+                    }
+                },
+                PrimaryButtonText = "Continue with first 1,000",
+                SecondaryButtonText = "Choose different dataset",
+                DefaultButton = ContentDialogButton.Secondary
+            };
+
+            var result = await dialog.ShowAsync();
+            
+            if (result == ContentDialogResult.Secondary)
+            {
+                // Clear current dataset and let user choose again
+                _datasetConfig = null;
+                ResetUI();
+            }
+        }
     }
 
     #region Helper Classes
