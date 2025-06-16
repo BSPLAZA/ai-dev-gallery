@@ -382,7 +382,7 @@ namespace AIDevGallery.Pages.Evaluate
     {
         public string Name { get; set; } = "";
         public string Icon { get; set; } = "";
-        public SolidColorBrush IconColor { get; set; } = new SolidColorBrush(Windows.UI.Colors.Gray);
+        public SolidColorBrush IconColor { get; set; } = new SolidColorBrush(Microsoft.UI.Colors.Gray);
     }
     
     internal class CriterionDisplayItem

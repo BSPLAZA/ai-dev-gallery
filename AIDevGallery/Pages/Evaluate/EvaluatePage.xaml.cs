@@ -373,29 +373,13 @@ namespace AIDevGallery.Pages
                             }
                         }
                     }
-                    
-                    void CompleteWizard()
+                    else if (currentStep == 5)
                     {
-                        if (evaluationTypeData != null && workflowSelectionData != null)
+                        // Execute evaluation from ReviewConfigurationPage
+                        if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
                         {
-                            var evaluationConfig = new EvaluationConfiguration
-                            {
-                                Id = Guid.NewGuid().ToString(),
-                                Name = modelConfigurationData?.FinalEvaluationName ?? "New Evaluation",
-                                Type = evaluationTypeData.EvaluationType,
-                                Workflow = workflowSelectionData.Workflow,
-                                Goal = modelConfigurationData?.EvaluationGoal,
-                                Created = DateTime.UtcNow,
-                                SelectedModelId = modelConfigurationData?.SelectedModelId ?? "",
-                                SelectedModelName = modelConfigurationData?.SelectedModelName ?? "",
-                                ApiEndpoint = modelConfigurationData?.ApiEndpoint ?? "",
-                                BaselinePrompt = modelConfigurationData?.BaselinePrompt ?? "",
-                                Dataset = datasetConfiguration,
-                                Metrics = metricsConfiguration,
-                                Status = EvaluationStatus.Draft
-                            };
-                            
-                            _ = Task.Run(async () => await SaveEvaluationConfiguration(evaluationConfig));
+                            var finalConfig = reviewPage.BuildFinalConfiguration();
+                            _ = Task.Run(async () => await SaveEvaluationConfiguration(finalConfig));
                             dialog.Hide();
                             LoadEvaluations();
                         }
