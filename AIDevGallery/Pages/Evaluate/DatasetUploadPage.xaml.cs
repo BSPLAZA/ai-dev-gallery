@@ -249,14 +249,10 @@ namespace AIDevGallery.Pages.Evaluate
                     {
                         HideLoadingState();
                         
-                        System.Diagnostics.Debug.WriteLine($"Dataset exceeds limit: {_datasetConfig.TotalEntries} > {MaxDatasetSize}");
                         
-                        var shouldContinue = await ShowDatasetLimitWarningAsync();
-                        if (!shouldContinue)
-                        {
-                            // User chose to select a different dataset
-                            return;
-                        }
+                        // Show inline error instead of dialog
+                        ShowDatasetSizeError();
+                        return; // Don't show validation results - dataset is rejected
                     }
                     
                     ShowValidationResults();
@@ -289,14 +285,10 @@ namespace AIDevGallery.Pages.Evaluate
                     {
                         HideLoadingState();
                         
-                        System.Diagnostics.Debug.WriteLine($"Folder exceeds limit: {_datasetConfig.TotalEntries} > {MaxDatasetSize}");
                         
-                        var shouldContinue = await ShowDatasetLimitWarningAsync();
-                        if (!shouldContinue)
-                        {
-                            // User chose to select a different dataset
-                            return;
-                        }
+                        // Show inline error instead of dialog
+                        ShowDatasetSizeError();
+                        return; // Don't show validation results - dataset is rejected
                     }
                     
                     ShowValidationResults();
@@ -388,8 +380,6 @@ namespace AIDevGallery.Pages.Evaluate
             config.ValidationResult.Issues = issues;
             config.ValidationResult.IsValid = config.ValidEntries > 0 && issues.All(i => i.Type != IssueType.Error);
             
-            // Debug logging
-            System.Diagnostics.Debug.WriteLine($"Dataset validation: TotalEntries={config.TotalEntries}, ValidEntries={config.ValidEntries}, ExceedsLimit={config.ExceedsLimit}");
 
             if (config.ExceedsLimit)
             {
@@ -548,7 +538,6 @@ namespace AIDevGallery.Pages.Evaluate
             allImageFiles = allImageFiles.Distinct().ToList();
             config.TotalEntries = allImageFiles.Count;
             
-            System.Diagnostics.Debug.WriteLine($"CreateDatasetFromFolder: Found {config.TotalEntries} total images");
 
             // Now add entries up to the limit
             foreach (var file in allImageFiles.Take(MaxDatasetSize))
@@ -619,32 +608,14 @@ namespace AIDevGallery.Pages.Evaluate
             // Update validation status
             if (_datasetConfig.ValidationResult.IsValid)
             {
-                // Check if dataset exceeds limit
-                if (_datasetConfig.ExceedsLimit)
-                {
-                    ValidationInfoBar.Severity = InfoBarSeverity.Warning;
-                    ValidationInfoBar.Title = "Dataset Too Large";
-                    ValidationInfoBar.Message = $"Dataset contains {_datasetConfig.TotalEntries:N0} entries but only the first {MaxDatasetSize:N0} will be processed.";
-                    
-                    // Note: Warning dialog already shown during ProcessJsonlFile/ProcessImageFolder
-                }
-                else
-                {
-                    ValidationInfoBar.Severity = InfoBarSeverity.Success;
-                    ValidationInfoBar.Title = "Dataset Valid";
-                    ValidationInfoBar.Message = $"{_datasetConfig.ValidEntries} entries loaded successfully";
-                }
+                // Dataset is valid and within size limits
+                ValidationInfoBar.Severity = InfoBarSeverity.Success;
+                ValidationInfoBar.Title = "Dataset Valid";
+                ValidationInfoBar.Message = $"{_datasetConfig.ValidEntries} entries loaded successfully";
 
                 // Show statistics
                 StatisticsPanel.Visibility = Visibility.Visible;
-                if (_datasetConfig.ExceedsLimit)
-                {
-                    EntryCountText.Text = $"📊 {MaxDatasetSize:N0} of {_datasetConfig.TotalEntries:N0} entries will be processed";
-                }
-                else
-                {
-                    EntryCountText.Text = $"📊 {_datasetConfig.ValidEntries} valid entries";
-                }
+                EntryCountText.Text = $"📊 {_datasetConfig.ValidEntries} valid entries";
                 BaseDirectoryText.Text = $"📁 Base: {_datasetConfig.BaseDirectory}";
 
                 // Show folder structure if applicable
@@ -969,6 +940,7 @@ namespace AIDevGallery.Pages.Evaluate
             // Reset UI
             UploadPanel.Visibility = Visibility.Visible;
             ValidationResultsPanel.Visibility = Visibility.Collapsed;
+            DatasetSizeErrorPanel.Visibility = Visibility.Collapsed;
             RelativePathWarning.IsOpen = false;
             
             // Clear validation state
@@ -989,76 +961,30 @@ namespace AIDevGallery.Pages.Evaluate
 
         #endregion
 
-        private async Task<bool> ShowDatasetLimitWarningAsync()
+        private void ShowDatasetSizeError()
         {
-            System.Diagnostics.Debug.WriteLine($"ShowDatasetLimitWarningAsync called");
+            // Hide other panels
+            UploadPanel.Visibility = Visibility.Collapsed;
+            ValidationResultsPanel.Visibility = Visibility.Collapsed;
             
-            if (_datasetConfig == null) 
+            // Show error panel
+            DatasetSizeErrorPanel.Visibility = Visibility.Visible;
+            
+            // Update the total entries count
+            if (_datasetConfig != null)
             {
-                System.Diagnostics.Debug.WriteLine($"WARNING: _datasetConfig is null, returning");
-                return false;
+                TotalEntriesRun.Text = _datasetConfig.TotalEntries.ToString("N0");
             }
             
-            System.Diagnostics.Debug.WriteLine($"Creating ContentDialog for dataset warning...");
-            
-            var dialog = new ContentDialog
-            {
-                XamlRoot = this.XamlRoot,
-                Title = "Large Dataset Warning",
-                Content = new StackPanel
-                {
-                    Spacing = 12,
-                    Children =
-                    {
-                        new TextBlock
-                        {
-                            Text = $"Your dataset contains {_datasetConfig.TotalEntries:N0} items, but the evaluation wizard has a limit of {MaxDatasetSize:N0} items.",
-                            TextWrapping = TextWrapping.Wrap
-                        },
-                        new TextBlock
-                        {
-                            Text = "Only the first 1,000 items will be processed. This limitation exists to ensure reasonable evaluation times and system performance.",
-                            TextWrapping = TextWrapping.Wrap,
-                            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
-                        },
-                        new TextBlock
-                        {
-                            Text = "To evaluate more items, consider:",
-                            FontWeight = FontWeights.SemiBold,
-                            Margin = new Thickness(0, 8, 0, 0)
-                        },
-                        new TextBlock
-                        {
-                            Text = "• Splitting your dataset into smaller batches\n• Using a representative sample\n• Running multiple evaluations",
-                            TextWrapping = TextWrapping.Wrap,
-                            Margin = new Thickness(16, 0, 0, 0)
-                        }
-                    }
-                },
-                PrimaryButtonText = "Continue with first 1,000",
-                SecondaryButtonText = "Choose different dataset",
-                DefaultButton = ContentDialogButton.Secondary
-            };
-
-            System.Diagnostics.Debug.WriteLine($"Showing dataset warning dialog...");
-            
-            var result = await dialog.ShowAsync();
-            
-            System.Diagnostics.Debug.WriteLine($"Dialog result: {result}");
-            
-            if (result == ContentDialogResult.Secondary)
-            {
-                System.Diagnostics.Debug.WriteLine($"User chose to select different dataset");
-                // Clear current dataset and let user choose again
-                Reset();
-                return false; // User wants to choose different dataset
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"User chose to continue with first 1000 items");
-                return true; // User wants to continue with truncated dataset
-            }
+            // Ensure dialog buttons are disabled since dataset is invalid
+            UpdateParentDialogState();
         }
+        
+        private void SelectDifferentDataset_Click(object sender, RoutedEventArgs e)
+        {
+            Reset();
+        }
+        
     }
 
     #region Helper Classes

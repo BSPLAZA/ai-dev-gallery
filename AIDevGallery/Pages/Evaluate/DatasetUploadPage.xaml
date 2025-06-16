@@ -161,6 +161,54 @@
                 </Grid>
             </Border>
 
+            <!-- Dataset Size Error (hidden by default) -->
+            <Border 
+                x:Name="DatasetSizeErrorPanel"
+                Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
+                BorderBrush="{ThemeResource SystemFillColorCriticalBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="16"
+                Visibility="Collapsed">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <FontIcon Glyph="&#xE783;" FontSize="24" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                        <TextBlock 
+                            Text="Dataset Exceeds Maximum Size" 
+                            Style="{StaticResource SubtitleTextBlockStyle}" 
+                            VerticalAlignment="Center" />
+                    </StackPanel>
+                    
+                    <TextBlock x:Name="DatasetErrorText" TextWrapping="Wrap">
+                        <Run Text="Your dataset contains " />
+                        <Run x:Name="TotalEntriesRun" FontWeight="Bold" />
+                        <Run Text=" items. The maximum allowed size is 1,000 items." />
+                    </TextBlock>
+                    
+                    <TextBlock 
+                        Text="This limit ensures reasonable evaluation times and system performance. Please select a smaller dataset."
+                        TextWrapping="Wrap"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    
+                    <TextBlock 
+                        Text="To work with larger datasets:"
+                        FontWeight="SemiBold"
+                        Margin="0,8,0,0" />
+                    
+                    <TextBlock 
+                        Text="• Select a subset of your images (max 1,000)&#x0a;• Create a representative sample&#x0a;• Split into multiple smaller datasets"
+                        TextWrapping="Wrap"
+                        Margin="16,0,0,0" />
+                    
+                    <Button 
+                        x:Name="SelectDifferentDatasetButton"
+                        Content="Select Different Dataset"
+                        Style="{StaticResource AccentButtonStyle}"
+                        Click="SelectDifferentDataset_Click"
+                        Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
+
             <!-- Validation Results (hidden by default) -->
             <Border 
                 x:Name="ValidationResultsPanel"
