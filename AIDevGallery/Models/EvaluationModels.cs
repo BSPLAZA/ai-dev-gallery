@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace AIDevGallery.Models;
@@ -31,6 +33,9 @@ internal class EvaluationConfiguration
     
     // Dataset Configuration (Step 4) - Following local file path approach
     public DatasetConfiguration? Dataset { get; set; }
+    
+    // Metrics Configuration (Step 5)
+    public EvaluationMetrics? Metrics { get; set; }
     
     // Status tracking
     public EvaluationStatus Status { get; set; }
@@ -142,6 +147,42 @@ internal class EvaluationRun
     public int? ItemsProcessed { get; set; }
     public int? TotalItems { get; set; }
     public string? ResultsPath { get; set; }  // Path to detailed results file
+}
+
+/// <summary>
+/// Evaluation metrics configuration
+/// </summary>
+internal class EvaluationMetrics
+{
+    // Automated metrics
+    public bool UseSpice { get; set; } = true;  // Default on
+    public bool UseClipScore { get; set; } = true;  // Default on
+    public bool UseMeteor { get; set; }
+    public bool UseLengthStats { get; set; }
+    
+    // AI Judge
+    public bool UseAIJudge { get; set; }
+    public List<CustomCriterion> CustomCriteria { get; set; } = new();
+}
+
+/// <summary>
+/// Custom criterion for AI Judge evaluation
+/// </summary>
+internal class CustomCriterion : INotifyPropertyChanged
+{
+    public int Id { get; set; }
+    public required string Name { get; set; }  // Free text
+    public required string Description { get; set; }  // Free text
+    public bool IsEnabled { get; set; } = true;
+    
+    // For UI display
+    public string DisplayNumber => $"Criterion {Id}";
+    
+    public event PropertyChangedEventHandler? PropertyChanged;
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 }
 
 /// <summary>
