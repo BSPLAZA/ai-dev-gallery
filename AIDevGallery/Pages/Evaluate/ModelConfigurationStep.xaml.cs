@@ -10,11 +10,12 @@ using System;
 namespace AIDevGallery.Pages.Evaluate
 {
     /// <summary>
-    /// Step 2: Evaluation Setup
+    /// Step 3: Model Configuration
     /// Collects evaluation details and configures the AI model to test.
     /// Handles secure API key storage using Windows Credential Manager.
+    /// Only shown for TestModel workflow.
     /// </summary>
-    public sealed partial class EvaluationDetailsStep : Page
+    public sealed partial class ModelConfigurationStep : Page
     {
         public delegate void ValidationChangedEventHandler(bool isValid);
         public event ValidationChangedEventHandler? ValidationChanged;
@@ -22,7 +23,7 @@ namespace AIDevGallery.Pages.Evaluate
         private string? selectedModelId;
         private string? selectedModelName;
 
-        public EvaluationDetailsStep()
+        public ModelConfigurationStep()
         {
             this.InitializeComponent();
         }
@@ -205,7 +206,7 @@ namespace AIDevGallery.Pages.Evaluate
         /// <summary>
         /// Saves the API key securely and gets the evaluation data for this step
         /// </summary>
-        public EvaluationDetailsData GetStepData()
+        public ModelConfigurationData GetStepData()
         {
             // Save API key securely if provided
             if (!string.IsNullOrWhiteSpace(ApiKeyPasswordBox.Password) && selectedModelId != null)
@@ -214,7 +215,7 @@ namespace AIDevGallery.Pages.Evaluate
                 CredentialManager.WriteCredential(credentialKey, ApiKeyPasswordBox.Password);
             }
 
-            return new EvaluationDetailsData
+            return new ModelConfigurationData
             {
                 EvaluationName = EvaluationNameTextBox.Text.Trim(),
                 FinalEvaluationName = GetFinalEvaluationName(),
@@ -252,8 +253,8 @@ namespace AIDevGallery.Pages.Evaluate
                 ApiEndpoint = ApiEndpointTextBox.Text.Trim(),
                 BaselinePrompt = BaselinePromptTextBox.Text.Trim(),
                 Status = EvaluationStatus.Draft,
-                Criteria = null, // Will be set in Step 3
-                Dataset = null   // Will be set in Step 4
+                Criteria = null, // Will be set in Step 4
+                Dataset = null   // Will be set in Step 5
             };
         }
 
@@ -277,9 +278,9 @@ namespace AIDevGallery.Pages.Evaluate
     }
 
     /// <summary>
-    /// Data collected from the Evaluation Setup step
+    /// Data collected from the Model Configuration step
     /// </summary>
-    public class EvaluationDetailsData
+    public class ModelConfigurationData
     {
         public required string EvaluationName { get; set; }
         public required string FinalEvaluationName { get; set; }

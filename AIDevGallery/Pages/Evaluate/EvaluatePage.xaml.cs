@@ -178,9 +178,10 @@ namespace AIDevGallery.Pages
                 
                 // Track wizard progress and data
                 int currentStep = 0;
+                int totalSteps = 6; // Default to TestModel workflow (6 steps)
                 EvaluationTypeData? evaluationTypeData = null;
                 WorkflowSelectionData? workflowSelectionData = null;
-                Evaluate.EvaluationDetailsData? evaluationDetailsData = null;
+                Evaluate.ModelConfigurationData? modelConfigurationData = null;
                 
                 // Set up event handlers BEFORE navigation
                 dialog.Frame.Navigated += (_, args) =>
@@ -196,7 +197,7 @@ namespace AIDevGallery.Pages
                         dialog.PrimaryButtonText = "Next";
                         currentStep = 0;
                         // Update progress following system patterns
-                        dialog.UpdateProgress(1, "Choose Evaluation Type", 6);
+                        dialog.UpdateProgress(1, "Choose Evaluation Type", totalSteps);
                     }
                     else if (args.Content is WorkflowSelectionPage workflowPage)
                     {
@@ -209,20 +210,20 @@ namespace AIDevGallery.Pages
                         dialog.PrimaryButtonText = "Next";
                         currentStep = 1;
                         // Update progress following system patterns
-                        dialog.UpdateProgress(2, "Choose Your Workflow", 6);
+                        dialog.UpdateProgress(2, "Choose Your Workflow", totalSteps);
                     }
-                    else if (args.Content is Evaluate.EvaluationDetailsStep detailsPage)
+                    else if (args.Content is Evaluate.ModelConfigurationStep modelConfigPage)
                     {
-                        detailsPage.ValidationChanged += (isValid) =>
+                        modelConfigPage.ValidationChanged += (isValid) =>
                         {
                             dialog.IsPrimaryButtonEnabled = isValid;
                         };
-                        dialog.IsPrimaryButtonEnabled = detailsPage.IsValid;
+                        dialog.IsPrimaryButtonEnabled = modelConfigPage.IsValid;
                         dialog.IsSecondaryButtonEnabled = true;
                         dialog.PrimaryButtonText = "Next";
                         currentStep = 2;
                         // Update progress following system patterns
-                        dialog.UpdateProgress(3, "Model Configuration", 6);
+                        dialog.UpdateProgress(3, "Model Configuration", totalSteps);
                     }
                 };
                 
@@ -240,20 +241,38 @@ namespace AIDevGallery.Pages
                     }
                     else if (currentStep == 1)
                     {
-                        // Move from Step 2 (Workflow Selection) to Step 3 (Model Configuration)
+                        // Move from Step 2 (Workflow Selection) to appropriate next step
                         if (dialog.Frame.Content is WorkflowSelectionPage currentStep2Page)
                         {
                             workflowSelectionData = currentStep2Page.GetStepData();
-                            dialog.Frame.Navigate(typeof(Evaluate.EvaluationDetailsStep));
+                            
+                            // Update total steps based on workflow
+                            // TestModel has 6 steps, others have 5 (skip ModelConfigurationStep)
+                            totalSteps = workflowSelectionData.Workflow == EvaluationWorkflow.TestModel ? 6 : 5;
+                            
+                            // Only show ModelConfigurationStep for TestModel workflow
+                            if (workflowSelectionData.Workflow == EvaluationWorkflow.TestModel)
+                            {
+                                dialog.Frame.Navigate(typeof(Evaluate.ModelConfigurationStep));
+                            }
+                            else
+                            {
+                                // Skip to CriteriaDefinitionPage for other workflows
+                                // TODO: Navigate to CriteriaDefinitionPage once implemented
+                                // dialog.Frame.Navigate(typeof(Evaluate.CriteriaDefinitionPage));
+                                
+                                // For now, just hide the dialog since next steps aren't implemented
+                                dialog.Hide();
+                            }
                         }
                     }
                     else if (currentStep == 2)
                     {
                         // Complete wizard and save evaluation configuration
-                        if (dialog.Frame.Content is Evaluate.EvaluationDetailsStep currentStep3Page && 
+                        if (dialog.Frame.Content is Evaluate.ModelConfigurationStep currentStep3Page && 
                             evaluationTypeData != null && workflowSelectionData != null)
                         {
-                            evaluationDetailsData = currentStep3Page.GetStepData();
+                            modelConfigurationData = currentStep3Page.GetStepData();
                             
                             // Create and save the complete evaluation configuration
                             var evaluationConfig = currentStep3Page.CreateEvaluationConfiguration(evaluationTypeData.EvaluationType);
@@ -286,6 +305,11 @@ namespace AIDevGallery.Pages
                         // Close dialog from Step 1
                         dialog.Hide();
                     }
+                    
+                    // TODO: Update back navigation when CriteriaDefinitionPage is implemented
+                    // For Step 3+ (CriteriaDefinitionPage and beyond):
+                    // - If TestModel workflow: go back to ModelConfigurationStep
+                    // - If other workflows: go back to WorkflowSelectionPage
                 };
                 
                 // Initialize dialog state
@@ -330,14 +354,14 @@ namespace AIDevGallery.Pages
             }
         }
 
-        private void CreateNewEvaluation(EvaluationTypeData? typeData, Evaluate.EvaluationDetailsData? detailsData)
+        private void CreateNewEvaluation(EvaluationTypeData? typeData, Evaluate.ModelConfigurationData? modelConfigData)
         {
-            if (typeData == null || detailsData == null) return;
+            if (typeData == null || modelConfigData == null) return;
             
             // Create new evaluation with the collected data
             var newEvaluation = new Evaluation
             {
-                Name = detailsData.FinalEvaluationName,
+                Name = modelConfigData.FinalEvaluationName,
                 Status = "In Progress",
                 Progress = 0,
                 Dataset = "Pending", // Will be configured in future steps
