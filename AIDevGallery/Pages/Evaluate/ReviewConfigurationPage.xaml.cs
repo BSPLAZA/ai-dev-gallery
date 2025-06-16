@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
@@ -36,7 +37,7 @@ namespace AIDevGallery.Pages.Evaluate
         /// <summary>
         /// Sets all configuration data from the wizard
         /// </summary>
-        public void SetConfigurationData(
+        internal void SetConfigurationData(
             EvaluationType evaluationType,
             EvaluationWorkflow workflow,
             ModelConfigurationData? modelConfig,
