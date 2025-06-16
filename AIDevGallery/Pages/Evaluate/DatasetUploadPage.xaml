@@ -27,6 +27,7 @@
                     Style="{StaticResource SubtitleTextBlockStyle}"
                     Text="Upload Dataset" />
                 <TextBlock 
+                    x:Name="HeaderDescriptionText"
                     Style="{StaticResource BodyTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Text="Provide your evaluation dataset by uploading a JSONL file or selecting an image folder."
@@ -46,6 +47,7 @@
                         Style="{StaticResource BodyStrongTextBlockStyle}" />
                     
                     <TextBlock 
+                        x:Name="RequirementsText"
                         Style="{StaticResource CaptionTextBlockStyle}"
                         TextWrapping="Wrap">
                         <Run Text="• Format: JSONL (one JSON object per line)" />

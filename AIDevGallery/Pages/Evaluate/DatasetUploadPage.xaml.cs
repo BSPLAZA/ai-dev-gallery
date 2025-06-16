@@ -5,6 +5,7 @@ using AIDevGallery.Models;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
@@ -46,7 +47,6 @@ namespace AIDevGallery.Pages.Evaluate
         // Current state
         private DatasetConfiguration? _datasetConfig;
         private EvaluationWorkflow _currentWorkflow;
-        private bool _isValidating;
         private ObservableCollection<DatasetPreviewItem> _previewItems = new();
 
         public DatasetUploadPage()
@@ -55,12 +55,47 @@ namespace AIDevGallery.Pages.Evaluate
             PreviewListView.ItemsSource = _previewItems;
         }
 
+        private void UpdateUIForWorkflow()
+        {
+            switch (_currentWorkflow)
+            {
+                case EvaluationWorkflow.TestModel:
+                    // For TestModel, we only need images (prompt comes from model config)
+                    HeaderDescriptionText.Text = "Provide images for evaluation. The prompt from your model configuration will be applied to each image.";
+                    RequirementsText.Inlines.Clear();
+                    RequirementsText.Inlines.Add(new Run { Text = "• Format: Image folder or JSONL file\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Required: image paths only\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Image types: .jpg, .jpeg, .png, .gif, .bmp, .webp\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Max dataset size: 1,000 images" });
+                    break;
+                    
+                case EvaluationWorkflow.EvaluateResponses:
+                    HeaderDescriptionText.Text = "Provide a JSONL file with images, prompts, and model responses for evaluation.";
+                    RequirementsText.Inlines.Clear();
+                    RequirementsText.Inlines.Add(new Run { Text = "• Format: JSONL (one JSON object per line)\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Required fields: image_path, prompt, response, model\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Image types: .jpg, .jpeg, .png, .gif, .bmp, .webp\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Max dataset size: 1,000 images" });
+                    break;
+                    
+                case EvaluationWorkflow.ImportResults:
+                    HeaderDescriptionText.Text = "Provide a JSONL file with evaluation results to import and analyze.";
+                    RequirementsText.Inlines.Clear();
+                    RequirementsText.Inlines.Add(new Run { Text = "• Format: JSONL (one JSON object per line)\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Required fields: image_path, prompt, criteria_scores\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Optional fields: response, model\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Max dataset size: 1,000 entries" });
+                    break;
+            }
+        }
+
         /// <summary>
         /// Sets the current workflow to determine validation rules
         /// </summary>
-        public void SetWorkflow(EvaluationWorkflow workflow)
+        internal void SetWorkflow(EvaluationWorkflow workflow)
         {
             _currentWorkflow = workflow;
+            UpdateUIForWorkflow();
         }
 
         /// <summary>
@@ -71,7 +106,7 @@ namespace AIDevGallery.Pages.Evaluate
         /// <summary>
         /// Gets the dataset configuration for this step
         /// </summary>
-        public DatasetConfiguration? GetStepData() => _datasetConfig;
+        internal DatasetConfiguration? GetStepData() => _datasetConfig;
 
         #region Drag and Drop Handlers
 
@@ -263,6 +298,7 @@ namespace AIDevGallery.Pages.Evaluate
         {
             var config = new DatasetConfiguration
             {
+                Name = Path.GetFileNameWithoutExtension(filePath),
                 SourcePath = filePath,
                 SourceType = DatasetSourceType.JsonlFile,
                 BaseDirectory = Path.GetDirectoryName(filePath) ?? "",
@@ -329,14 +365,32 @@ namespace AIDevGallery.Pages.Evaluate
             var root = json.RootElement;
 
             // Check required fields based on workflow
-            if (!root.TryGetProperty("image_path", out var imagePathElement) ||
-                !root.TryGetProperty("prompt", out var promptElement))
+            if (!root.TryGetProperty("image_path", out var imagePathElement))
             {
-                throw new JsonException("Missing required fields: image_path and prompt");
+                throw new JsonException("Missing required field: image_path");
             }
 
             var imagePath = imagePathElement.GetString() ?? "";
-            var prompt = promptElement.GetString() ?? "";
+            string prompt = "";
+            
+            // For TestModel workflow, prompt is optional (will use model config prompt)
+            if (_currentWorkflow == EvaluationWorkflow.TestModel)
+            {
+                if (root.TryGetProperty("prompt", out var promptElement))
+                {
+                    prompt = promptElement.GetString() ?? "";
+                }
+                // If no prompt provided, we'll use the one from model config
+            }
+            else
+            {
+                // For other workflows, prompt is required
+                if (!root.TryGetProperty("prompt", out var promptElement))
+                {
+                    throw new JsonException("Missing required field: prompt");
+                }
+                prompt = promptElement.GetString() ?? "";
+            }
 
             // Resolve image path
             var resolvedPath = ResolveImagePath(imagePath, baseDirectory);
@@ -430,6 +484,7 @@ namespace AIDevGallery.Pages.Evaluate
         {
             var config = new DatasetConfiguration
             {
+                Name = Path.GetFileName(folderPath),
                 SourcePath = folderPath,
                 SourceType = DatasetSourceType.ImageFolder,
                 BaseDirectory = folderPath,
@@ -458,7 +513,7 @@ namespace AIDevGallery.Pages.Evaluate
                     {
                         OriginalImagePath = relativePath,
                         ResolvedImagePath = file,
-                        Prompt = "Describe this image" // Default prompt
+                        Prompt = "" // For TestModel, prompt will come from model config
                     });
 
                     folderCounts[folder] = folderCounts.GetValueOrDefault(folder) + 1;
@@ -488,7 +543,6 @@ namespace AIDevGallery.Pages.Evaluate
 
         private void ShowLoadingState(string message)
         {
-            _isValidating = true;
             UploadPanel.Visibility = Visibility.Collapsed;
             LoadingPanel.Visibility = Visibility.Visible;
             LoadingText.Text = message;
@@ -497,7 +551,6 @@ namespace AIDevGallery.Pages.Evaluate
 
         private void HideLoadingState()
         {
-            _isValidating = false;
             LoadingPanel.Visibility = Visibility.Collapsed;
             UploadPanel.Visibility = Visibility.Visible;
         }
@@ -595,10 +648,16 @@ namespace AIDevGallery.Pages.Evaluate
             _previewItems.Clear();
             foreach (var entry in _datasetConfig.Entries.Take(5))
             {
+                var prompt = entry.Prompt;
+                if (_currentWorkflow == EvaluationWorkflow.TestModel && string.IsNullOrEmpty(prompt))
+                {
+                    prompt = "[Will use prompt from model configuration]";
+                }
+                
                 _previewItems.Add(new DatasetPreviewItem
                 {
                     ImagePath = entry.OriginalImagePath,
-                    Prompt = TruncateText(entry.Prompt, 100)
+                    Prompt = TruncateText(prompt, 100)
                 });
             }
 
@@ -757,9 +816,10 @@ namespace AIDevGallery.Pages.Evaluate
             switch (_currentWorkflow)
             {
                 case EvaluationWorkflow.TestModel:
-                    examples.AppendLine(@"{""image_path"": ""images/products/shoe1.jpg"", ""prompt"": ""Describe this product image for our e-commerce catalog""}");
-                    examples.AppendLine(@"{""image_path"": ""images/products/shoe2.jpg"", ""prompt"": ""Generate an engaging product description""}");
-                    examples.AppendLine(@"{""image_path"": ""C:\\data\\images\\bag1.png"", ""prompt"": ""Create alt text for accessibility""}");
+                    examples.AppendLine(@"{""image_path"": ""images/products/shoe1.jpg""}");
+                    examples.AppendLine(@"{""image_path"": ""images/products/shoe2.jpg""}");
+                    examples.AppendLine(@"{""image_path"": ""C:\\data\\images\\bag1.png""}");
+                    examples.AppendLine(@"// Note: For Test Model workflow, the prompt from your model configuration will be used");
                     break;
                     
                 case EvaluationWorkflow.EvaluateResponses:
@@ -782,12 +842,22 @@ namespace AIDevGallery.Pages.Evaluate
             var jsonl = new StringBuilder();
             foreach (var entry in _datasetConfig.Entries)
             {
-                var obj = new
+                if (_currentWorkflow == EvaluationWorkflow.TestModel)
                 {
-                    image_path = entry.OriginalImagePath,
-                    prompt = entry.Prompt
-                };
-                jsonl.AppendLine(JsonSerializer.Serialize(obj));
+                    // For TestModel, only include image_path
+                    var obj = new { image_path = entry.OriginalImagePath };
+                    jsonl.AppendLine(JsonSerializer.Serialize(obj));
+                }
+                else
+                {
+                    // For other workflows, include prompt
+                    var obj = new
+                    {
+                        image_path = entry.OriginalImagePath,
+                        prompt = entry.Prompt
+                    };
+                    jsonl.AppendLine(JsonSerializer.Serialize(obj));
+                }
             }
 
             try

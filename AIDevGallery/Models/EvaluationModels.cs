@@ -55,6 +55,11 @@ internal class EvaluationCriteria
 /// </summary>
 internal class DatasetConfiguration
 {
+    // Basic info
+    public string Name { get; set; } = "";
+    public string FilePath => SourcePath;  // Alias for compatibility
+    public int EstimatedItemCount => ValidEntries;  // Alias for compatibility
+    
     // Source information
     public required string SourcePath { get; set; }  // JSONL file or folder path
     public DatasetSourceType SourceType { get; set; }
@@ -243,5 +248,6 @@ internal enum IssueType
 {
     Error,
     Warning,
-    Info
+    Info,
+    InvalidJson
 }
