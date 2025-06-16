@@ -259,6 +259,16 @@ namespace AIDevGallery.Pages
                         int stepNumber = workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults ? 4 : 5;
                         dialog.UpdateProgress(stepNumber, "Select Evaluation Methods", totalSteps);
                     }
+                    else if (args.Content is ReviewConfigurationPage reviewPage)
+                    {
+                        // Final step - change button to "Start Evaluation"
+                        dialog.IsPrimaryButtonEnabled = reviewPage.IsReadyToExecute;
+                        dialog.IsSecondaryButtonEnabled = true;
+                        dialog.PrimaryButtonText = "Start Evaluation";
+                        currentStep = 5;
+                        // Update progress - Final step
+                        dialog.UpdateProgress(totalSteps, "Review Configuration", totalSteps);
+                    }
                 };
                 
                 // Handle Next/Create button clicks
@@ -318,9 +328,20 @@ namespace AIDevGallery.Pages
                             // Skip metrics for ImportResults workflow
                             if (workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults)
                             {
-                                // TODO: Navigate to ReviewConfigurationPage once implemented
-                                // For now, complete the wizard
-                                CompleteWizard();
+                                // Navigate directly to ReviewConfigurationPage
+                                dialog.Frame.Navigate(typeof(ReviewConfigurationPage));
+                                
+                                // Pass configuration data
+                                if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
+                                {
+                                    reviewPage.SetConfigurationData(
+                                        evaluationTypeData?.EvaluationType ?? EvaluationType.ImageDescription,
+                                        workflowSelectionData.Workflow,
+                                        modelConfigurationData,
+                                        datasetConfiguration,
+                                        null, // No metrics for ImportResults
+                                        dialog.Frame);
+                                }
                             }
                             else
                             {
@@ -336,9 +357,20 @@ namespace AIDevGallery.Pages
                         {
                             metricsConfiguration = metricsPage.GetStepData();
                             
-                            // TODO: Navigate to ReviewConfigurationPage once implemented
-                            // For now, complete the wizard
-                            CompleteWizard();
+                            // Navigate to ReviewConfigurationPage
+                            dialog.Frame.Navigate(typeof(ReviewConfigurationPage));
+                            
+                            // Pass all configuration data to the review page
+                            if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
+                            {
+                                reviewPage.SetConfigurationData(
+                                    evaluationTypeData?.EvaluationType ?? EvaluationType.ImageDescription,
+                                    workflowSelectionData?.Workflow ?? EvaluationWorkflow.TestModel,
+                                    modelConfigurationData,
+                                    datasetConfiguration,
+                                    metricsConfiguration,
+                                    dialog.Frame);
+                            }
                         }
                     }
                     
