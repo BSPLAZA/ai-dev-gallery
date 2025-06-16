@@ -1,0 +1,187 @@
+<!-- Copyright (c) Microsoft Corporation. All rights reserved. -->
+<!-- Licensed under the MIT License. -->
+
+<Page
+    x:Class="AIDevGallery.Pages.Evaluate.MetricsSelectionPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <ResourceDictionary Source="ms-appx:///Styles/Colors.xaml"/>
+    </Page.Resources>
+
+    <!-- 
+    Step 5: Select Evaluation Methods
+    Purpose: Choose automated metrics and/or AI Judge criteria
+    -->
+
+    <ScrollViewer MaxHeight="600" Padding="24">
+        <StackPanel Spacing="24">
+            
+            <!-- Header -->
+            <StackPanel Spacing="8">
+                <TextBlock 
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Text="Select Evaluation Methods" />
+                <TextBlock 
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="Choose how you'd like to evaluate the quality of image descriptions."
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!-- Automated Metrics Section -->
+            <Border 
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="16">
+                <StackPanel Spacing="12">
+                    <StackPanel Spacing="4">
+                        <TextBlock 
+                            Text="Automated Metrics" 
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <TextBlock 
+                            Text="Scientific metrics calculated automatically" 
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <CheckBox 
+                            x:Name="SpiceCheckBox"
+                            IsChecked="True"
+                            Checked="Metric_CheckedChanged"
+                            Unchecked="Metric_CheckedChanged"
+                            AutomationProperties.Name="SPICE Score metric">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="SPICE Score (Semantic accuracy)" />
+                                <TextBlock 
+                                    Text="Measures how well descriptions capture objects, attributes, and relationships"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </CheckBox>
+
+                        <CheckBox 
+                            x:Name="ClipScoreCheckBox"
+                            IsChecked="True"
+                            Checked="Metric_CheckedChanged"
+                            Unchecked="Metric_CheckedChanged"
+                            AutomationProperties.Name="CLIPScore metric">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="CLIPScore (Image-text alignment)" />
+                                <TextBlock 
+                                    Text="Evaluates how well the text matches the visual content"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </CheckBox>
+
+                        <CheckBox 
+                            x:Name="MeteorCheckBox"
+                            Checked="Metric_CheckedChanged"
+                            Unchecked="Metric_CheckedChanged"
+                            AutomationProperties.Name="METEOR metric">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="METEOR (Fluency and readability)" />
+                                <TextBlock 
+                                    Text="Analyzes language quality, grammar, and natural flow"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </CheckBox>
+
+                        <CheckBox 
+                            x:Name="LengthStatsCheckBox"
+                            Checked="Metric_CheckedChanged"
+                            Unchecked="Metric_CheckedChanged"
+                            AutomationProperties.Name="Length statistics metric">
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="Length Statistics" />
+                                <TextBlock 
+                                    Text="Tracks word count, character count, and consistency"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </CheckBox>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- AI Judge Section -->
+            <Border 
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="16">
+                <StackPanel Spacing="12">
+                    <CheckBox 
+                        x:Name="AIJudgeCheckBox"
+                        Checked="AIJudge_CheckedChanged"
+                        Unchecked="AIJudge_CheckedChanged"
+                        AutomationProperties.Name="Use AI Judge evaluation">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="AI Judge Evaluation" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock 
+                                Text="Use AI to evaluate custom criteria (scored 1-5)"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </CheckBox>
+
+                    <!-- AI Judge Criteria (hidden by default) -->
+                    <StackPanel 
+                        x:Name="AIJudgeCriteriaPanel"
+                        Spacing="12"
+                        Visibility="Collapsed">
+                        
+                        <TextBlock 
+                            Text="The AI will score each criterion from 1 (Poor) to 5 (Excellent)"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                        <!-- Criteria Container -->
+                        <StackPanel 
+                            x:Name="CriteriaContainer"
+                            Spacing="16">
+                            <!-- Criteria will be added dynamically here -->
+                        </StackPanel>
+
+                        <!-- Add Criterion Button -->
+                        <Button 
+                            x:Name="AddCriterionButton"
+                            Click="AddCriterionButton_Click"
+                            Style="{StaticResource AccentButtonStyle}"
+                            HorizontalAlignment="Left"
+                            AutomationProperties.Name="Add another evaluation criterion">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE710;" FontSize="16" />
+                                <TextBlock x:Name="AddCriterionButtonText" Text="Add another criterion (4 remaining)" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Validation Message (hidden by default) -->
+            <InfoBar 
+                x:Name="ValidationInfoBar"
+                Severity="Error"
+                Title="Selection Required"
+                Message="Please select at least one evaluation method"
+                IsOpen="False"
+                IsClosable="False" />
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

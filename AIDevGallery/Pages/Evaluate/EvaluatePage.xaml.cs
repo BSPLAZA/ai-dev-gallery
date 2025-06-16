@@ -183,6 +183,7 @@ namespace AIDevGallery.Pages
                 WorkflowSelectionData? workflowSelectionData = null;
                 Evaluate.ModelConfigurationData? modelConfigurationData = null;
                 DatasetConfiguration? datasetConfiguration = null;
+                EvaluationMetrics? metricsConfiguration = null;
                 
                 // Set up event handlers BEFORE navigation
                 dialog.Frame.Navigated += (_, args) =>
@@ -244,6 +245,20 @@ namespace AIDevGallery.Pages
                         // Update progress - Step 4 for all workflows
                         dialog.UpdateProgress(4, "Upload Dataset", totalSteps);
                     }
+                    else if (args.Content is MetricsSelectionPage metricsPage)
+                    {
+                        metricsPage.ValidationChanged += (isValid) =>
+                        {
+                            dialog.IsPrimaryButtonEnabled = isValid;
+                        };
+                        dialog.IsPrimaryButtonEnabled = metricsPage.IsValid;
+                        dialog.IsSecondaryButtonEnabled = true;
+                        dialog.PrimaryButtonText = "Next";
+                        currentStep = 4;
+                        // Update progress - Step 5 (skip for ImportResults)
+                        int stepNumber = workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults ? 4 : 5;
+                        dialog.UpdateProgress(stepNumber, "Select Evaluation Methods", totalSteps);
+                    }
                 };
                 
                 // Handle Next/Create button clicks
@@ -266,8 +281,11 @@ namespace AIDevGallery.Pages
                             workflowSelectionData = currentStep2Page.GetStepData();
                             
                             // Update total steps based on workflow
-                            // TestModel has 6 steps, others have 5 (skip ModelConfigurationStep)
-                            totalSteps = workflowSelectionData.Workflow == EvaluationWorkflow.TestModel ? 6 : 5;
+                            // TestModel: 6 steps (all)
+                            // EvaluateResponses: 5 steps (skip ModelConfiguration)
+                            // ImportResults: 4 steps (skip ModelConfiguration and Metrics)
+                            totalSteps = workflowSelectionData.Workflow == EvaluationWorkflow.TestModel ? 6 : 
+                                        workflowSelectionData.Workflow == EvaluationWorkflow.EvaluateResponses ? 5 : 4;
                             
                             // Only show ModelConfigurationStep for TestModel workflow
                             if (workflowSelectionData.Workflow == EvaluationWorkflow.TestModel)
@@ -297,32 +315,57 @@ namespace AIDevGallery.Pages
                         {
                             datasetConfiguration = datasetPage.GetStepData();
                             
-                            // TODO: Navigate to MetricsSelectionPage once implemented
-                            // dialog.Frame.Navigate(typeof(Evaluate.MetricsSelectionPage));
-                            
-                            // For now, complete the wizard with what we have
-                            if (evaluationTypeData != null && workflowSelectionData != null && modelConfigurationData != null)
+                            // Skip metrics for ImportResults workflow
+                            if (workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults)
                             {
-                                var evaluationConfig = new EvaluationConfiguration
-                                {
-                                    Id = Guid.NewGuid().ToString(),
-                                    Name = modelConfigurationData.FinalEvaluationName,
-                                    Type = evaluationTypeData.EvaluationType,
-                                    Workflow = workflowSelectionData.Workflow,
-                                    Goal = modelConfigurationData.EvaluationGoal,
-                                    Created = DateTime.UtcNow,
-                                    SelectedModelId = modelConfigurationData.SelectedModelId,
-                                    SelectedModelName = modelConfigurationData.SelectedModelName,
-                                    ApiEndpoint = modelConfigurationData.ApiEndpoint,
-                                    BaselinePrompt = modelConfigurationData.BaselinePrompt,
-                                    Dataset = datasetConfiguration,
-                                    Status = EvaluationStatus.Draft
-                                };
-                                
-                                _ = Task.Run(async () => await SaveEvaluationConfiguration(evaluationConfig));
-                                dialog.Hide();
-                                LoadEvaluations();
+                                // TODO: Navigate to ReviewConfigurationPage once implemented
+                                // For now, complete the wizard
+                                CompleteWizard();
                             }
+                            else
+                            {
+                                // Navigate to MetricsSelectionPage for other workflows
+                                dialog.Frame.Navigate(typeof(MetricsSelectionPage));
+                            }
+                        }
+                    }
+                    else if (currentStep == 4)
+                    {
+                        // Move from Step 5 (Metrics Selection) to Step 6 (Review)
+                        if (dialog.Frame.Content is MetricsSelectionPage metricsPage)
+                        {
+                            metricsConfiguration = metricsPage.GetStepData();
+                            
+                            // TODO: Navigate to ReviewConfigurationPage once implemented
+                            // For now, complete the wizard
+                            CompleteWizard();
+                        }
+                    }
+                    
+                    void CompleteWizard()
+                    {
+                        if (evaluationTypeData != null && workflowSelectionData != null)
+                        {
+                            var evaluationConfig = new EvaluationConfiguration
+                            {
+                                Id = Guid.NewGuid().ToString(),
+                                Name = modelConfigurationData?.FinalEvaluationName ?? "New Evaluation",
+                                Type = evaluationTypeData.EvaluationType,
+                                Workflow = workflowSelectionData.Workflow,
+                                Goal = modelConfigurationData?.EvaluationGoal,
+                                Created = DateTime.UtcNow,
+                                SelectedModelId = modelConfigurationData?.SelectedModelId ?? "",
+                                SelectedModelName = modelConfigurationData?.SelectedModelName ?? "",
+                                ApiEndpoint = modelConfigurationData?.ApiEndpoint ?? "",
+                                BaselinePrompt = modelConfigurationData?.BaselinePrompt ?? "",
+                                Dataset = datasetConfiguration,
+                                Metrics = metricsConfiguration,
+                                Status = EvaluationStatus.Draft
+                            };
+                            
+                            _ = Task.Run(async () => await SaveEvaluationConfiguration(evaluationConfig));
+                            dialog.Hide();
+                            LoadEvaluations();
                         }
                     }
                 };
@@ -330,7 +373,12 @@ namespace AIDevGallery.Pages
                 // Handle Back button clicks
                 dialog.BackClicked += (_, __) =>
                 {
-                    if (currentStep == 3)
+                    if (currentStep == 4)
+                    {
+                        // Go back from Metrics Selection to Dataset Upload
+                        dialog.Frame.Navigate(typeof(Evaluate.DatasetUploadPage));
+                    }
+                    else if (currentStep == 3)
                     {
                         // Go back from Dataset Upload
                         if (workflowSelectionData?.Workflow == EvaluationWorkflow.TestModel)
