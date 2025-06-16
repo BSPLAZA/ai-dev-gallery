@@ -5,6 +5,7 @@ using AIDevGallery.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -26,11 +27,75 @@ namespace AIDevGallery.Pages.Evaluate
         private readonly List<CriterionControl> _criteriaControls = new();
         private int _criteriaCount = 0;
 
+        private EvaluationWizardState? _wizardState;
+
         public MetricsSelectionPage()
         {
             this.InitializeComponent();
             
             // Don't add default criterion here - wait for AI Judge to be checked
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            
+            // Check if we have state to restore
+            if (e.Parameter is EvaluationWizardState state)
+            {
+                _wizardState = state;
+                RestoreFromState();
+            }
+        }
+
+        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+        {
+            base.OnNavigatingFrom(e);
+            SaveToState();
+        }
+
+        private void RestoreFromState()
+        {
+            if (_wizardState?.Metrics == null) return;
+
+            var metrics = _wizardState.Metrics;
+            
+            // Restore automated metrics
+            SpiceCheckBox.IsChecked = metrics.UseSpice;
+            ClipScoreCheckBox.IsChecked = metrics.UseClipScore;
+            MeteorCheckBox.IsChecked = metrics.UseMeteor;
+            LengthStatsCheckBox.IsChecked = metrics.UseLengthStats;
+            
+            // Restore AI Judge
+            AIJudgeCheckBox.IsChecked = metrics.UseAIJudge;
+            
+            if (metrics.UseAIJudge && metrics.CustomCriteria != null && metrics.CustomCriteria.Any())
+            {
+                // Clear any existing criteria
+                CriteriaPanel.Children.Clear();
+                _criteriaControls.Clear();
+                _criteriaCount = 0;
+                
+                // Restore saved criteria
+                foreach (var criterion in metrics.CustomCriteria)
+                {
+                    AddCriterion();
+                    // The last added criterion control needs to be populated
+                    if (_criteriaControls.Count > 0)
+                    {
+                        var lastControl = _criteriaControls[_criteriaControls.Count - 1];
+                        lastControl.SetValues(criterion.Name, criterion.Description);
+                    }
+                }
+            }
+        }
+
+        private void SaveToState()
+        {
+            if (_wizardState == null) return;
+
+            // Save current metrics configuration to state
+            _wizardState.Metrics = GetStepData();
         }
 
         /// <summary>
@@ -289,6 +354,12 @@ namespace AIDevGallery.Pages.Evaluate
             _numberText.Text = $"Criterion {newNumber}";
             AutomationProperties.SetName(_nameTextBox, $"Criterion {newNumber} name");
             AutomationProperties.SetName(_descriptionTextBox, $"Criterion {newNumber} description");
+        }
+
+        public void SetValues(string name, string description)
+        {
+            _nameTextBox.Text = name;
+            _descriptionTextBox.Text = description;
         }
     }
 }

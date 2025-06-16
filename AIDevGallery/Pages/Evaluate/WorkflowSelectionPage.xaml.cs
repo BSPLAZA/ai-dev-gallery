@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 
 namespace AIDevGallery.Pages.Evaluate;
 
@@ -87,6 +88,8 @@ public sealed partial class WorkflowSelectionPage : Page
         }
     }
 
+    private EvaluationWizardState? _wizardState;
+
     /// <summary>
     /// Called when the page is loaded to ensure initial state.
     /// </summary>
@@ -94,8 +97,52 @@ public sealed partial class WorkflowSelectionPage : Page
     {
         base.OnNavigatedTo(e);
 
+        // Check if we have state to restore
+        if (e.Parameter is EvaluationWizardState state)
+        {
+            _wizardState = state;
+            RestoreFromState();
+        }
+
         // Since we have a default selection, the page is always valid
         UpdateParentDialogState();
+    }
+
+    protected override void OnNavigatingFrom(Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
+    {
+        base.OnNavigatingFrom(e);
+        SaveToState();
+    }
+
+    private void RestoreFromState()
+    {
+        if (_wizardState?.Workflow == null) return;
+
+        // Restore the selected workflow
+        switch (_wizardState.Workflow)
+        {
+            case EvaluationWorkflow.TestModel:
+                TestModelRadioButton.IsChecked = true;
+                break;
+            case EvaluationWorkflow.EvaluateResponses:
+                EvaluateResponsesRadioButton.IsChecked = true;
+                break;
+            case EvaluationWorkflow.ImportResults:
+                ImportResultsRadioButton.IsChecked = true;
+                break;
+        }
+    }
+
+    private void SaveToState()
+    {
+        if (_wizardState == null) return;
+
+        // Save current selection to state
+        var stepData = GetStepData();
+        if (stepData != null)
+        {
+            _wizardState.Workflow = stepData.Workflow;
+        }
     }
 
     /// <summary>

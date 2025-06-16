@@ -4,6 +4,7 @@
 using AIDevGallery.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 
 namespace AIDevGallery.Pages;
 
@@ -83,12 +84,64 @@ public sealed partial class SelectEvaluationTypePage : Page
     /// <summary>
     /// Called when the page is loaded to ensure initial state
     /// </summary>
+    private EvaluationWizardState? _wizardState;
+
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
 
+        // Check if we have state to restore
+        if (e.Parameter is EvaluationWizardState state)
+        {
+            _wizardState = state;
+            RestoreFromState();
+        }
+
         // Ensure parent dialog starts with disabled Next button
         UpdateParentDialogState();
+    }
+
+    protected override void OnNavigatingFrom(Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
+    {
+        base.OnNavigatingFrom(e);
+        SaveToState();
+    }
+
+    private void RestoreFromState()
+    {
+        if (_wizardState?.EvaluationType == null) return;
+
+        // Restore the selected evaluation type
+        switch (_wizardState.EvaluationType)
+        {
+            case EvaluationType.ImageDescription:
+                ImageDescriptionRadioButton.IsChecked = true;
+                break;
+            case EvaluationType.TextSummarization:
+                TextSummarizationRadioButton.IsChecked = true;
+                break;
+            case EvaluationType.Translation:
+                TranslationRadioButton.IsChecked = true;
+                break;
+            case EvaluationType.QuestionAnswering:
+                QuestionAnsweringRadioButton.IsChecked = true;
+                break;
+            case EvaluationType.Custom:
+                CustomRadioButton.IsChecked = true;
+                break;
+        }
+    }
+
+    private void SaveToState()
+    {
+        if (_wizardState == null) return;
+
+        // Save current selection to state
+        var stepData = GetStepData();
+        if (stepData != null)
+        {
+            _wizardState.EvaluationType = stepData.EvaluationType;
+        }
     }
 
     /// <summary>

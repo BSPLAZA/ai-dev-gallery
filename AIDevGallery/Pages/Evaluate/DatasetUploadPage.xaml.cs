@@ -50,10 +50,56 @@ namespace AIDevGallery.Pages.Evaluate
         private EvaluationWorkflow _currentWorkflow;
         private ObservableCollection<DatasetPreviewItem> _previewItems = new();
 
+        private EvaluationWizardState? _wizardState;
+
         public DatasetUploadPage()
         {
             this.InitializeComponent();
             PreviewListView.ItemsSource = _previewItems;
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            
+            // Check if we have state to restore
+            if (e.Parameter is EvaluationWizardState state)
+            {
+                _wizardState = state;
+                RestoreFromState();
+            }
+        }
+
+        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+        {
+            base.OnNavigatingFrom(e);
+            SaveToState();
+        }
+
+        private void RestoreFromState()
+        {
+            if (_wizardState?.Dataset == null) return;
+
+            // Restore the dataset configuration
+            _datasetConfig = _wizardState.Dataset;
+            
+            // Update workflow if available
+            if (_wizardState.Workflow.HasValue)
+            {
+                _currentWorkflow = _wizardState.Workflow.Value;
+                UpdateUIForWorkflow();
+            }
+            
+            // Show validation results for the restored dataset
+            ShowValidationResults();
+        }
+
+        private void SaveToState()
+        {
+            if (_wizardState == null) return;
+
+            // Save current dataset configuration to state
+            _wizardState.Dataset = _datasetConfig;
         }
 
         private void UpdateUIForWorkflow()

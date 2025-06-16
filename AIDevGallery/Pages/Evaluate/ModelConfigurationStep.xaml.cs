@@ -196,11 +196,76 @@ namespace AIDevGallery.Pages.Evaluate
             }
         }
 
+        private EvaluationWizardState? _wizardState;
+
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            
+            // Check if we have state to restore
+            if (e.Parameter is EvaluationWizardState state)
+            {
+                _wizardState = state;
+                RestoreFromState();
+            }
+            
             // Ensure parent dialog starts with disabled Next button
             UpdateParentDialogState();
+        }
+
+        protected override void OnNavigatingFrom(Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
+        {
+            base.OnNavigatingFrom(e);
+            SaveToState();
+        }
+
+        private void RestoreFromState()
+        {
+            if (_wizardState?.ModelConfig == null) return;
+
+            var config = _wizardState.ModelConfig;
+            
+            // Restore evaluation name and goal
+            EvaluationNameTextBox.Text = config.EvaluationName;
+            EvaluationGoalTextBox.Text = config.EvaluationGoal ?? "";
+            
+            // Restore provider selection
+            var providerMap = new Dictionary<string, string>
+            {
+                { "https://api.openai.com", "OpenAI" },
+                { "custom", "Custom Endpoint" }
+            };
+            
+            if (config.ApiEndpoint.Contains("openai.azure.com"))
+            {
+                ProviderComboBox.SelectedValue = "Azure OpenAI";
+            }
+            else if (providerMap.TryGetValue(config.ApiEndpoint, out var provider))
+            {
+                ProviderComboBox.SelectedValue = provider;
+            }
+            
+            // Restore model selection
+            if (!string.IsNullOrEmpty(config.SelectedModelId))
+            {
+                selectedModelId = config.SelectedModelId;
+                selectedModelName = config.SelectedModelName;
+                ModelComboBox.SelectedValue = config.SelectedModelId;
+            }
+            
+            // Restore prompt template
+            PromptTemplateTextBox.Text = config.BaselinePrompt;
+            
+            // Note: API key is not restored for security reasons
+            // User will need to re-enter it if they navigate back
+        }
+
+        private void SaveToState()
+        {
+            if (_wizardState == null) return;
+
+            // Save current configuration to state
+            _wizardState.ModelConfig = GetStepData();
         }
 
         /// <summary>
