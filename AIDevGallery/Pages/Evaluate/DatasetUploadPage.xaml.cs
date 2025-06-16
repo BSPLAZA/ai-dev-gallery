@@ -938,6 +938,8 @@ namespace AIDevGallery.Pages.Evaluate
 
         private async Task ShowDatasetLimitWarningAsync()
         {
+            if (_datasetConfig == null) return;
+            
             var dialog = new ContentDialog
             {
                 XamlRoot = this.XamlRoot,
@@ -982,8 +984,7 @@ namespace AIDevGallery.Pages.Evaluate
             if (result == ContentDialogResult.Secondary)
             {
                 // Clear current dataset and let user choose again
-                _datasetConfig = null;
-                ResetUI();
+                Reset();
             }
         }
     }
