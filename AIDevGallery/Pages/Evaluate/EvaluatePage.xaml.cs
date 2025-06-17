@@ -10,6 +10,7 @@ using System;
 using Windows.ApplicationModel.DataTransfer;
 using System.Threading.Tasks;
 using AIDevGallery.Pages.Evaluate;
+using System.IO;
 
 
 namespace AIDevGallery.Pages
@@ -355,6 +356,9 @@ namespace AIDevGallery.Pages
                                         datasetConfiguration,
                                         null, // No metrics for ImportResults
                                         dialog.Frame);
+                                    
+                                    // Update button state after setting data
+                                    dialog.IsPrimaryButtonEnabled = reviewPage.IsReadyToExecute;
                                 }
                             }
                             else
@@ -387,6 +391,9 @@ namespace AIDevGallery.Pages
                                     datasetConfiguration,
                                     metricsConfiguration,
                                     dialog.Frame);
+                                
+                                // Update button state after setting data
+                                dialog.IsPrimaryButtonEnabled = reviewPage.IsReadyToExecute;
                             }
                         }
                     }
@@ -396,9 +403,26 @@ namespace AIDevGallery.Pages
                         if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
                         {
                             var finalConfig = reviewPage.BuildFinalConfiguration();
+                            
+                            // Save to AppData
                             _ = Task.Run(async () => await SaveEvaluationConfiguration(finalConfig));
+                            
+                            // Create UI entry immediately
+                            var newEvaluation = new Evaluation
+                            {
+                                Id = finalConfig.Id,
+                                Name = finalConfig.Name,
+                                Status = finalConfig.Workflow == EvaluationWorkflow.ImportResults ? "Imported" : "Pending",
+                                Progress = finalConfig.Workflow == EvaluationWorkflow.ImportResults ? 100 : 0,
+                                Dataset = Path.GetFileName(finalConfig.Dataset?.SourcePath ?? "Unknown"),
+                                Rows = finalConfig.Dataset?.ValidEntries ?? 0,
+                                Criteria = finalConfig.Metrics?.CustomCriteria?.Count ?? 0
+                            };
+                            
+                            AllEvaluations.Add(newEvaluation);
+                            ApplySearchFilter(SearchBox.Text);
+                            
                             dialog.Hide();
-                            LoadEvaluations();
                         }
                     }
                 };
