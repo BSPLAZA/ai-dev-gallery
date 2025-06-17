@@ -16,6 +16,7 @@ namespace AIDevGallery.Pages
 {
     public class Evaluation
     {
+        public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public int Progress { get; set; }
@@ -101,6 +102,7 @@ namespace AIDevGallery.Pages
                             {
                                 var evaluation = new Evaluation
                                 {
+                                    Id = config.Id,
                                     Name = config.Name,
                                     Status = config.Status.ToString(),
                                     Progress = config.Status == EvaluationStatus.Completed ? 100 : 
@@ -121,6 +123,7 @@ namespace AIDevGallery.Pages
                         {
                             AllEvaluations.Add(new Evaluation
                             {
+                                Id = Guid.NewGuid().ToString(),
                                 Name = "gpt4o eval",
                                 Status = "Succeeded",
                                 Progress = 65,
@@ -509,6 +512,7 @@ namespace AIDevGallery.Pages
             // Create new evaluation with the collected data
             var newEvaluation = new Evaluation
             {
+                Id = Guid.NewGuid().ToString(),
                 Name = modelConfigData.FinalEvaluationName,
                 Status = "In Progress",
                 Progress = 0,
@@ -538,7 +542,7 @@ namespace AIDevGallery.Pages
                 {
                     // Delete from database
                     var appData = await AppData.GetForApp();
-                    await appData.DeleteEvaluationAsync(SelectedEvaluation.Name);
+                    await appData.DeleteEvaluationAsync(SelectedEvaluation.Id);
                     
                     // Remove from UI collections
                     AllEvaluations.Remove(SelectedEvaluation);
