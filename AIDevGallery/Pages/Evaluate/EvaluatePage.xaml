@@ -39,7 +39,6 @@
         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
             <Button x:Name="NewEvaluationButton" Content="New evaluation" Style="{StaticResource AccentButtonStyle}" Click="NewEvaluationButton_Click" />
             <Button x:Name="RefreshButton" Content="Refresh" Style="{StaticResource SubtleButtonStyle}" Click="RefreshButton_Click" />
-            <Button x:Name="CopyButton" Content="Copy" Style="{StaticResource SubtleButtonStyle}" IsEnabled="False" Click="CopyButton_Click" />
             <Button x:Name="DeleteButton" Content="Delete" Style="{StaticResource SubtleButtonStyle}" IsEnabled="False" Click="DeleteButton_Click" />
         </StackPanel>
 

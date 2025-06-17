@@ -38,7 +38,6 @@ namespace AIDevGallery.Pages
                 {
                     selectedEvaluation = value;
                     OnPropertyChanged(nameof(SelectedEvaluation));
-                    CopyButton.IsEnabled = selectedEvaluation != null;
                     DeleteButton.IsEnabled = selectedEvaluation != null;
                 }
             }
@@ -67,7 +66,6 @@ namespace AIDevGallery.Pages
             EvaluationsTable.ItemsSource = FilteredEvaluations;
             // Wire up event handlers if not done in XAML
             SearchBox.TextChanged += SearchBox_TextChanged;
-            CopyButton.Click += CopyButton_Click;
             DeleteButton.Click += DeleteButton_Click;
             RefreshButton.Click += RefreshButton_Click;
             NewEvaluationButton.Click += NewEvaluationButton_Click;
@@ -531,23 +529,26 @@ namespace AIDevGallery.Pages
             LoadEvaluations();
         }
 
-        private void CopyButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (SelectedEvaluation != null)
-            {
-                var dataPackage = new DataPackage();
-                dataPackage.SetText($"Evaluation: {SelectedEvaluation.Name}");
-                Clipboard.SetContentWithOptions(dataPackage, null);
-            }
-        }
 
-        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        private async void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
             if (SelectedEvaluation != null)
             {
-                AllEvaluations.Remove(SelectedEvaluation);
-                ApplySearchFilter(SearchBox.Text);
-                SelectedEvaluation = null;
+                try
+                {
+                    // Delete from database
+                    var appData = await AppData.GetForApp();
+                    await appData.DeleteEvaluationAsync(SelectedEvaluation.Name);
+                    
+                    // Remove from UI collections
+                    AllEvaluations.Remove(SelectedEvaluation);
+                    ApplySearchFilter(SearchBox.Text);
+                    SelectedEvaluation = null;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error deleting evaluation: {ex.Message}");
+                }
             }
         }
 
