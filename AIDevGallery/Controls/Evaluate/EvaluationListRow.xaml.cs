@@ -190,6 +190,11 @@ namespace AIDevGallery.Controls.Evaluate
             return $"{progress:F0}%";
         }
 
+        public double GetProgressValue(double? progress)
+        {
+            return progress ?? 0.0;
+        }
+
         public Brush GetRowBackground(bool isHovered, bool isSelected)
         {
             if (isSelected)

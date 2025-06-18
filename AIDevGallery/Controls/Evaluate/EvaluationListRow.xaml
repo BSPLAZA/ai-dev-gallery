@@ -103,7 +103,7 @@
               VerticalAlignment="Center"
               Visibility="{x:Bind IsRunning, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
             
-            <ProgressBar Value="{x:Bind RunningProgress}" 
+            <ProgressBar Value="{x:Bind GetProgressValue(RunningProgress), Mode=OneWay}" 
                          Maximum="100"
                          Height="6"/>
             
