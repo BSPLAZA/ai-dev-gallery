@@ -171,4 +171,9 @@ public sealed partial class EvaluationCard : UserControl
     {
         return !progress.HasValue || progress.Value == 0;
     }
+    
+    public double GetProgressValue(double? progress)
+    {
+        return progress ?? 0.0;
+    }
 }

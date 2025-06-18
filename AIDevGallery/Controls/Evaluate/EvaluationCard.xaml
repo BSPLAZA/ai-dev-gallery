@@ -129,7 +129,7 @@
                 
                 <!-- Running Progress (only for Test/Evaluate workflows) -->
                 <ProgressBar Visibility="{x:Bind ViewModel.ShowProgress, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
-                            Value="{x:Bind ViewModel.RunningProgress, Mode=OneWay}"
+                            Value="{x:Bind GetProgressValue(ViewModel.RunningProgress), Mode=OneWay}"
                             IsIndeterminate="{x:Bind IsProgressIndeterminate(ViewModel.RunningProgress), Mode=OneWay}"
                             Margin="0,8,0,0"
                             Height="4"/>
