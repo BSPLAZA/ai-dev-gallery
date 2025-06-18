@@ -152,8 +152,7 @@ namespace AIDevGallery.Controls.Evaluate
         private void OnCheckboxClick(object sender, RoutedEventArgs e)
         {
             // Let the binding handle the state change
-            // Just stop propagation to prevent row tap from toggling again
-            e.Handled = true;
+            // The CheckBox click event doesn't bubble in WinUI 3, so no need to mark as handled
             ItemClicked?.Invoke(this, ViewModel);
         }
 
