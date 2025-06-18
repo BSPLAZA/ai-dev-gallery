@@ -121,6 +121,17 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         dialog.XamlRoot = this.XamlRoot;
         _activeDialog = dialog;
         
+        // Initialize the wizard with the first page
+        var wizardState = new EvaluationWizardState();
+        dialog.Frame.Navigate(typeof(SelectEvaluationTypePage), wizardState);
+        dialog.UpdateProgress(1, "Select Evaluation Type", 6);
+        
+        // Disable back button on first step
+        dialog.IsSecondaryButtonEnabled = false;
+        
+        // Set up navigation handlers
+        SetupWizardNavigation(dialog, wizardState);
+        
         try
         {
             var result = await dialog.ShowAsync();
@@ -174,6 +185,21 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         dialog.XamlRoot = this.XamlRoot;
         _activeDialog = dialog;
         
+        // Initialize the wizard - skip to workflow selection with Import Results pre-selected
+        var wizardState = new EvaluationWizardState();
+        wizardState.SelectedEvaluationType = EvaluationType.ImageDescription;
+        wizardState.SelectedWorkflow = EvaluationWorkflow.ImportResults;
+        
+        // Navigate directly to workflow selection page
+        dialog.Frame.Navigate(typeof(WorkflowSelectionPage), wizardState);
+        dialog.UpdateProgress(2, "Choose Workflow", 5);
+        
+        // Enable back button since we're on step 2
+        dialog.IsSecondaryButtonEnabled = true;
+        
+        // Set up navigation handlers
+        SetupWizardNavigation(dialog, wizardState);
+        
         try
         {
             var result = await dialog.ShowAsync();
@@ -190,26 +216,8 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
 
     private async void EmptyState_TestModelClicked(object sender, EventArgs e)
     {
-        // Prevent multiple dialogs
-        if (_activeDialog != null) return;
-        
-        // Open wizard with Test Model workflow
-        var dialog = new WizardDialog();
-        dialog.XamlRoot = this.XamlRoot;
-        _activeDialog = dialog;
-        
-        try
-        {
-            var result = await dialog.ShowAsync();
-            if (result == ContentDialogResult.Primary)
-            {
-                await LoadEvaluationsAsync();
-            }
-        }
-        finally
-        {
-            _activeDialog = null;
-        }
+        // Just call the same handler as the header button
+        NewEvaluationButton_Click(sender, new RoutedEventArgs());
     }
 
     private void EmptyState_LearnMoreClicked(object sender, EventArgs e)
@@ -357,5 +365,89 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private void SetupWizardNavigation(WizardDialog dialog, EvaluationWizardState wizardState)
+    {
+        dialog.NextClicked += async (s, args) =>
+        {
+            var currentPage = dialog.Frame.Content;
+            
+            // Validate current page
+            bool canNavigate = currentPage switch
+            {
+                SelectEvaluationTypePage page => page.IsValid,
+                WorkflowSelectionPage page => page.IsValid,
+                ModelConfigurationStep page => page.IsValid,
+                DatasetUploadPage page => page.IsValid,
+                MetricsSelectionPage page => page.IsValid,
+                ReviewConfigurationPage page => page.IsReadyToExecute,
+                _ => false
+            };
+
+            if (!canNavigate) return;
+
+            // Determine next page
+            Type? nextPageType = GetNextPage(currentPage, wizardState);
+            if (nextPageType != null)
+            {
+                dialog.Frame.Navigate(nextPageType, wizardState);
+                UpdateWizardProgress(dialog, wizardState);
+            }
+            else
+            {
+                // Complete wizard
+                dialog.Hide();
+            }
+        };
+
+        dialog.BackClicked += (s, args) =>
+        {
+            if (dialog.Frame.CanGoBack)
+            {
+                dialog.Frame.GoBack();
+                UpdateWizardProgress(dialog, wizardState);
+            }
+        };
+    }
+
+    private Type? GetNextPage(object currentPage, EvaluationWizardState state)
+    {
+        return currentPage switch
+        {
+            SelectEvaluationTypePage => typeof(WorkflowSelectionPage),
+            WorkflowSelectionPage => state.SelectedWorkflow == EvaluationWorkflow.TestModel 
+                ? typeof(ModelConfigurationStep) 
+                : typeof(DatasetUploadPage),
+            ModelConfigurationStep => typeof(DatasetUploadPage),
+            DatasetUploadPage => typeof(MetricsSelectionPage),
+            MetricsSelectionPage => typeof(ReviewConfigurationPage),
+            ReviewConfigurationPage => null,
+            _ => null
+        };
+    }
+
+    private void UpdateWizardProgress(WizardDialog dialog, EvaluationWizardState state)
+    {
+        var currentPage = dialog.Frame.Content;
+        var (step, title) = currentPage switch
+        {
+            SelectEvaluationTypePage => (1, "Select Evaluation Type"),
+            WorkflowSelectionPage => (2, "Choose Workflow"),
+            ModelConfigurationStep => (3, "Configure Model"),
+            DatasetUploadPage => (state.SelectedWorkflow == EvaluationWorkflow.TestModel ? 4 : 3, "Upload Dataset"),
+            MetricsSelectionPage => (state.SelectedWorkflow == EvaluationWorkflow.TestModel ? 5 : 4, "Select Metrics"),
+            ReviewConfigurationPage => (state.SelectedWorkflow == EvaluationWorkflow.TestModel ? 6 : 5, "Review & Start"),
+            _ => (1, "Unknown Step")
+        };
+
+        var totalSteps = state.SelectedWorkflow == EvaluationWorkflow.TestModel ? 6 : 5;
+        dialog.UpdateProgress(step, title, totalSteps);
+        
+        // Enable/disable back button
+        dialog.IsSecondaryButtonEnabled = step > 1;
+        
+        // Update primary button text
+        dialog.PrimaryButtonText = currentPage is ReviewConfigurationPage ? "Start Evaluation" : "Next";
     }
 }
