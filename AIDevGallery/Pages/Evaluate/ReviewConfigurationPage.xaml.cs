@@ -201,6 +201,16 @@ namespace AIDevGallery.Pages.Evaluate
             if (_dataset == null) return;
             
             int imageCount = _dataset.ValidEntries;
+            
+            // For Import workflow, show insights generation time instead
+            if (_workflow == EvaluationWorkflow.ImportResults)
+            {
+                TimeEstimateText.Text = "Insights generation: Instant";
+                TimeEstimateDetailsText.Text = $"Analysis of {imageCount} pre-evaluated {GetDatasetItemType()}";
+                LargeDatasetWarning.IsOpen = false; // No processing delay for imports
+                return;
+            }
+            
             int estimatedSeconds = CalculateEstimatedSeconds(imageCount);
             
             string timeText = FormatTimeEstimate(estimatedSeconds);

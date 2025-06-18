@@ -461,6 +461,41 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         dialog.PrimaryButtonText = currentPage is ReviewConfigurationPage ? "Start Evaluation" : "Next";
     }
 
+    private string GetEvaluationName(EvaluationWizardState wizardState)
+    {
+        // If we have a name from model config, use it
+        if (!string.IsNullOrEmpty(wizardState.ModelConfig?.EvaluationName))
+        {
+            return wizardState.ModelConfig.EvaluationName;
+        }
+
+        // For Import Results, create a name based on the dataset
+        if (wizardState.Workflow == EvaluationWorkflow.ImportResults && wizardState.Dataset != null)
+        {
+            var datasetName = GetDatasetFolderName(wizardState.Dataset);
+            var modelName = wizardState.ModelName ?? "Model";
+            return $"{modelName} - {datasetName}";
+        }
+
+        // Default fallback
+        return $"Evaluation {DateTime.Now:yyyy-MM-dd HH:mm}";
+    }
+
+    private string GetDatasetFolderName(DatasetConfiguration dataset)
+    {
+        if (!string.IsNullOrEmpty(dataset.BaseDirectory))
+        {
+            // Get the last folder name from the path
+            return System.IO.Path.GetFileName(dataset.BaseDirectory.TrimEnd('\\', '/')) ?? "Dataset";
+        }
+        else if (!string.IsNullOrEmpty(dataset.FilePath))
+        {
+            // Use JSONL filename without extension
+            return System.IO.Path.GetFileNameWithoutExtension(dataset.FilePath) ?? "Dataset";
+        }
+        return "Dataset";
+    }
+
     private async Task SaveEvaluationFromWizard(EvaluationWizardState wizardState)
     {
         try
@@ -469,9 +504,9 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             var evaluation = new EvaluationResult
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = wizardState.ModelConfig?.EvaluationName ?? $"Evaluation {DateTime.Now:yyyy-MM-dd HH:mm}",
+                Name = GetEvaluationName(wizardState),
                 ModelName = wizardState.ModelName ?? wizardState.ModelConfig?.SelectedModelName ?? "Unknown Model",
-                DatasetName = wizardState.Dataset?.FilePath != null ? System.IO.Path.GetFileName(wizardState.Dataset.FilePath) : "Unknown Dataset",
+                DatasetName = GetDatasetFolderName(wizardState.Dataset ?? new DatasetConfiguration()),
                 DatasetItemCount = wizardState.Dataset?.ValidEntries ?? 0,
                 Timestamp = DateTime.Now,
                 WorkflowType = wizardState.Workflow ?? EvaluationWorkflow.ImportResults,
@@ -482,7 +517,10 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             // For Import Results, we should parse the JSONL and extract scores
             if (wizardState.Workflow == EvaluationWorkflow.ImportResults && !string.IsNullOrEmpty(wizardState.Dataset?.FilePath))
             {
+                // ImportFromJsonlAsync returns a new evaluation with all data populated
                 evaluation = await _evaluationStore.ImportFromJsonlAsync(wizardState.Dataset.FilePath, evaluation.Name);
+                // Update with the folder name we determined
+                evaluation.DatasetName = GetDatasetFolderName(wizardState.Dataset);
             }
             else
             {

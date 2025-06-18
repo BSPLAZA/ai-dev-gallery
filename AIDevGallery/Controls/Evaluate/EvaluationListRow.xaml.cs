@@ -112,11 +112,6 @@ namespace AIDevGallery.Controls.Evaluate
             ItemDoubleClicked?.Invoke(this, ViewModel);
         }
 
-        private void OnCheckboxClick(object sender, RoutedEventArgs e)
-        {
-            // The TwoWay binding on the checkbox will handle updating ViewModel.IsSelected
-            // We don't need to do anything here
-        }
 
         private void UpdateVisualState()
         {
