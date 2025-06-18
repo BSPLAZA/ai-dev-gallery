@@ -286,7 +286,8 @@ namespace AIDevGallery.Pages
                 // Handle Next/Create button clicks
                 dialog.NextClicked += (_, __) =>
                 {
-                    System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] currentStep: {currentStep}, workflow: {workflowSelectionData?.Workflow}, CurrentPage: {dialog.Frame.Content?.GetType().Name}");
+                    System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] ENTRY - currentStep: {currentStep}, workflow: {workflowSelectionData?.Workflow}, CurrentPage: {dialog.Frame.Content?.GetType().Name}");
+                    System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] Button enabled: {dialog.IsPrimaryButtonEnabled}, Button text: {dialog.PrimaryButtonText}");
                     
                     if (currentStep == 0)
                     {
@@ -301,6 +302,7 @@ namespace AIDevGallery.Pages
                     }
                     else if (currentStep == 1)
                     {
+                        System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] In currentStep == 1 block");
                         // Move from Step 2 (Workflow Selection) to appropriate next step
                         if (dialog.Frame.Content is WorkflowSelectionPage currentStep2Page)
                         {
@@ -330,6 +332,7 @@ namespace AIDevGallery.Pages
                     }
                     else if (currentStep == 2)
                     {
+                        System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] In currentStep == 2 block");
                         // Move from Step 3 (Model Configuration) to Step 4 (Dataset Upload)
                         if (dialog.Frame.Content is Evaluate.ModelConfigurationStep currentStep3Page)
                         {
@@ -341,6 +344,7 @@ namespace AIDevGallery.Pages
                     }
                     else if (currentStep == 3)
                     {
+                        System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] In currentStep == 3 block");
                         // Move from Step 4 (Dataset Upload) to Step 5 (Metrics Selection)
                         if (dialog.Frame.Content is Evaluate.DatasetUploadPage datasetPage)
                         {
@@ -369,8 +373,9 @@ namespace AIDevGallery.Pages
                             }
                         }
                     }
-                    else if (currentStep == 4)
+                    else if (currentStep == 4 && workflowSelectionData?.Workflow != EvaluationWorkflow.ImportResults)
                     {
+                        System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] In currentStep == 4 block (non-ImportResults path)");
                         // Move from Step 5 (Metrics Selection) to Step 6 (Review)
                         if (dialog.Frame.Content is MetricsSelectionPage metricsPage)
                         {
@@ -399,11 +404,14 @@ namespace AIDevGallery.Pages
                     }
                     else if (currentStep == 5 || (currentStep == 4 && workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults))
                     {
-                        System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] Executing evaluation - currentStep: {currentStep}, workflow: {workflowSelectionData?.Workflow}");
+                        System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] In final execution block - currentStep: {currentStep}, workflow: {workflowSelectionData?.Workflow}");
+                        System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] Frame.Content type: {dialog.Frame.Content?.GetType().Name}");
                         
                         // Execute evaluation from ReviewConfigurationPage
                         if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
                         {
+                            System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] Found ReviewConfigurationPage, building final config...");
+                            
                             var finalConfig = reviewPage.BuildFinalConfiguration();
                             
                             // Save to AppData
@@ -426,6 +434,14 @@ namespace AIDevGallery.Pages
                             
                             dialog.Hide();
                         }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] ERROR: Expected ReviewConfigurationPage but found {dialog.Frame.Content?.GetType().Name}");
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] WARNING: No condition matched! currentStep: {currentStep}, workflow: {workflowSelectionData?.Workflow}");
                     }
                 };
                 

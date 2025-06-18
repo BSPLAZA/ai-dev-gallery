@@ -32,8 +32,10 @@ internal sealed partial class WizardDialog : ContentDialog
 
     private void ContentDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
+        System.Diagnostics.Debug.WriteLine($"[WizardDialog] PrimaryButtonClick - Button enabled: {IsPrimaryButtonEnabled}, Button text: {PrimaryButtonText}");
         args.Cancel = true;
         NextClicked?.Invoke(this, EventArgs.Empty);
+        System.Diagnostics.Debug.WriteLine($"[WizardDialog] NextClicked event raised");
     }
 
     private void ContentDialog_SecondaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
