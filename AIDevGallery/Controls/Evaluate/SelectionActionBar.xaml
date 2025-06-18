@@ -17,7 +17,7 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Bottom"
             Margin="0,0,0,24"
-            Shadow="{StaticResource SharedShadow}">
+            >
         
         <Border.RenderTransform>
             <TranslateTransform x:Name="SlideTransform" Y="100"/>
@@ -59,7 +59,6 @@
             <!-- Cancel Button -->
             <Button x:Name="CancelButton"
                     Content="Cancel" 
-                    Style="{StaticResource SubtleButtonStyle}"
                     Click="OnCancelClick">
                 <Button.KeyboardAccelerators>
                     <KeyboardAccelerator Key="Escape"/>

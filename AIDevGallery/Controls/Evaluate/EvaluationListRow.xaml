@@ -7,6 +7,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
+    
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" xmlns:converters="using:AIDevGallery.Converters"/>
+    </UserControl.Resources>
 
     <Grid Height="72" 
           Padding="16,12"
@@ -109,29 +113,6 @@
                        Margin="0,-16,0,0"/>
         </Grid>
 
-        <!-- Visual States -->
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="CommonStates">
-                <VisualState x:Name="Normal"/>
-                
-                <VisualState x:Name="PointerOver">
-                    <Storyboard>
-                        <ColorAnimation Storyboard.TargetName="HoverBackground"
-                                        Storyboard.TargetProperty="Color"
-                                        To="#F6F8FA"
-                                        Duration="0:0:0.15"/>
-                    </Storyboard>
-                </VisualState>
-                
-                <VisualState x:Name="Selected">
-                    <Storyboard>
-                        <ColorAnimation Storyboard.TargetName="SelectedBackground"
-                                        Storyboard.TargetProperty="Color"
-                                        To="#EBF5FF"
-                                        Duration="0:0:0.15"/>
-                    </Storyboard>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
+        <!-- Visual States are handled in code-behind via GetRowBackground binding -->
     </Grid>
 </UserControl>

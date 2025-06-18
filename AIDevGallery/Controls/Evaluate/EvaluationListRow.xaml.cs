@@ -2,12 +2,14 @@
 // Licensed under the MIT License.
 
 using AIDevGallery.Models;
+using AIDevGallery.ViewModels.Evaluate;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Linq;
+using Windows.UI;
 
 namespace AIDevGallery.Controls.Evaluate
 {
@@ -192,15 +194,15 @@ namespace AIDevGallery.Controls.Evaluate
         {
             if (isSelected)
             {
-                return new SolidColorBrush(Windows.UI.Color.FromArgb(255, 235, 245, 255)); // #EBF5FF
+                return new SolidColorBrush(Color.FromArgb(255, 235, 245, 255)); // #EBF5FF
             }
             else if (isHovered)
             {
-                return new SolidColorBrush(Windows.UI.Color.FromArgb(255, 246, 248, 250)); // #F6F8FA
+                return new SolidColorBrush(Color.FromArgb(255, 246, 248, 250)); // #F6F8FA
             }
             else
             {
-                return new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)); // Transparent
+                return new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)); // Transparent
             }
         }
     }
