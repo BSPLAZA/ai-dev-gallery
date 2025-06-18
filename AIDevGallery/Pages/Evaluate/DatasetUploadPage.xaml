@@ -345,15 +345,14 @@
                     <InfoBar 
                         x:Name="TwoPartValidationInfoBar"
                         IsOpen="True"
-                        IsClosable="False">
-                        <InfoBar.ActionButton>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Button x:Name="ViewDetailsButton" Content="View Details" Click="ViewDetails_Click" />
-                                <Button x:Name="FixIssuesButton" Content="Fix Issues" Click="FixIssues_Click" Visibility="Collapsed" />
-                                <Button x:Name="ProceedAnywayButton" Content="Proceed Anyway" Click="ProceedAnyway_Click" Visibility="Collapsed" />
-                            </StackPanel>
-                        </InfoBar.ActionButton>
-                    </InfoBar>
+                        IsClosable="False" />
+                    
+                    <!-- Validation Action Buttons -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                        <Button x:Name="ViewDetailsButton" Content="View Details" Click="ViewDetails_Click" />
+                        <Button x:Name="FixIssuesButton" Content="Fix Issues" Click="FixIssues_Click" Visibility="Collapsed" />
+                        <Button x:Name="ProceedAnywayButton" Content="Proceed Anyway" Click="ProceedAnyway_Click" Visibility="Collapsed" />
+                    </StackPanel>
                     
                     <!-- Match Summary -->
                     <StackPanel x:Name="MatchSummaryPanel" Spacing="4" Visibility="Collapsed">
