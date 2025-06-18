@@ -216,7 +216,11 @@ namespace AIDevGallery.Pages.Evaluate
         /// <summary>
         /// Gets the dataset configuration for this step
         /// </summary>
-        internal DatasetConfiguration? GetStepData() => _datasetConfig;
+        internal DatasetConfiguration? GetStepData()
+        {
+            System.Diagnostics.Debug.WriteLine($"[DatasetUploadPage.GetStepData] Returning dataset: {_datasetConfig != null}, ValidEntries: {_datasetConfig?.ValidEntries ?? 0}");
+            return _datasetConfig;
+        }
 
         #region Drag and Drop Handlers
 
@@ -1303,6 +1307,12 @@ namespace AIDevGallery.Pages.Evaluate
                 }
             }
             
+            // Save state immediately after creating dataset
+            SaveToState();
+            
+            System.Diagnostics.Debug.WriteLine($"[DatasetUploadPage.CreateFinalDatasetConfiguration] Dataset created. ValidEntries: {_datasetConfig.ValidEntries}, IsValid: {IsValid}");
+            System.Diagnostics.Debug.WriteLine($"[DatasetUploadPage.CreateFinalDatasetConfiguration] WizardState.Dataset is now: {_wizardState?.Dataset != null}");
+            
             // Notify parent
             ValidationChanged?.Invoke(IsValid);
             UpdateParentDialogState();
@@ -1388,7 +1398,6 @@ namespace AIDevGallery.Pages.Evaluate
                 }
 
                 // Enable action buttons
-                TestSampleImagesButton.IsEnabled = true;
                 GroupByFolderToggle.IsEnabled = _datasetConfig.FolderStructure.Count > 1;
 
                 // Show preview
@@ -1504,41 +1513,6 @@ namespace AIDevGallery.Pages.Evaluate
 
         #region Button Handlers
 
-        private async void TestSampleImages_Click(object sender, RoutedEventArgs e)
-        {
-            if (_datasetConfig == null || !_datasetConfig.Entries.Any()) return;
-
-            var dialog = new ContentDialog
-            {
-                XamlRoot = this.XamlRoot,
-                Title = "Sample Images",
-                CloseButtonText = "Close"
-            };
-
-            var panel = new StackPanel { Spacing = 12 };
-            
-            foreach (var entry in _datasetConfig.Entries.Take(3))
-            {
-                try
-                {
-                    var image = new Image
-                    {
-                        Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(entry.ResolvedImagePath)),
-                        MaxHeight = 150,
-                        MaxWidth = 200,
-                        Stretch = Stretch.Uniform
-                    };
-                    panel.Children.Add(image);
-                }
-                catch
-                {
-                    panel.Children.Add(new TextBlock { Text = $"Failed to load: {entry.OriginalImagePath}" });
-                }
-            }
-
-            dialog.Content = panel;
-            await dialog.ShowAsync();
-        }
 
         private void GroupByFolder_Checked(object sender, RoutedEventArgs e)
         {

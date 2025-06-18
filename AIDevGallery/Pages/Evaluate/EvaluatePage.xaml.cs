@@ -344,24 +344,16 @@ namespace AIDevGallery.Pages
                             // Skip metrics for ImportResults workflow
                             if (workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults)
                             {
+                                System.Diagnostics.Debug.WriteLine($"[EvaluatePage] ImportResults workflow - Dataset: {datasetConfiguration != null}, ValidEntries: {datasetConfiguration?.ValidEntries ?? 0}");
+                                System.Diagnostics.Debug.WriteLine($"[EvaluatePage] WizardState.Dataset: {wizardState.Dataset != null}");
+                                
                                 // Navigate directly to ReviewConfigurationPage
                                 wizardState.CurrentStep = 6;
                                 dialog.Frame.Navigate(typeof(ReviewConfigurationPage), wizardState);
+                                // The ReviewConfigurationPage will get all data from wizardState in OnNavigatedTo
                                 
-                                // Pass configuration data
-                                if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
-                                {
-                                    reviewPage.SetConfigurationData(
-                                        evaluationTypeData?.EvaluationType ?? EvaluationType.ImageDescription,
-                                        workflowSelectionData.Workflow,
-                                        modelConfigurationData,
-                                        datasetConfiguration,
-                                        null, // No metrics for ImportResults
-                                        dialog.Frame);
-                                    
-                                    // Update button state after setting data
-                                    dialog.IsPrimaryButtonEnabled = reviewPage.IsReadyToExecute;
-                                }
+                                // Note: Cannot access dialog.Frame.Content here as navigation hasn't completed yet
+                                // The ReviewConfigurationPage.OnNavigatedTo will handle validation
                             }
                             else
                             {
@@ -399,7 +391,7 @@ namespace AIDevGallery.Pages
                             }
                         }
                     }
-                    else if (currentStep == 5)
+                    else if (currentStep == 5 || (currentStep == 4 && workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults))
                     {
                         // Execute evaluation from ReviewConfigurationPage
                         if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
@@ -432,7 +424,7 @@ namespace AIDevGallery.Pages
                 // Handle Back button clicks
                 dialog.BackClicked += (_, __) =>
                 {
-                    if (currentStep == 5)
+                    if (currentStep == 5 || (currentStep == 4 && workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults))
                     {
                         // Go back from Review Configuration to Metrics Selection
                         // Skip metrics for ImportResults workflow

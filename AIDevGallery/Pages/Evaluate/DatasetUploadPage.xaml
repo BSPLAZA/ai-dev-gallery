@@ -493,12 +493,6 @@
 
                     <!-- Action Buttons -->
                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
-                        <Button 
-                            x:Name="TestSampleImagesButton"
-                            Content="Test sample images"
-                            Click="TestSampleImages_Click"
-                            IsEnabled="False"
-                            AutomationProperties.Name="Test loading sample images" />
                         <ToggleButton 
                             x:Name="GroupByFolderToggle"
                             Content="Group by folder"
