@@ -99,9 +99,12 @@ namespace AIDevGallery.Controls.Evaluate
                 return;
             }
 
-            IsSelected = !IsSelected;
-            SelectionChanged?.Invoke(this, ViewModel);
-            ItemClicked?.Invoke(this, ViewModel);
+            // Toggle the ViewModel's IsSelected, not the local property
+            if (ViewModel != null)
+            {
+                ViewModel.IsSelected = !ViewModel.IsSelected;
+                ItemClicked?.Invoke(this, ViewModel);
+            }
         }
 
         private void OnRowDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
@@ -111,7 +114,9 @@ namespace AIDevGallery.Controls.Evaluate
 
         private void OnCheckboxClick(object sender, RoutedEventArgs e)
         {
-            SelectionChanged?.Invoke(this, ViewModel);
+            // The TwoWay binding on the checkbox will handle updating ViewModel.IsSelected
+            // We don't need to do anything here, just mark as handled to prevent bubbling
+            e.Handled = true;
         }
 
         private void UpdateVisualState()

@@ -163,15 +163,14 @@
                         <evalcontrols:EvaluationListRow 
                             ViewModel="{Binding}"
                             ItemClicked="EvaluationRow_ItemClicked"
-                            ItemDoubleClicked="EvaluationRow_ItemDoubleClicked"
-                            SelectionChanged="EvaluationRow_SelectionChanged"/>
+                            ItemDoubleClicked="EvaluationRow_ItemDoubleClicked"/>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
             
             <!-- Floating Action Bar -->
             <evalcontrols:SelectionActionBar x:Name="SelectionActionBar"
-                                              SelectedCount="{x:Bind GetSelectedCount(), Mode=OneWay}"
+                                              SelectedCount="{x:Bind SelectedCount, Mode=OneWay}"
                                               CompareClicked="ActionBar_CompareClicked"
                                               DeleteClicked="ActionBar_DeleteClicked"
                                               CancelClicked="ActionBar_CancelClicked"/>

@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.IO;
 using AIDevGallery.Controls;
 using AIDevGallery.Controls.Evaluate;
 using AIDevGallery.Models;
@@ -59,7 +60,16 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             AllEvaluations.Clear();
             foreach (var eval in evaluations)
             {
-                AllEvaluations.Add(new EvaluationListItemViewModel(eval));
+                var viewModel = new EvaluationListItemViewModel(eval);
+                // Subscribe to selection changes
+                viewModel.PropertyChanged += (s, e) =>
+                {
+                    if (e.PropertyName == nameof(EvaluationListItemViewModel.IsSelected))
+                    {
+                        OnPropertyChanged(nameof(SelectedCount));
+                    }
+                };
+                AllEvaluations.Add(viewModel);
             }
             
             ApplyFilter();
@@ -293,11 +303,6 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         NavigateToEvaluationDetails(e);
     }
 
-    private void EvaluationRow_SelectionChanged(object sender, EvaluationListItemViewModel e)
-    {
-        // Update selection count for action bar
-        OnPropertyChanged(nameof(GetSelectedCount));
-    }
 
     // Action bar event handlers
     private async void ActionBar_CompareClicked(object sender, EventArgs e)
@@ -340,25 +345,26 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         {
             item.IsSelected = false;
         }
-        OnPropertyChanged(nameof(GetSelectedCount));
+        OnPropertyChanged(nameof(SelectedCount));
     }
 
     // Empty state handlers for new design
     private void ImportResults_Click(object sender, RoutedEventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine("ImportResults_Click called");
+        // Call the import results handler directly
         EmptyState_ImportResultsClicked(sender, EventArgs.Empty);
     }
 
     private void NewEvaluation_Click(object sender, RoutedEventArgs e)
     {
-        EmptyState_TestModelClicked(sender, EventArgs.Empty);
+        System.Diagnostics.Debug.WriteLine("NewEvaluation_Click called");
+        // Call the new evaluation handler directly
+        NewEvaluationButton_Click(sender, e);
     }
 
     // Helper to get selected count for binding
-    public int GetSelectedCount()
-    {
-        return AllEvaluations.Count(x => x.IsSelected);
-    }
+    public int SelectedCount => AllEvaluations.Count(x => x.IsSelected);
 
     // INotifyPropertyChanged implementation
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -396,8 +402,12 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             }
             else
             {
-                // Complete wizard
-                dialog.Hide();
+                // Complete wizard - save the evaluation
+                if (currentPage is ReviewConfigurationPage reviewPage && reviewPage.IsReadyToExecute)
+                {
+                    await SaveEvaluationFromWizard(wizardState);
+                    dialog.Hide();
+                }
             }
         };
 
@@ -449,5 +459,58 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         
         // Update primary button text
         dialog.PrimaryButtonText = currentPage is ReviewConfigurationPage ? "Start Evaluation" : "Next";
+    }
+
+    private async Task SaveEvaluationFromWizard(EvaluationWizardState wizardState)
+    {
+        try
+        {
+            // Create evaluation result based on workflow
+            var evaluation = new EvaluationResult
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = wizardState.ModelConfig?.EvaluationName ?? $"Evaluation {DateTime.Now:yyyy-MM-dd HH:mm}",
+                ModelName = wizardState.ModelName ?? wizardState.ModelConfig?.ModelName ?? "Unknown Model",
+                DatasetName = wizardState.Dataset?.FilePath != null ? System.IO.Path.GetFileName(wizardState.Dataset.FilePath) : "Unknown Dataset",
+                ItemCount = wizardState.Dataset?.ValidEntries ?? 0,
+                Timestamp = DateTime.Now,
+                WorkflowType = wizardState.Workflow ?? EvaluationWorkflow.ImportResults,
+                Status = wizardState.Workflow == EvaluationWorkflow.ImportResults ? EvaluationStatus.Imported : EvaluationStatus.Running,
+                CriteriaScores = new Dictionary<string, double>()
+            };
+
+            // For Import Results, we should parse the JSONL and extract scores
+            if (wizardState.Workflow == EvaluationWorkflow.ImportResults && !string.IsNullOrEmpty(wizardState.Dataset?.FilePath))
+            {
+                evaluation = await _evaluationStore.ImportFromJsonlAsync(wizardState.Dataset.FilePath, evaluation.Name);
+            }
+            else
+            {
+                // For other workflows, start with placeholder scores
+                if (wizardState.Metrics?.UseAIJudge == true)
+                {
+                    evaluation.CriteriaScores["AI Judge Score"] = 0.0;
+                }
+                if (wizardState.Metrics?.UseClipScore == true)
+                {
+                    evaluation.CriteriaScores["CLIP Score"] = 0.0;
+                }
+                if (wizardState.Metrics?.UseSpice == true)
+                {
+                    evaluation.CriteriaScores["SPICE Score"] = 0.0;
+                }
+                
+                // Save the evaluation
+                await _evaluationStore.SaveEvaluationAsync(evaluation);
+            }
+
+            // Reload the list
+            await LoadEvaluationsAsync();
+        }
+        catch (Exception ex)
+        {
+            // Log error
+            System.Diagnostics.Debug.WriteLine($"Error saving evaluation: {ex}");
+        }
     }
 }
