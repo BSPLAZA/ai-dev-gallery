@@ -84,7 +84,7 @@ public partial class EvaluationCardViewModel : ObservableObject
             {
                 try
                 {
-                    return new SolidColorBrush(ColorHelper.FromArgb(255,
+                    return new SolidColorBrush(Color.FromArgb(255,
                         Convert.ToByte(colorString.Substring(1, 2), 16),
                         Convert.ToByte(colorString.Substring(3, 2), 16),
                         Convert.ToByte(colorString.Substring(5, 2), 16)));
@@ -95,7 +95,7 @@ public partial class EvaluationCardViewModel : ObservableObject
                 }
             }
             // Default fallback color
-            return new SolidColorBrush(ColorHelper.FromArgb(255, 33, 150, 243)); // Material Blue
+            return new SolidColorBrush(Color.FromArgb(255, 33, 150, 243)); // Material Blue
         }
     }
     

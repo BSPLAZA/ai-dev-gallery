@@ -102,10 +102,10 @@ public sealed partial class EvaluationCard : UserControl
     {
         return score switch
         {
-            >= 4.5 => (ColorHelper.FromArgb(255, 76, 175, 80), ColorHelper.FromArgb(255, 102, 187, 106)),    // Green
-            >= 3.75 => (ColorHelper.FromArgb(255, 33, 150, 243), ColorHelper.FromArgb(255, 66, 165, 245)),   // Blue
-            >= 3.0 => (ColorHelper.FromArgb(255, 255, 193, 7), ColorHelper.FromArgb(255, 255, 202, 40)),     // Yellow
-            _ => (ColorHelper.FromArgb(255, 255, 87, 34), ColorHelper.FromArgb(255, 255, 112, 67))           // Orange
+            >= 4.5 => (Color.FromArgb(255, 76, 175, 80), Color.FromArgb(255, 102, 187, 106)),    // Green
+            >= 3.75 => (Color.FromArgb(255, 33, 150, 243), Color.FromArgb(255, 66, 165, 245)),   // Blue
+            >= 3.0 => (Color.FromArgb(255, 255, 193, 7), Color.FromArgb(255, 255, 202, 40)),     // Yellow
+            _ => (Color.FromArgb(255, 255, 87, 34), Color.FromArgb(255, 255, 112, 67))           // Orange
         };
     }
 
@@ -147,7 +147,6 @@ public sealed partial class EvaluationCard : UserControl
         {
             ViewClicked?.Invoke(this, ViewModel);
         }
-        e.Handled = true;
     }
 
     private void OnDeleteClick(object sender, RoutedEventArgs e)
@@ -156,7 +155,6 @@ public sealed partial class EvaluationCard : UserControl
         {
             DeleteClicked?.Invoke(this, ViewModel);
         }
-        e.Handled = true;
     }
 
     public string FormatCriteriaLabel(string criteria)

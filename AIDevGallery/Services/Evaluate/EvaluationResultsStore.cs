@@ -89,6 +89,8 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
         {
             Id = Guid.NewGuid().ToString(),
             Name = evaluationName,
+            ModelName = "Unknown Model", // Will be updated from JSONL
+            DatasetName = Path.GetFileNameWithoutExtension(jsonlPath),
             Status = EvaluationStatus.Imported,
             WorkflowType = EvaluationWorkflow.ImportResults,
             Timestamp = DateTime.Now,
