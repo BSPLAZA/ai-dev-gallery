@@ -1676,7 +1676,7 @@ namespace AIDevGallery.Pages.Evaluate
         public string Prompt { get; set; } = string.Empty;
     }
     
-    public class TwoPartValidationResult
+    internal class TwoPartValidationResult
     {
         public bool IsValid { get; set; }
         public int MatchedCount { get; set; }
