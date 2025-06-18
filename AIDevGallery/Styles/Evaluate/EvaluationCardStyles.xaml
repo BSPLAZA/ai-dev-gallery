@@ -1,0 +1,128 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Score Color Brushes -->
+    <LinearGradientBrush x:Key="ExcellentScoreGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#4CAF50" Offset="0"/>
+        <GradientStop Color="#66BB6A" Offset="1"/>
+    </LinearGradientBrush>
+    
+    <LinearGradientBrush x:Key="GoodScoreGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#2196F3" Offset="0"/>
+        <GradientStop Color="#42A5F5" Offset="1"/>
+    </LinearGradientBrush>
+    
+    <LinearGradientBrush x:Key="FairScoreGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FFC107" Offset="0"/>
+        <GradientStop Color="#FFCA28" Offset="1"/>
+    </LinearGradientBrush>
+    
+    <LinearGradientBrush x:Key="NeedsImprovementGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FF5722" Offset="0"/>
+        <GradientStop Color="#FF7043" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- Card Background -->
+    <LinearGradientBrush x:Key="CardBackgroundGradient" StartPoint="0,0" EndPoint="1,0">
+        <GradientStop Color="#FAFBFC" Offset="0"/>
+        <GradientStop Color="#FFFFFF" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- Evaluation Card Base Style -->
+    <Style x:Key="EvaluationCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundGradient}"/>
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="20"/>
+        <Setter Property="Margin" Value="0,0,0,12"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    </Style>
+
+    <!-- Score Progress Box Style -->
+    <Style x:Key="ScoreProgressBoxStyle" TargetType="Border">
+        <Setter Property="Width" Value="80"/>
+        <Setter Property="Height" Value="80"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Margin" Value="0,0,16,0"/>
+    </Style>
+
+    <!-- Action Button Style -->
+    <Style x:Key="CardActionButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Padding" Value="8"/>
+        <Setter Property="Margin" Value="4,0,0,0"/>
+        <Setter Property="CornerRadius" Value="4"/>
+    </Style>
+
+    <!-- Empty State Card Style -->
+    <Style x:Key="OnboardingCardStyle" TargetType="Button">
+        <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}"/>
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+    </Style>
+
+    <!-- Text Styles -->
+    <Style x:Key="CardTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}"/>
+    </Style>
+
+    <Style x:Key="CardSubtitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}"/>
+    </Style>
+
+    <Style x:Key="CardCaptionStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorTertiaryBrush}"/>
+    </Style>
+
+    <Style x:Key="ScoreTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="24"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="StarRatingStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="0,2,0,0"/>
+    </Style>
+
+    <!-- Animations -->
+    <Storyboard x:Key="CardHoverEnterAnimation">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateY)"
+                        To="-2" Duration="0:0:0.2">
+            <DoubleAnimation.EasingFunction>
+                <CubicEase EasingMode="EaseOut"/>
+            </DoubleAnimation.EasingFunction>
+        </DoubleAnimation>
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.Opacity)"
+                        From="0" To="1" Duration="0:0:0.2"
+                        Storyboard.TargetName="ActionButtons"/>
+    </Storyboard>
+
+    <Storyboard x:Key="CardHoverExitAnimation">
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(CompositeTransform.TranslateY)"
+                        To="0" Duration="0:0:0.2">
+            <DoubleAnimation.EasingFunction>
+                <CubicEase EasingMode="EaseOut"/>
+            </DoubleAnimation.EasingFunction>
+        </DoubleAnimation>
+        <DoubleAnimation Storyboard.TargetProperty="(UIElement.Opacity)"
+                        From="1" To="0" Duration="0:0:0.1"
+                        Storyboard.TargetName="ActionButtons"/>
+    </Storyboard>
+    
+</ResourceDictionary>

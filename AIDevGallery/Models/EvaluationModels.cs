@@ -220,7 +220,8 @@ internal enum EvaluationStatus
     Running,    // Currently executing
     Completed,  // Finished successfully
     Failed,     // Execution failed
-    Cancelled   // Stopped by user
+    Cancelled,  // Stopped by user
+    Imported    // Imported from external JSONL file
 }
 
 /// <summary>
