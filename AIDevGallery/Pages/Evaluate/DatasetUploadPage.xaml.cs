@@ -1157,7 +1157,7 @@ namespace AIDevGallery.Pages.Evaluate
             {
                 OriginalImagePath = originalImagePath,
                 ResolvedImagePath = matchedImagePath,
-                Prompt = prompt  // Required property must be set in initializer
+                Prompt = prompt // Required property must be set in initializer
             };
             
             if (root.TryGetProperty("response", out var responseElement))

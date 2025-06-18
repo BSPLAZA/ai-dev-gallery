@@ -26,9 +26,9 @@ public sealed partial class EvaluationCard : UserControl
         set => SetValue(ViewModelProperty, value);
     }
 
-    public event EventHandler<EvaluationCardViewModel>? ViewClicked;
-    public event EventHandler<EvaluationCardViewModel>? DeleteClicked;
-    public event EventHandler<EvaluationCardViewModel>? CardClicked;
+    internal event EventHandler<EvaluationCardViewModel>? ViewClicked;
+    internal event EventHandler<EvaluationCardViewModel>? DeleteClicked;
+    internal event EventHandler<EvaluationCardViewModel>? CardClicked;
 
     private Storyboard? _hoverEnterStoryboard;
     private Storyboard? _hoverExitStoryboard;
