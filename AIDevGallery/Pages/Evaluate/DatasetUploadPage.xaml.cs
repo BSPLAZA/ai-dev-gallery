@@ -917,6 +917,8 @@ namespace AIDevGallery.Pages.Evaluate
                 // Parse JSONL and match with images
                 var entries = new List<DatasetEntry>();
                 var unmatchedPaths = new List<string>();
+                var foundModelNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var foundPrompts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 
                 using (var reader = new StreamReader(jsonlPath))
                 {
@@ -932,6 +934,25 @@ namespace AIDevGallery.Pages.Evaluate
                         {
                             var json = JsonDocument.Parse(line);
                             var root = json.RootElement;
+                            
+                            // Collect model names and prompts for auto-fill
+                            if (root.TryGetProperty("model", out var modelElement))
+                            {
+                                var modelName = modelElement.GetString();
+                                if (!string.IsNullOrWhiteSpace(modelName))
+                                {
+                                    foundModelNames.Add(modelName);
+                                }
+                            }
+                            
+                            if (root.TryGetProperty("prompt", out var promptElement))
+                            {
+                                var prompt = promptElement.GetString();
+                                if (!string.IsNullOrWhiteSpace(prompt))
+                                {
+                                    foundPrompts.Add(prompt);
+                                }
+                            }
                             
                             // Get image path from JSONL
                             if (!root.TryGetProperty("image_path", out var imagePathElement))
@@ -1004,6 +1025,10 @@ namespace AIDevGallery.Pages.Evaluate
                 {
                     result.IsValid = result.Errors.Count == 0;
                 }
+                
+                // Store found model names and prompts for auto-fill
+                result.FoundModelNames = foundModelNames.ToList();
+                result.FoundPrompts = foundPrompts.ToList();
                 
                 return result;
             });
@@ -1164,6 +1189,38 @@ namespace AIDevGallery.Pages.Evaluate
             {
                 ModelNamePanel.Visibility = Visibility.Visible;
                 DefaultPromptPanel.Visibility = Visibility.Visible;
+                
+                // Auto-fill model name if found in JSONL
+                if (result.FoundModelNames != null && result.FoundModelNames.Any() && string.IsNullOrEmpty(ModelNameInput.Text))
+                {
+                    // If all entries have the same model name, use it
+                    if (result.FoundModelNames.Count == 1)
+                    {
+                        ModelNameInput.Text = result.FoundModelNames.First();
+                        _modelName = result.FoundModelNames.First();
+                    }
+                    else
+                    {
+                        // Multiple model names found, use the most common one
+                        var mostCommonModel = result.FoundModelNames.GroupBy(m => m)
+                            .OrderByDescending(g => g.Count())
+                            .First().Key;
+                        ModelNameInput.Text = mostCommonModel;
+                        _modelName = mostCommonModel;
+                    }
+                }
+                
+                // Auto-fill default prompt if found in JSONL
+                if (result.FoundPrompts != null && result.FoundPrompts.Any() && string.IsNullOrEmpty(DefaultPromptInput.Text))
+                {
+                    // If all entries have the same prompt, use it as default
+                    if (result.FoundPrompts.Count == 1)
+                    {
+                        DefaultPromptInput.Text = result.FoundPrompts.First();
+                        _defaultPrompt = result.FoundPrompts.First();
+                    }
+                    // If multiple prompts, don't auto-fill (user should decide)
+                }
             }
             
             if (result.IsValid)
@@ -1799,6 +1856,8 @@ namespace AIDevGallery.Pages.Evaluate
         public List<string> UnmatchedPaths { get; set; } = new();
         public List<string> Errors { get; set; } = new();
         public List<string> Warnings { get; set; } = new();
+        public List<string> FoundModelNames { get; set; } = new();
+        public List<string> FoundPrompts { get; set; } = new();
     }
 
     #endregion
