@@ -1,31 +1,58 @@
 # Evaluation Wizard TODO Tracker
 *Extracted from ai-evaluation-wizard-technical-plan.md*
-*Last Updated: June 17, 2025*
+*Last Updated: June 18, 2025*
 
 **Status Legend**: ⏳ Pending | 🔄 In Progress | ✅ Complete | ❌ Blocked
 
-## 🎯 Current Status (June 17, 2025)
+## 🎯 Current Status (June 18, 2025)
 
-### ✅ Just Completed
-- **Start Evaluation Button Fixed** - Now properly validates and enables for all workflows
-- **Workflow 1 Tested** - Full flow works end-to-end, creates evaluation entries
-- **Status Differentiation** - Import Results shows "Imported", others show "Pending"
+### ✅ Just Completed (Today)
+- **Two-Part Upload UI** - Implemented separate image folder + JSONL upload for workflows 2 & 3
+- **Optional Prompt Field** - JSONL files no longer require prompt field, can use default prompt
+- **Auto-fill Enhancement** - Model name and prompt auto-populate from JSONL data
+- **State Persistence Fixed** - Model name and default prompt now persist through navigation
+- **UI Reorganization** - Model/prompt fields now appear after validation for better flow
+- **Log Evaluation Button** - Fixed navigation conditions for workflow 3
+- **Test Sample Images Removed** - Eliminated ContentDialog conflicts
 
-### 🚧 Next Priority: Two-Part Upload Implementation
-**Goal**: Enable workflows 2 & 3 by implementing image + JSONL upload
-
-**Immediate Next Steps**:
-1. Create branch: `feature/eval-wizard-two-part-upload`
-2. Backup DatasetUploadPage
-3. Implement two-part upload UI
-4. Add model name input field
-5. Update validation logic
+### 🔄 In Progress
+- **Workflow 3 JSONL Support** - Need to improve criteria_scores field handling
+- **Debug Logging** - Added comprehensive logging to trace remaining issues
 
 ### ⚠️ Current Limitations
 - **Workflow 1**: ✅ Fully functional (Test Model)
-- **Workflow 2**: ❌ Not ready - needs two-part upload
-- **Workflow 3**: ❌ Not ready - needs two-part upload and criteria_scores support
+- **Workflow 2**: ✅ Ready for testing (Evaluate Responses) 
+- **Workflow 3**: 🔄 Partially working - Log Evaluation button still disabled (debugging)
 - **Execution**: No actual API calls or evaluation execution yet
+
+## 🏆 Two-Part Upload Implementation (June 18, 2025)
+
+### UI Implementation
+| Task | Details | Status |
+|------|---------|--------|
+| Create two-part upload UI | Separate sections for images and JSONL | ✅ Complete |
+| Add drag-drop support | Both image folder and JSONL sections | ✅ Complete |
+| Add browse buttons | Separate buttons for each section | ✅ Complete |
+| Show upload status | Success indicators with file counts | ✅ Complete |
+| Add model name input | Text field for workflows 2 & 3 | ✅ Complete |
+| Add default prompt input | Optional field with placeholder | ✅ Complete |
+
+### Validation & Processing
+| Task | Details | Status |
+|------|---------|--------|
+| Make prompt optional | No longer required in JSONL | ✅ Complete |
+| Smart image matching | Flexible path resolution | ✅ Complete |
+| Auto-fill from JSONL | Extract model/prompt from data | ✅ Complete |
+| Validation report | Show match statistics | ✅ Complete |
+| State persistence | Save model name and prompt | ✅ Complete |
+
+### Bug Fixes
+| Task | Details | Commit |
+|------|---------|--------|
+| Fix build errors | Required member 'Prompt' | "Fix: Resolve build errors in two-part upload" |
+| Fix navigation | CurrentStep conditions for workflow 3 | "Fix: Complete fix for Log Evaluation button" |
+| Remove Test Sample Images | Avoid ContentDialog conflicts | Same commit |
+| Add SaveToState() | Missing call after dataset creation | Same commit |
 
 ## 🏆 Critical Fixes Completed (June 16, 2025)
 

@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.UI;
 
 namespace AIDevGallery.Pages.Evaluate
@@ -20,6 +21,9 @@ namespace AIDevGallery.Pages.Evaluate
     /// </summary>
     public sealed partial class ReviewConfigurationPage : Page
     {
+        public delegate void ValidationChangedEventHandler(bool isValid);
+        public event ValidationChangedEventHandler? ValidationChanged;
+        
         // Configuration data
         private EvaluationType _evaluationType;
         private EvaluationWorkflow _workflow;
@@ -33,6 +37,20 @@ namespace AIDevGallery.Pages.Evaluate
         public ReviewConfigurationPage()
         {
             this.InitializeComponent();
+            this.Loaded += ReviewConfigurationPage_Loaded;
+        }
+        
+        private void ReviewConfigurationPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Ensure validation state is updated after page is fully loaded
+            NotifyValidationChanged();
+            
+            // Add a small delay and retry in case of timing issues
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(100);
+                await DispatcherQueue.TryEnqueue(() => NotifyValidationChanged());
+            });
         }
         
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -81,6 +99,7 @@ namespace AIDevGallery.Pages.Evaluate
             _wizardFrame = wizardFrame;
             
             UpdateDisplay();
+            NotifyValidationChanged();
         }
         
         private void UpdateDisplay()
@@ -313,6 +332,13 @@ namespace AIDevGallery.Pages.Evaluate
         private SolidColorBrush GetRedBrush()
         {
             return new SolidColorBrush(Windows.UI.Color.FromArgb(255, 196, 49, 75));
+        }
+        
+        private void NotifyValidationChanged()
+        {
+            var isReady = IsReadyToExecute;
+            System.Diagnostics.Debug.WriteLine($"[ReviewConfigurationPage.NotifyValidationChanged] IsReadyToExecute: {isReady}, ValidationChanged has {ValidationChanged?.GetInvocationList()?.Length ?? 0} subscribers");
+            ValidationChanged?.Invoke(isReady);
         }
         
         #region Edit Navigation Handlers

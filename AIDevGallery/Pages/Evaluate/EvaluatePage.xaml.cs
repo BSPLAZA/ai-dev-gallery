@@ -266,6 +266,10 @@ namespace AIDevGallery.Pages
                     }
                     else if (args.Content is ReviewConfigurationPage reviewPage)
                     {
+                        reviewPage.ValidationChanged += (isValid) =>
+                        {
+                            dialog.IsPrimaryButtonEnabled = isValid;
+                        };
                         // Final step - change button text based on workflow
                         dialog.IsPrimaryButtonEnabled = reviewPage.IsReadyToExecute;
                         dialog.IsSecondaryButtonEnabled = true;
