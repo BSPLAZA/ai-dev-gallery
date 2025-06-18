@@ -122,9 +122,12 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                     imagePaths.Add(imageElement.GetString() ?? "");
                 }
                 
-                // Extract scores
-                if (root.TryGetProperty("scores", out var scoresElement) && 
-                    scoresElement.ValueKind == JsonValueKind.Object)
+                // Extract scores - check both "scores" and "criteria_scores" fields
+                JsonElement scoresElement = default;
+                bool hasScores = root.TryGetProperty("scores", out scoresElement) || 
+                                root.TryGetProperty("criteria_scores", out scoresElement);
+                
+                if (hasScores && scoresElement.ValueKind == JsonValueKind.Object)
                 {
                     foreach (var scoreProp in scoresElement.EnumerateObject())
                     {

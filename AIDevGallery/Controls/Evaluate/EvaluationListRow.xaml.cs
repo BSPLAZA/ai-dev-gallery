@@ -8,12 +8,14 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Windows.UI;
 
 namespace AIDevGallery.Controls.Evaluate
 {
-    public sealed partial class EvaluationListRow : UserControl
+    public sealed partial class EvaluationListRow : UserControl, INotifyPropertyChanged
     {
         public static readonly DependencyProperty ViewModelProperty =
             DependencyProperty.Register(nameof(ViewModel), typeof(EvaluationListItemViewModel), typeof(EvaluationListRow), new PropertyMetadata(null, OnViewModelChanged));
@@ -41,9 +43,10 @@ namespace AIDevGallery.Controls.Evaluate
             get => ViewModel?.IsSelected ?? false;
             set
             {
-                if (ViewModel != null)
+                if (ViewModel != null && ViewModel.IsSelected != value)
                 {
                     ViewModel.IsSelected = value;
+                    OnPropertyChanged(nameof(IsSelected));
                 }
             }
         }
@@ -78,6 +81,20 @@ namespace AIDevGallery.Controls.Evaluate
         private void UpdateBindings()
         {
             Bindings.Update();
+            
+            // Subscribe to ViewModel property changes
+            if (ViewModel != null)
+            {
+                ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+            }
+        }
+
+        private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(EvaluationListItemViewModel.IsSelected))
+            {
+                OnPropertyChanged(nameof(IsSelected));
+            }
         }
 
         private void OnPointerEntered(object sender, PointerRoutedEventArgs e)
@@ -109,6 +126,22 @@ namespace AIDevGallery.Controls.Evaluate
         private void OnRowDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
         {
             ItemDoubleClicked?.Invoke(this, ViewModel);
+        }
+
+        private void OnCheckboxChecked(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel != null)
+            {
+                ViewModel.IsSelected = true;
+            }
+        }
+
+        private void OnCheckboxUnchecked(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel != null)
+            {
+                ViewModel.IsSelected = false;
+            }
         }
 
 
@@ -207,6 +240,13 @@ namespace AIDevGallery.Controls.Evaluate
             {
                 return new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)); // Transparent
             }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

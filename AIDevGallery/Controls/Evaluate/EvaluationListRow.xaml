@@ -38,7 +38,9 @@
         <!-- Checkbox -->
         <CheckBox Grid.Column="0" 
                   VerticalAlignment="Center"
-                  IsChecked="{x:Bind ViewModel.IsSelected, Mode=TwoWay}"/>
+                  IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                  Checked="OnCheckboxChecked"
+                  Unchecked="OnCheckboxUnchecked"/>
 
         <!-- Workflow Icon -->
         <TextBlock Grid.Column="1" 

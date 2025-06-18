@@ -430,7 +430,9 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
                 ? typeof(ModelConfigurationStep) 
                 : typeof(DatasetUploadPage),
             ModelConfigurationStep => typeof(DatasetUploadPage),
-            DatasetUploadPage => typeof(MetricsSelectionPage),
+            DatasetUploadPage => state.Workflow == EvaluationWorkflow.ImportResults 
+                ? typeof(ReviewConfigurationPage)
+                : typeof(MetricsSelectionPage),
             MetricsSelectionPage => typeof(ReviewConfigurationPage),
             ReviewConfigurationPage => null,
             _ => null
@@ -447,18 +449,30 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             ModelConfigurationStep => (3, "Configure Model"),
             DatasetUploadPage => (state.Workflow == EvaluationWorkflow.TestModel ? 4 : 3, "Upload Dataset"),
             MetricsSelectionPage => (state.Workflow == EvaluationWorkflow.TestModel ? 5 : 4, "Select Metrics"),
-            ReviewConfigurationPage => (state.Workflow == EvaluationWorkflow.TestModel ? 6 : 5, "Review & Start"),
+            ReviewConfigurationPage => state.Workflow switch
+            {
+                EvaluationWorkflow.TestModel => (6, "Review & Start"),
+                EvaluationWorkflow.ImportResults => (4, "Review & Import"),
+                _ => (5, "Review & Start")
+            },
             _ => (1, "Unknown Step")
         };
 
-        var totalSteps = state.Workflow == EvaluationWorkflow.TestModel ? 6 : 5;
+        var totalSteps = state.Workflow switch
+        {
+            EvaluationWorkflow.TestModel => 6,
+            EvaluationWorkflow.ImportResults => 4,
+            _ => 5
+        };
         dialog.UpdateProgress(step, title, totalSteps);
         
         // Enable/disable back button
         dialog.IsSecondaryButtonEnabled = step > 1;
         
         // Update primary button text
-        dialog.PrimaryButtonText = currentPage is ReviewConfigurationPage ? "Start Evaluation" : "Next";
+        dialog.PrimaryButtonText = currentPage is ReviewConfigurationPage 
+            ? (state.Workflow == EvaluationWorkflow.ImportResults ? "Import Results" : "Start Evaluation") 
+            : "Next";
     }
 
     private string GetEvaluationName(EvaluationWizardState wizardState)
