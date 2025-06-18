@@ -54,7 +54,6 @@ namespace AIDevGallery.Pages.Evaluate
         private string? _imagesFolderPath;
         private int _imagesCount;
         private string? _jsonlFilePath;
-        private Dictionary<string, string>? _imagePathMapping;  // Maps JSONL paths to actual image paths
         private string? _modelName;  // For workflows 2 & 3
         private string? _defaultPrompt;  // Default prompt for entries without one
 
@@ -1071,25 +1070,27 @@ namespace AIDevGallery.Pages.Evaluate
         
         private DatasetEntry? CreateDatasetEntryFromJson(JsonElement root, string matchedImagePath, string originalImagePath)
         {
-            var entry = new DatasetEntry
-            {
-                OriginalImagePath = originalImagePath,
-                ResolvedImagePath = matchedImagePath
-            };
-            
-            // Use prompt from JSONL if available, otherwise use default prompt
+            // Determine prompt value first
+            string prompt;
             if (root.TryGetProperty("prompt", out var promptElement))
             {
-                entry.Prompt = promptElement.GetString() ?? string.Empty;
+                prompt = promptElement.GetString() ?? string.Empty;
             }
             else if (!string.IsNullOrEmpty(_defaultPrompt))
             {
-                entry.Prompt = _defaultPrompt;
+                prompt = _defaultPrompt;
             }
             else
             {
-                entry.Prompt = string.Empty; // Will need to be filled in later
+                prompt = string.Empty; // Will need to be filled in later
             }
+            
+            var entry = new DatasetEntry
+            {
+                OriginalImagePath = originalImagePath,
+                ResolvedImagePath = matchedImagePath,
+                Prompt = prompt  // Required property must be set in initializer
+            };
             
             if (root.TryGetProperty("response", out var responseElement))
             {
@@ -1166,7 +1167,7 @@ namespace AIDevGallery.Pages.Evaluate
             ProceedAnywayButton.Visibility = (result.Warnings.Any() && result.Errors.Count == 0) ? Visibility.Visible : Visibility.Collapsed;
         }
         
-        private async Task CreateFinalDatasetConfiguration(TwoPartValidationResult validationResult)
+        private Task CreateFinalDatasetConfiguration(TwoPartValidationResult validationResult)
         {
             // Get model name from UI
             _modelName = ModelNameInput.Text.Trim();
@@ -1213,6 +1214,8 @@ namespace AIDevGallery.Pages.Evaluate
             // Notify parent
             ValidationChanged?.Invoke(IsValid);
             UpdateParentDialogState();
+            
+            return Task.CompletedTask;
         }
         
         private void ResetImageUpload()
@@ -1679,13 +1682,13 @@ namespace AIDevGallery.Pages.Evaluate
             Reset();
         }
         
-        private async void ViewDetails_Click(object sender, RoutedEventArgs e)
+        private void ViewDetails_Click(object sender, RoutedEventArgs e)
         {
             // Show detailed validation report
             // TODO: Implement detailed view dialog
         }
         
-        private async void FixIssues_Click(object sender, RoutedEventArgs e)
+        private void FixIssues_Click(object sender, RoutedEventArgs e)
         {
             // Launch quick fix dialog for unmatched images
             // TODO: Implement quick fix functionality
