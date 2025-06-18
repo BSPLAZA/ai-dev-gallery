@@ -61,7 +61,6 @@ namespace AIDevGallery.Controls.Evaluate
 
         public event EventHandler<EvaluationListItemViewModel>? ItemClicked;
         public event EventHandler<EvaluationListItemViewModel>? ItemDoubleClicked;
-        public event EventHandler<EvaluationListItemViewModel>? SelectionChanged;
 
         public EvaluationListRow()
         {

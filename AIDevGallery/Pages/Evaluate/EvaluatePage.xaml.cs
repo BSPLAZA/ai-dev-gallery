@@ -506,7 +506,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
                 Id = Guid.NewGuid().ToString(),
                 Name = GetEvaluationName(wizardState),
                 ModelName = wizardState.ModelName ?? wizardState.ModelConfig?.SelectedModelName ?? "Unknown Model",
-                DatasetName = GetDatasetFolderName(wizardState.Dataset ?? new DatasetConfiguration()),
+                DatasetName = wizardState.Dataset != null ? GetDatasetFolderName(wizardState.Dataset) : "Unknown Dataset",
                 DatasetItemCount = wizardState.Dataset?.ValidEntries ?? 0,
                 Timestamp = DateTime.Now,
                 WorkflowType = wizardState.Workflow ?? EvaluationWorkflow.ImportResults,
