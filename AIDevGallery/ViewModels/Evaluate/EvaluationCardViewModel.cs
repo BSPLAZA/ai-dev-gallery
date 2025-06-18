@@ -8,7 +8,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using AIDevGallery.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Microsoft.UI;
 using Microsoft.UI.Xaml.Media;
 using Windows.UI;
 

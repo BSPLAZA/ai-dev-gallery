@@ -155,14 +155,14 @@
                              Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
                 </Button>
             </StackPanel>
+            <!-- Selection Indicator -->
+            <Border x:Name="SelectionIndicator"
+                   Grid.ColumnSpan="3"
+                   Visibility="{x:Bind ViewModel.IsSelected, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
+                   Background="{ThemeResource AccentFillColorDefaultBrush}"
+                   Width="4"
+                   HorizontalAlignment="Left"
+                   CornerRadius="2,0,0,2"/>
         </Grid>
-        
-        <!-- Selection Indicator -->
-        <Border x:Name="SelectionIndicator"
-               Visibility="{x:Bind ViewModel.IsSelected, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"
-               Background="{ThemeResource AccentFillColorDefaultBrush}"
-               Width="4"
-               HorizontalAlignment="Left"
-               CornerRadius="2,0,0,2"/>
     </Border>
 </UserControl>

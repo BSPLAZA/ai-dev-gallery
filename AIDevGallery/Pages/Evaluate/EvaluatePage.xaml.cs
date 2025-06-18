@@ -206,37 +206,49 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
     // Empty State Event Handlers
     private async void EmptyState_ImportResultsClicked(object sender, EventArgs e)
     {
-        // Open wizard with Import Results workflow
-        var wizardState = new EvaluationWizardState
-        {
-            SelectedWorkflow = EvaluationWorkflow.ImportResults
-        };
+        // Prevent multiple dialogs
+        if (_activeDialog != null) return;
         
+        // Open wizard with Import Results workflow
         var dialog = new WizardDialog();
         dialog.XamlRoot = this.XamlRoot;
+        _activeDialog = dialog;
         
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary)
+        try
         {
-            await LoadEvaluationsAsync();
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                await LoadEvaluationsAsync();
+            }
+        }
+        finally
+        {
+            _activeDialog = null;
         }
     }
 
     private async void EmptyState_TestModelClicked(object sender, EventArgs e)
     {
-        // Open wizard with Test Model workflow
-        var wizardState = new EvaluationWizardState
-        {
-            SelectedWorkflow = EvaluationWorkflow.TestModel
-        };
+        // Prevent multiple dialogs
+        if (_activeDialog != null) return;
         
+        // Open wizard with Test Model workflow
         var dialog = new WizardDialog();
         dialog.XamlRoot = this.XamlRoot;
+        _activeDialog = dialog;
         
-        var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary)
+        try
         {
-            await LoadEvaluationsAsync();
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                await LoadEvaluationsAsync();
+            }
+        }
+        finally
+        {
+            _activeDialog = null;
         }
     }
 
@@ -279,6 +291,9 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
 
     private async Task ShowPlaceholderDialog(string message)
     {
+        // Prevent multiple dialogs
+        if (_activeDialog != null) return;
+        
         var dialog = new ContentDialog
         {
             Title = "Coming Soon",
@@ -286,7 +301,16 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             CloseButtonText = "OK",
             XamlRoot = this.XamlRoot
         };
-        await dialog.ShowAsync();
+        _activeDialog = dialog;
+        
+        try
+        {
+            await dialog.ShowAsync();
+        }
+        finally
+        {
+            _activeDialog = null;
+        }
     }
 
     // INotifyPropertyChanged implementation
