@@ -309,48 +309,6 @@
                         </Grid>
                     </Border>
                 </StackPanel>
-
-                <!-- Model Name Input (for workflows 2 & 3) -->
-                <StackPanel 
-                    x:Name="ModelNamePanel"
-                    Spacing="8"
-                    Visibility="Collapsed">
-                    <TextBlock 
-                        Text="Model Name"
-                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <TextBox 
-                        x:Name="ModelNameInput"
-                        PlaceholderText="e.g., GPT-4V, Claude 3.5, Gemini Pro"
-                        TextChanged="ModelNameInput_TextChanged"
-                        AutomationProperties.Name="Model name input" />
-                    <TextBlock 
-                        Text="This will be applied to all entries"
-                        Style="{StaticResource CaptionTextBlockStyle}"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </StackPanel>
-                
-                <!-- Default Prompt Input (for workflows 2 & 3) -->
-                <StackPanel 
-                    x:Name="DefaultPromptPanel"
-                    Spacing="8"
-                    Visibility="Collapsed">
-                    <TextBlock 
-                        Text="Default Prompt (Optional)"
-                        Style="{StaticResource BodyStrongTextBlockStyle}" />
-                    <TextBox 
-                        x:Name="DefaultPromptInput"
-                        PlaceholderText="e.g., Describe this image in detail"
-                        TextWrapping="Wrap"
-                        AcceptsReturn="True"
-                        MaxHeight="100"
-                        ScrollViewer.VerticalScrollBarVisibility="Auto"
-                        TextChanged="DefaultPromptInput_TextChanged"
-                        AutomationProperties.Name="Default prompt input" />
-                    <TextBlock 
-                        Text="Used for entries without a prompt field in the JSONL"
-                        Style="{StaticResource CaptionTextBlockStyle}"
-                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </StackPanel>
             </StackPanel>
 
             <!-- Two-Part Upload Validation Report (hidden by default) -->
@@ -390,6 +348,48 @@
                     </StackPanel>
                 </StackPanel>
             </Border>
+
+            <!-- Model Name Input (for workflows 2 & 3) -->
+            <StackPanel 
+                x:Name="ModelNamePanel"
+                Spacing="8"
+                Visibility="Collapsed">
+                <TextBlock 
+                    Text="Model Name"
+                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <TextBox 
+                    x:Name="ModelNameInput"
+                    PlaceholderText="e.g., GPT-4V, Claude 3.5, Gemini Pro"
+                    TextChanged="ModelNameInput_TextChanged"
+                    AutomationProperties.Name="Model name input" />
+                <TextBlock 
+                    Text="This will be applied to all entries"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+            
+            <!-- Default Prompt Input (for workflows 2 & 3) -->
+            <StackPanel 
+                x:Name="DefaultPromptPanel"
+                Spacing="8"
+                Visibility="Collapsed">
+                <TextBlock 
+                    Text="Default Prompt (Optional)"
+                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <TextBox 
+                    x:Name="DefaultPromptInput"
+                    PlaceholderText="e.g., Describe this image in detail"
+                    TextWrapping="Wrap"
+                    AcceptsReturn="True"
+                    MaxHeight="100"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    TextChanged="DefaultPromptInput_TextChanged"
+                    AutomationProperties.Name="Default prompt input" />
+                <TextBlock 
+                    Text="Used for entries without a prompt field in the JSONL"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
 
             <!-- Dataset Size Error (hidden by default) -->
             <Border 

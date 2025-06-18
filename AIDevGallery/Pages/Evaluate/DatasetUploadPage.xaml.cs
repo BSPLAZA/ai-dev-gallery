@@ -83,10 +83,24 @@ namespace AIDevGallery.Pages.Evaluate
 
         private void RestoreFromState()
         {
-            if (_wizardState?.Dataset == null) return;
+            if (_wizardState == null) return;
 
             // Restore the dataset configuration
-            _datasetConfig = _wizardState.Dataset;
+            if (_wizardState.Dataset != null)
+            {
+                _datasetConfig = _wizardState.Dataset;
+                // Show validation results for the restored dataset
+                ShowValidationResults();
+                
+                // For two-part upload workflows, also show model/prompt panels if we have valid data
+                if ((_currentWorkflow == EvaluationWorkflow.EvaluateResponses || 
+                     _currentWorkflow == EvaluationWorkflow.ImportResults) && 
+                    _datasetConfig.ValidationResult?.IsValid == true)
+                {
+                    ModelNamePanel.Visibility = Visibility.Visible;
+                    DefaultPromptPanel.Visibility = Visibility.Visible;
+                }
+            }
             
             // Update workflow if available
             if (_wizardState.Workflow.HasValue)
@@ -95,8 +109,18 @@ namespace AIDevGallery.Pages.Evaluate
                 UpdateUIForWorkflow();
             }
             
-            // Show validation results for the restored dataset
-            ShowValidationResults();
+            // Restore model name and default prompt
+            if (!string.IsNullOrEmpty(_wizardState.ModelName))
+            {
+                _modelName = _wizardState.ModelName;
+                ModelNameInput.Text = _modelName;
+            }
+            
+            if (!string.IsNullOrEmpty(_wizardState.DefaultPrompt))
+            {
+                _defaultPrompt = _wizardState.DefaultPrompt;
+                DefaultPromptInput.Text = _defaultPrompt;
+            }
         }
 
         private void SaveToState()
@@ -110,12 +134,14 @@ namespace AIDevGallery.Pages.Evaluate
             if (!string.IsNullOrEmpty(ModelNameInput.Text))
             {
                 _modelName = ModelNameInput.Text.Trim();
+                _wizardState.ModelName = _modelName;
             }
             
             // Save default prompt if entered
             if (!string.IsNullOrEmpty(DefaultPromptInput.Text))
             {
                 _defaultPrompt = DefaultPromptInput.Text.Trim();
+                _wizardState.DefaultPrompt = _defaultPrompt;
             }
         }
 
@@ -148,8 +174,9 @@ namespace AIDevGallery.Pages.Evaluate
                     // Show two-part upload for workflow 2
                     SingleUploadArea.Visibility = Visibility.Collapsed;
                     TwoPartUploadArea.Visibility = Visibility.Visible;
-                    ModelNamePanel.Visibility = Visibility.Visible;
-                    DefaultPromptPanel.Visibility = Visibility.Visible;
+                    // Model/prompt panels will show after successful validation
+                    ModelNamePanel.Visibility = Visibility.Collapsed;
+                    DefaultPromptPanel.Visibility = Visibility.Collapsed;
                     JsonlRequiredFieldsText.Text = "image_path, response (prompt is optional)";
                     break;
                     
@@ -164,8 +191,9 @@ namespace AIDevGallery.Pages.Evaluate
                     // Show two-part upload for workflow 3
                     SingleUploadArea.Visibility = Visibility.Collapsed;
                     TwoPartUploadArea.Visibility = Visibility.Visible;
-                    ModelNamePanel.Visibility = Visibility.Visible;
-                    DefaultPromptPanel.Visibility = Visibility.Visible;
+                    // Model/prompt panels will show after successful validation
+                    ModelNamePanel.Visibility = Visibility.Collapsed;
+                    DefaultPromptPanel.Visibility = Visibility.Collapsed;
                     JsonlRequiredFieldsText.Text = "image_path, response, criteria_scores (prompt is optional)";
                     break;
             }
@@ -1130,6 +1158,13 @@ namespace AIDevGallery.Pages.Evaluate
         private void ShowTwoPartValidationReport(TwoPartValidationResult result)
         {
             TwoPartValidationPanel.Visibility = Visibility.Visible;
+            
+            // Show model name and prompt panels after validation
+            if (_currentWorkflow == EvaluationWorkflow.EvaluateResponses || _currentWorkflow == EvaluationWorkflow.ImportResults)
+            {
+                ModelNamePanel.Visibility = Visibility.Visible;
+                DefaultPromptPanel.Visibility = Visibility.Visible;
+            }
             
             if (result.IsValid)
             {

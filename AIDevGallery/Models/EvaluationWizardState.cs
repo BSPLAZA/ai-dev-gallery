@@ -26,6 +26,10 @@ namespace AIDevGallery.Models
         // Step 5: Metrics (not for ImportResults workflow)
         public EvaluationMetrics? Metrics { get; set; }
         
+        // Two-part upload fields (workflows 2 & 3)
+        public string? ModelName { get; set; }
+        public string? DefaultPrompt { get; set; }
+        
         // Navigation state
         public int CurrentStep { get; set; } = 1;
         public Stack<int> NavigationHistory { get; set; } = new Stack<int>();
@@ -75,6 +79,8 @@ namespace AIDevGallery.Models
             ModelConfig = null;
             Dataset = null;
             Metrics = null;
+            ModelName = null;
+            DefaultPrompt = null;
             CurrentStep = 1;
             NavigationHistory.Clear();
         }
@@ -91,6 +97,8 @@ namespace AIDevGallery.Models
                 ModelConfig = this.ModelConfig,
                 Dataset = this.Dataset,
                 Metrics = this.Metrics,
+                ModelName = this.ModelName,
+                DefaultPrompt = this.DefaultPrompt,
                 CurrentStep = this.CurrentStep,
                 NavigationHistory = new Stack<int>(new Stack<int>(this.NavigationHistory))
             };

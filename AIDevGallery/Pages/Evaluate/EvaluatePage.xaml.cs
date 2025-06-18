@@ -266,10 +266,12 @@ namespace AIDevGallery.Pages
                     }
                     else if (args.Content is ReviewConfigurationPage reviewPage)
                     {
-                        // Final step - change button to "Start Evaluation"
+                        // Final step - change button text based on workflow
                         dialog.IsPrimaryButtonEnabled = reviewPage.IsReadyToExecute;
                         dialog.IsSecondaryButtonEnabled = true;
-                        dialog.PrimaryButtonText = "Start Evaluation";
+                        dialog.PrimaryButtonText = workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults 
+                            ? "Log Evaluation" 
+                            : "Start Evaluation";
                         // Set current step based on workflow
                         currentStep = workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults ? 4 : 5;
                         // Update progress - Final step
