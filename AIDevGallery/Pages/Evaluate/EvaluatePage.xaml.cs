@@ -470,9 +470,9 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = wizardState.ModelConfig?.EvaluationName ?? $"Evaluation {DateTime.Now:yyyy-MM-dd HH:mm}",
-                ModelName = wizardState.ModelName ?? wizardState.ModelConfig?.ModelName ?? "Unknown Model",
+                ModelName = wizardState.ModelName ?? wizardState.ModelConfig?.SelectedModelName ?? "Unknown Model",
                 DatasetName = wizardState.Dataset?.FilePath != null ? System.IO.Path.GetFileName(wizardState.Dataset.FilePath) : "Unknown Dataset",
-                ItemCount = wizardState.Dataset?.ValidEntries ?? 0,
+                DatasetItemCount = wizardState.Dataset?.ValidEntries ?? 0,
                 Timestamp = DateTime.Now,
                 WorkflowType = wizardState.Workflow ?? EvaluationWorkflow.ImportResults,
                 Status = wizardState.Workflow == EvaluationWorkflow.ImportResults ? EvaluationStatus.Imported : EvaluationStatus.Running,

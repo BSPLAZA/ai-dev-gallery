@@ -115,8 +115,7 @@ namespace AIDevGallery.Controls.Evaluate
         private void OnCheckboxClick(object sender, RoutedEventArgs e)
         {
             // The TwoWay binding on the checkbox will handle updating ViewModel.IsSelected
-            // We don't need to do anything here, just mark as handled to prevent bubbling
-            e.Handled = true;
+            // We don't need to do anything here
         }
 
         private void UpdateVisualState()
