@@ -187,8 +187,8 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         
         // Initialize the wizard - skip to workflow selection with Import Results pre-selected
         var wizardState = new EvaluationWizardState();
-        wizardState.SelectedEvaluationType = EvaluationType.ImageDescription;
-        wizardState.SelectedWorkflow = EvaluationWorkflow.ImportResults;
+        wizardState.EvaluationType = EvaluationType.ImageDescription;
+        wizardState.Workflow = EvaluationWorkflow.ImportResults;
         
         // Navigate directly to workflow selection page
         dialog.Frame.Navigate(typeof(WorkflowSelectionPage), wizardState);
@@ -416,7 +416,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         return currentPage switch
         {
             SelectEvaluationTypePage => typeof(WorkflowSelectionPage),
-            WorkflowSelectionPage => state.SelectedWorkflow == EvaluationWorkflow.TestModel 
+            WorkflowSelectionPage => state.Workflow == EvaluationWorkflow.TestModel 
                 ? typeof(ModelConfigurationStep) 
                 : typeof(DatasetUploadPage),
             ModelConfigurationStep => typeof(DatasetUploadPage),
@@ -435,13 +435,13 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             SelectEvaluationTypePage => (1, "Select Evaluation Type"),
             WorkflowSelectionPage => (2, "Choose Workflow"),
             ModelConfigurationStep => (3, "Configure Model"),
-            DatasetUploadPage => (state.SelectedWorkflow == EvaluationWorkflow.TestModel ? 4 : 3, "Upload Dataset"),
-            MetricsSelectionPage => (state.SelectedWorkflow == EvaluationWorkflow.TestModel ? 5 : 4, "Select Metrics"),
-            ReviewConfigurationPage => (state.SelectedWorkflow == EvaluationWorkflow.TestModel ? 6 : 5, "Review & Start"),
+            DatasetUploadPage => (state.Workflow == EvaluationWorkflow.TestModel ? 4 : 3, "Upload Dataset"),
+            MetricsSelectionPage => (state.Workflow == EvaluationWorkflow.TestModel ? 5 : 4, "Select Metrics"),
+            ReviewConfigurationPage => (state.Workflow == EvaluationWorkflow.TestModel ? 6 : 5, "Review & Start"),
             _ => (1, "Unknown Step")
         };
 
-        var totalSteps = state.SelectedWorkflow == EvaluationWorkflow.TestModel ? 6 : 5;
+        var totalSteps = state.Workflow == EvaluationWorkflow.TestModel ? 6 : 5;
         dialog.UpdateProgress(step, title, totalSteps);
         
         // Enable/disable back button
