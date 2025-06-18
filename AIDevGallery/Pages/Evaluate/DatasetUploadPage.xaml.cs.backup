@@ -49,13 +49,6 @@ namespace AIDevGallery.Pages.Evaluate
         private ObservableCollection<DatasetPreviewItem> _previewItems = new();
 
         private EvaluationWizardState? _wizardState;
-        
-        // Two-part upload state
-        private string? _imagesFolderPath;
-        private int _imagesCount;
-        private string? _jsonlFilePath;
-        private Dictionary<string, string>? _imagePathMapping;  // Maps JSONL paths to actual image paths
-        private string? _modelName;  // For workflows 2 & 3
 
         public DatasetUploadPage()
         {
@@ -105,12 +98,6 @@ namespace AIDevGallery.Pages.Evaluate
 
             // Save current dataset configuration to state
             _wizardState.Dataset = _datasetConfig;
-            
-            // Save model name if entered
-            if (!string.IsNullOrEmpty(ModelNameInput.Text))
-            {
-                _modelName = ModelNameInput.Text.Trim();
-            }
         }
 
         private void UpdateUIForWorkflow()
@@ -125,40 +112,24 @@ namespace AIDevGallery.Pages.Evaluate
                     RequirementsText.Inlines.Add(new Run { Text = "• Required: image paths only\n" });
                     RequirementsText.Inlines.Add(new Run { Text = "• Image types: .jpg, .jpeg, .png, .gif, .bmp, .webp\n" });
                     RequirementsText.Inlines.Add(new Run { Text = "• Max dataset size: 1,000 images" });
-                    
-                    // Show single upload area for workflow 1
-                    SingleUploadArea.Visibility = Visibility.Visible;
-                    TwoPartUploadArea.Visibility = Visibility.Collapsed;
                     break;
                     
                 case EvaluationWorkflow.EvaluateResponses:
-                    HeaderDescriptionText.Text = "Upload your images and evaluation data separately for better organization.";
+                    HeaderDescriptionText.Text = "Provide a JSONL file with images, prompts, and model responses for evaluation.";
                     RequirementsText.Inlines.Clear();
-                    RequirementsText.Inlines.Add(new Run { Text = "• Step 1: Upload image folder\n" });
-                    RequirementsText.Inlines.Add(new Run { Text = "• Step 2: Upload JSONL with prompts and responses\n" });
-                    RequirementsText.Inlines.Add(new Run { Text = "• Model name will be applied to all entries\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Format: JSONL (one JSON object per line)\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Required fields: image_path, prompt, response, model\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Image types: .jpg, .jpeg, .png, .gif, .bmp, .webp\n" });
                     RequirementsText.Inlines.Add(new Run { Text = "• Max dataset size: 1,000 images" });
-                    
-                    // Show two-part upload for workflow 2
-                    SingleUploadArea.Visibility = Visibility.Collapsed;
-                    TwoPartUploadArea.Visibility = Visibility.Visible;
-                    ModelNamePanel.Visibility = Visibility.Visible;
-                    JsonlRequiredFieldsText.Text = "image_path, prompt, response";
                     break;
                     
                 case EvaluationWorkflow.ImportResults:
-                    HeaderDescriptionText.Text = "Upload your images and evaluation results separately.";
+                    HeaderDescriptionText.Text = "Provide a JSONL file with evaluation results to import and analyze.";
                     RequirementsText.Inlines.Clear();
-                    RequirementsText.Inlines.Add(new Run { Text = "• Step 1: Upload image folder\n" });
-                    RequirementsText.Inlines.Add(new Run { Text = "• Step 2: Upload JSONL with results\n" });
-                    RequirementsText.Inlines.Add(new Run { Text = "• Model name will be applied to all entries\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Format: JSONL (one JSON object per line)\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Required fields: image_path, prompt, criteria_scores\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Optional fields: response, model\n" });
                     RequirementsText.Inlines.Add(new Run { Text = "• Max dataset size: 1,000 entries" });
-                    
-                    // Show two-part upload for workflow 3
-                    SingleUploadArea.Visibility = Visibility.Collapsed;
-                    TwoPartUploadArea.Visibility = Visibility.Visible;
-                    ModelNamePanel.Visibility = Visibility.Visible;
-                    JsonlRequiredFieldsText.Text = "image_path, prompt, response, criteria_scores";
                     break;
             }
         }
@@ -243,139 +214,6 @@ namespace AIDevGallery.Pages.Evaluate
             DropZoneBorderBrush.Opacity = 0.5;
         }
 
-        #endregion
-
-        #region Two-Part Upload Handlers
-        
-        private void ImageDropZone_DragOver(object sender, DragEventArgs e)
-        {
-            if (e.DataView.Contains(StandardDataFormats.StorageItems))
-            {
-                e.AcceptedOperation = DataPackageOperation.Copy;
-                e.DragUIOverride.Caption = "Drop image folder";
-                e.DragUIOverride.IsCaptionVisible = true;
-                ImageDropZoneBorderBrush.Color = (Color)Application.Current.Resources["SystemAccentColor"];
-                ImageDropZoneBorderBrush.Opacity = 1.0;
-            }
-            else
-            {
-                e.AcceptedOperation = DataPackageOperation.None;
-            }
-        }
-        
-        private async void ImageDropZone_Drop(object sender, DragEventArgs e)
-        {
-            ImageDropZoneBorderBrush.Opacity = 0.5;
-            
-            if (e.DataView.Contains(StandardDataFormats.StorageItems))
-            {
-                var items = await e.DataView.GetStorageItemsAsync();
-                if (items.Count > 0 && items[0] is StorageFolder folder)
-                {
-                    await ProcessImageFolderForTwoPart(folder.Path);
-                }
-            }
-        }
-        
-        private void ImageDropZone_DragLeave(object sender, DragEventArgs e)
-        {
-            ImageDropZoneBorderBrush.Opacity = 0.5;
-        }
-        
-        private async void BrowseImageFolder_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-                var picker = new FolderPicker();
-                picker.FileTypeFilter.Add("*");
-                picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
-                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
-                var folder = await picker.PickSingleFolderAsync();
-                if (folder != null)
-                {
-                    await ProcessImageFolderForTwoPart(folder.Path);
-                }
-            }
-            catch (Exception ex)
-            {
-                await ShowErrorDialog("Folder Selection Error", $"Could not open folder picker: {ex.Message}");
-            }
-        }
-        
-        private void JsonlDropZone_DragOver(object sender, DragEventArgs e)
-        {
-            if (_imagesFolderPath == null) return; // Must have images first
-            
-            if (e.DataView.Contains(StandardDataFormats.StorageItems))
-            {
-                e.AcceptedOperation = DataPackageOperation.Copy;
-                e.DragUIOverride.Caption = "Drop JSONL file";
-                e.DragUIOverride.IsCaptionVisible = true;
-                JsonlDropZoneBorderBrush.Color = (Color)Application.Current.Resources["SystemAccentColor"];
-                JsonlDropZoneBorderBrush.Opacity = 1.0;
-            }
-            else
-            {
-                e.AcceptedOperation = DataPackageOperation.None;
-            }
-        }
-        
-        private async void JsonlDropZone_Drop(object sender, DragEventArgs e)
-        {
-            JsonlDropZoneBorderBrush.Opacity = 0.5;
-            
-            if (e.DataView.Contains(StandardDataFormats.StorageItems))
-            {
-                var items = await e.DataView.GetStorageItemsAsync();
-                if (items.Count > 0 && items[0] is StorageFile file)
-                {
-                    if (Path.GetExtension(file.Path).Equals(".jsonl", StringComparison.OrdinalIgnoreCase))
-                    {
-                        await ProcessJsonlForTwoPart(file.Path);
-                    }
-                }
-            }
-        }
-        
-        private void JsonlDropZone_DragLeave(object sender, DragEventArgs e)
-        {
-            JsonlDropZoneBorderBrush.Opacity = 0.5;
-        }
-        
-        private async void BrowseJsonl_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-                var picker = new FileOpenPicker();
-                picker.FileTypeFilter.Add(".jsonl");
-                picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
-                var file = await picker.PickSingleFileAsync();
-                if (file != null)
-                {
-                    await ProcessJsonlForTwoPart(file.Path);
-                }
-            }
-            catch (Exception ex)
-            {
-                await ShowErrorDialog("File Selection Error", $"Could not open file picker: {ex.Message}");
-            }
-        }
-        
-        private void ChangeImageFolder_Click(object sender, RoutedEventArgs e)
-        {
-            ResetImageUpload();
-        }
-        
-        private void ChangeJsonlFile_Click(object sender, RoutedEventArgs e)
-        {
-            ResetJsonlUpload();
-        }
-        
         #endregion
 
         #region File/Folder Selection
@@ -785,429 +623,6 @@ namespace AIDevGallery.Pages.Evaluate
 
         #endregion
 
-        #region Two-Part Upload Processing
-        
-        private async Task ProcessImageFolderForTwoPart(string folderPath)
-        {
-            try
-            {
-                // Count images in folder
-                var imageFiles = new List<string>();
-                foreach (var extension in SupportedImageExtensions)
-                {
-                    var files = Directory.GetFiles(folderPath, $"*{extension}", SearchOption.AllDirectories)
-                        .Union(Directory.GetFiles(folderPath, $"*{extension.ToUpperInvariant()}", SearchOption.AllDirectories));
-                    imageFiles.AddRange(files);
-                }
-                
-                imageFiles = imageFiles.Distinct().ToList();
-                
-                if (imageFiles.Count == 0)
-                {
-                    await ShowErrorDialog("No Images Found", "The selected folder does not contain any supported image files.");
-                    return;
-                }
-                
-                if (imageFiles.Count > MaxDatasetSize)
-                {
-                    await ShowErrorDialog("Too Many Images", $"The folder contains {imageFiles.Count:N0} images. Please select a folder with no more than {MaxDatasetSize:N0} images.");
-                    return;
-                }
-                
-                // Store image folder info
-                _imagesFolderPath = folderPath;
-                _imagesCount = imageFiles.Count;
-                
-                // Update UI
-                ImageUploadPanel.Visibility = Visibility.Collapsed;
-                ImageUploadSuccess.Visibility = Visibility.Visible;
-                ImageFolderPathText.Text = Path.GetFileName(folderPath);
-                ImageCountText.Text = $"{_imagesCount:N0} images found";
-                
-                // Enable JSONL upload
-                JsonlDropZone.IsHitTestVisible = true;
-                JsonlDropZone.Opacity = 1.0;
-                BrowseJsonlButton.IsEnabled = true;
-                JsonlUploadText.Text = "Drop JSONL file here or click to browse";
-            }
-            catch (Exception ex)
-            {
-                await ShowErrorDialog("Error Processing Folder", ex.Message);
-            }
-        }
-        
-        private async Task ProcessJsonlForTwoPart(string jsonlPath)
-        {
-            try
-            {
-                // Validate JSONL and match with images
-                var validationResult = await ValidateTwoPartUpload(jsonlPath);
-                
-                if (validationResult.IsValid)
-                {
-                    _jsonlFilePath = jsonlPath;
-                    
-                    // Update UI to show success
-                    JsonlUploadPanel.Visibility = Visibility.Collapsed;
-                    JsonlUploadSuccess.Visibility = Visibility.Visible;
-                    JsonlFilePathText.Text = Path.GetFileName(jsonlPath);
-                    JsonlEntryCountText.Text = $"{validationResult.MatchedCount:N0} entries matched";
-                    
-                    // Show validation report
-                    ShowTwoPartValidationReport(validationResult);
-                    
-                    // Create final dataset configuration if valid
-                    if (validationResult.IsValid)
-                    {
-                        await CreateFinalDatasetConfiguration(validationResult);
-                    }
-                }
-                else
-                {
-                    // Show validation errors
-                    ShowTwoPartValidationReport(validationResult);
-                }
-            }
-            catch (Exception ex)
-            {
-                await ShowErrorDialog("Error Processing JSONL", ex.Message);
-            }
-        }
-        
-        private async Task<TwoPartValidationResult> ValidateTwoPartUpload(string jsonlPath)
-        {
-            return await Task.Run(() =>
-            {
-                var result = new TwoPartValidationResult();
-                var imageFiles = GetAllImageFiles(_imagesFolderPath!);
-                var imageLookup = CreateImageLookup(imageFiles);
-                
-                // Parse JSONL and match with images
-                var entries = new List<DatasetEntry>();
-                var unmatchedPaths = new List<string>();
-                
-                using (var reader = new StreamReader(jsonlPath))
-                {
-                    string? line;
-                    int lineNumber = 0;
-                    
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        lineNumber++;
-                        if (string.IsNullOrWhiteSpace(line)) continue;
-                        
-                        try
-                        {
-                            var json = JsonDocument.Parse(line);
-                            var root = json.RootElement;
-                            
-                            // Get image path from JSONL
-                            if (!root.TryGetProperty("image_path", out var imagePathElement))
-                            {
-                                result.Errors.Add($"Line {lineNumber}: Missing image_path field");
-                                continue;
-                            }
-                            
-                            var imagePath = imagePathElement.GetString() ?? string.Empty;
-                            
-                            // Try to match with actual images
-                            var matchedImagePath = MatchImagePath(imagePath, imageLookup);
-                            if (matchedImagePath == null)
-                            {
-                                unmatchedPaths.Add(imagePath);
-                                continue;
-                            }
-                            
-                            // Validate other required fields based on workflow
-                            if (!ValidateJsonlFields(root, _currentWorkflow, lineNumber, result))
-                            {
-                                continue;
-                            }
-                            
-                            // Create entry
-                            var entry = CreateDatasetEntryFromJson(root, matchedImagePath, imagePath);
-                            if (entry != null)
-                            {
-                                entries.Add(entry);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            result.Errors.Add($"Line {lineNumber}: {ex.Message}");
-                        }
-                    }
-                }
-                
-                result.MatchedCount = entries.Count;
-                result.UnmatchedCount = unmatchedPaths.Count;
-                result.Entries = entries;
-                result.UnmatchedPaths = unmatchedPaths;
-                
-                // Check if we have enough matches
-                if (result.MatchedCount == 0)
-                {
-                    result.Errors.Add("No images could be matched between the folder and JSONL file.");
-                    result.IsValid = false;
-                }
-                else if (result.UnmatchedCount > 0)
-                {
-                    result.Warnings.Add($"{result.UnmatchedCount} image paths in JSONL could not be matched to images in the folder.");
-                    result.IsValid = result.Errors.Count == 0; // Valid if no errors, just warnings
-                }
-                else
-                {
-                    result.IsValid = result.Errors.Count == 0;
-                }
-                
-                return result;
-            });
-        }
-        
-        private Dictionary<string, string> CreateImageLookup(List<string> imagePaths)
-        {
-            var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            
-            foreach (var path in imagePaths)
-            {
-                // Add various lookup keys for flexible matching
-                var fileName = Path.GetFileName(path);
-                var fileNameWithoutExt = Path.GetFileNameWithoutExtension(path);
-                var relativePath = Path.GetRelativePath(_imagesFolderPath!, path);
-                
-                // Exact filename
-                lookup[fileName] = path;
-                
-                // Filename without extension
-                if (!lookup.ContainsKey(fileNameWithoutExt))
-                    lookup[fileNameWithoutExt] = path;
-                
-                // Relative path
-                lookup[relativePath] = path;
-                
-                // Relative path with forward slashes
-                var relativePathForward = relativePath.Replace('\\', '/');
-                lookup[relativePathForward] = path;
-            }
-            
-            return lookup;
-        }
-        
-        private string? MatchImagePath(string jsonlPath, Dictionary<string, string> imageLookup)
-        {
-            // Direct match
-            if (imageLookup.TryGetValue(jsonlPath, out var matched))
-                return matched;
-            
-            // Try just the filename
-            var fileName = Path.GetFileName(jsonlPath);
-            if (imageLookup.TryGetValue(fileName, out matched))
-                return matched;
-            
-            // Try without extension
-            var withoutExt = Path.GetFileNameWithoutExtension(jsonlPath);
-            if (imageLookup.TryGetValue(withoutExt, out matched))
-                return matched;
-            
-            // Try normalizing slashes
-            var normalized = jsonlPath.Replace('/', Path.DirectorySeparatorChar);
-            if (imageLookup.TryGetValue(normalized, out matched))
-                return matched;
-            
-            return null;
-        }
-        
-        private bool ValidateJsonlFields(JsonElement root, EvaluationWorkflow workflow, int lineNumber, TwoPartValidationResult result)
-        {
-            // Check prompt field
-            if (!root.TryGetProperty("prompt", out _))
-            {
-                result.Errors.Add($"Line {lineNumber}: Missing required field 'prompt'");
-                return false;
-            }
-            
-            // Check workflow-specific fields
-            if (workflow == EvaluationWorkflow.EvaluateResponses)
-            {
-                if (!root.TryGetProperty("response", out _))
-                {
-                    result.Errors.Add($"Line {lineNumber}: Missing required field 'response'");
-                    return false;
-                }
-                // Model field is now optional - will use UI input
-            }
-            else if (workflow == EvaluationWorkflow.ImportResults)
-            {
-                if (!root.TryGetProperty("response", out _))
-                {
-                    result.Errors.Add($"Line {lineNumber}: Missing required field 'response'");
-                    return false;
-                }
-                if (!root.TryGetProperty("criteria_scores", out _))
-                {
-                    result.Errors.Add($"Line {lineNumber}: Missing required field 'criteria_scores'");
-                    return false;
-                }
-            }
-            
-            return true;
-        }
-        
-        private DatasetEntry? CreateDatasetEntryFromJson(JsonElement root, string matchedImagePath, string originalImagePath)
-        {
-            var entry = new DatasetEntry
-            {
-                OriginalImagePath = originalImagePath,
-                ResolvedImagePath = matchedImagePath,
-                Prompt = root.GetProperty("prompt").GetString() ?? string.Empty
-            };
-            
-            if (root.TryGetProperty("response", out var responseElement))
-            {
-                entry.Response = responseElement.GetString();
-            }
-            
-            // Use model from UI input if not in JSONL
-            if (root.TryGetProperty("model", out var modelElement))
-            {
-                entry.Model = modelElement.GetString();
-            }
-            else if (!string.IsNullOrEmpty(_modelName))
-            {
-                entry.Model = _modelName;
-            }
-            
-            if (_currentWorkflow == EvaluationWorkflow.ImportResults && root.TryGetProperty("criteria_scores", out var scoresElement))
-            {
-                entry.Scores = JsonSerializer.Deserialize<Dictionary<string, object>>(scoresElement.GetRawText());
-            }
-            
-            return entry;
-        }
-        
-        private List<string> GetAllImageFiles(string folderPath)
-        {
-            var imageFiles = new List<string>();
-            foreach (var extension in SupportedImageExtensions)
-            {
-                var files = Directory.GetFiles(folderPath, $"*{extension}", SearchOption.AllDirectories)
-                    .Union(Directory.GetFiles(folderPath, $"*{extension.ToUpperInvariant()}", SearchOption.AllDirectories));
-                imageFiles.AddRange(files);
-            }
-            return imageFiles.Distinct().ToList();
-        }
-        
-        private void ShowTwoPartValidationReport(TwoPartValidationResult result)
-        {
-            TwoPartValidationPanel.Visibility = Visibility.Visible;
-            
-            if (result.IsValid)
-            {
-                TwoPartValidationInfoBar.Severity = InfoBarSeverity.Success;
-                TwoPartValidationInfoBar.Title = "Validation Successful";
-                TwoPartValidationInfoBar.Message = $"Successfully matched {result.MatchedCount} entries";
-                
-                if (result.Warnings.Any())
-                {
-                    TwoPartValidationInfoBar.Severity = InfoBarSeverity.Warning;
-                    TwoPartValidationInfoBar.Message += $"\n{string.Join("\n", result.Warnings)}";
-                }
-            }
-            else
-            {
-                TwoPartValidationInfoBar.Severity = InfoBarSeverity.Error;
-                TwoPartValidationInfoBar.Title = "Validation Failed";
-                TwoPartValidationInfoBar.Message = string.Join("\n", result.Errors.Take(3));
-                
-                if (result.Errors.Count > 3)
-                {
-                    TwoPartValidationInfoBar.Message += $"\n... and {result.Errors.Count - 3} more errors";
-                }
-            }
-            
-            // Show match summary if there are unmatched items
-            if (result.UnmatchedCount > 0)
-            {
-                MatchSummaryPanel.Visibility = Visibility.Visible;
-                MatchSummaryText.Text = $"Matched: {result.MatchedCount} | Unmatched: {result.UnmatchedCount} | Total images in folder: {_imagesCount}";
-            }
-            
-            // Update button visibility
-            FixIssuesButton.Visibility = result.UnmatchedCount > 0 ? Visibility.Visible : Visibility.Collapsed;
-            ProceedAnywayButton.Visibility = (result.Warnings.Any() && result.Errors.Count == 0) ? Visibility.Visible : Visibility.Collapsed;
-        }
-        
-        private async Task CreateFinalDatasetConfiguration(TwoPartValidationResult validationResult)
-        {
-            // Get model name from UI
-            _modelName = ModelNameInput.Text.Trim();
-            if (string.IsNullOrEmpty(_modelName))
-            {
-                _modelName = "Unknown Model";
-            }
-            
-            // Create dataset configuration
-            _datasetConfig = new DatasetConfiguration
-            {
-                Name = Path.GetFileNameWithoutExtension(_jsonlFilePath!),
-                SourcePath = _jsonlFilePath!,
-                SourceType = DatasetSourceType.JsonlFile,
-                BaseDirectory = _imagesFolderPath!,
-                Entries = validationResult.Entries,
-                ValidEntries = validationResult.MatchedCount,
-                TotalEntries = validationResult.MatchedCount,
-                ValidationResult = new ValidationResult
-                {
-                    IsValid = true,
-                    Issues = new List<ValidationIssue>(),
-                    Warnings = validationResult.Warnings
-                }
-            };
-            
-            // Apply model name to all entries that don't have one
-            foreach (var entry in _datasetConfig.Entries)
-            {
-                if (string.IsNullOrEmpty(entry.Model))
-                {
-                    entry.Model = _modelName;
-                }
-            }
-            
-            // Notify parent
-            ValidationChanged?.Invoke(IsValid);
-            UpdateParentDialogState();
-        }
-        
-        private void ResetImageUpload()
-        {
-            _imagesFolderPath = null;
-            _imagesCount = 0;
-            ImageUploadPanel.Visibility = Visibility.Visible;
-            ImageUploadSuccess.Visibility = Visibility.Collapsed;
-            
-            // Also reset JSONL upload
-            ResetJsonlUpload();
-            
-            // Disable JSONL upload
-            JsonlDropZone.IsHitTestVisible = false;
-            JsonlDropZone.Opacity = 0.5;
-            BrowseJsonlButton.IsEnabled = false;
-            JsonlUploadText.Text = "Upload images first";
-        }
-        
-        private void ResetJsonlUpload()
-        {
-            _jsonlFilePath = null;
-            JsonlUploadPanel.Visibility = Visibility.Visible;
-            JsonlUploadSuccess.Visibility = Visibility.Collapsed;
-            TwoPartValidationPanel.Visibility = Visibility.Collapsed;
-            
-            _datasetConfig = null;
-            ValidationChanged?.Invoke(false);
-            UpdateParentDialogState();
-        }
-        
-        #endregion
-
         #region UI Updates
 
         private void ShowLoadingState(string message)
@@ -1566,17 +981,11 @@ namespace AIDevGallery.Pages.Evaluate
             _datasetConfig = null;
             _previewItems.Clear();
             
-            // Reset single upload UI
+            // Reset UI
             UploadPanel.Visibility = Visibility.Visible;
             ValidationResultsPanel.Visibility = Visibility.Collapsed;
             DatasetSizeErrorPanel.Visibility = Visibility.Collapsed;
             RelativePathWarning.IsOpen = false;
-            
-            // Reset two-part upload state
-            ResetImageUpload();
-            ResetJsonlUpload();
-            ModelNameInput.Text = string.Empty;
-            _modelName = null;
             
             // Clear validation state
             ValidationChanged?.Invoke(false);
@@ -1620,52 +1029,6 @@ namespace AIDevGallery.Pages.Evaluate
             Reset();
         }
         
-        private async void ViewDetails_Click(object sender, RoutedEventArgs e)
-        {
-            // Show detailed validation report
-            // TODO: Implement detailed view dialog
-        }
-        
-        private async void FixIssues_Click(object sender, RoutedEventArgs e)
-        {
-            // Launch quick fix dialog for unmatched images
-            // TODO: Implement quick fix functionality
-        }
-        
-        private void ProceedAnyway_Click(object sender, RoutedEventArgs e)
-        {
-            // User wants to proceed despite warnings
-            ValidationChanged?.Invoke(IsValid);
-            UpdateParentDialogState();
-        }
-        
-        private void ChangeImages_Click(object sender, RoutedEventArgs e)
-        {
-            ResetImageUpload();
-        }
-        
-        private void ChangeJsonl_Click(object sender, RoutedEventArgs e)
-        {
-            ResetJsonlUpload();
-        }
-        
-        private void ModelNameInput_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            _modelName = ModelNameInput.Text.Trim();
-            
-            // If we already have a valid dataset, update the model name in all entries
-            if (_datasetConfig != null && !string.IsNullOrEmpty(_modelName))
-            {
-                foreach (var entry in _datasetConfig.Entries)
-                {
-                    if (string.IsNullOrEmpty(entry.Model) || entry.Model == "Unknown Model")
-                    {
-                        entry.Model = _modelName;
-                    }
-                }
-            }
-        }
-        
     }
 
     #region Helper Classes
@@ -1674,17 +1037,6 @@ namespace AIDevGallery.Pages.Evaluate
     {
         public string ImagePath { get; set; } = string.Empty;
         public string Prompt { get; set; } = string.Empty;
-    }
-    
-    public class TwoPartValidationResult
-    {
-        public bool IsValid { get; set; }
-        public int MatchedCount { get; set; }
-        public int UnmatchedCount { get; set; }
-        public List<DatasetEntry> Entries { get; set; } = new();
-        public List<string> UnmatchedPaths { get; set; } = new();
-        public List<string> Errors { get; set; } = new();
-        public List<string> Warnings { get; set; } = new();
     }
 
     #endregion
