@@ -100,7 +100,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             : AllEvaluations.Where(e => 
                 e.Name.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) ||
                 e.ModelName.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase) ||
-                e.DatasetDescription.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase));
+                e.DatasetName.Contains(_searchQuery, StringComparison.OrdinalIgnoreCase));
         
         foreach (var eval in filtered)
         {
@@ -336,14 +336,14 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
     }
 
     // Empty state handlers for new design
-    private async void ImportResults_Click(object sender, RoutedEventArgs e)
+    private void ImportResults_Click(object sender, RoutedEventArgs e)
     {
-        await EmptyState_ImportResultsClicked(sender, EventArgs.Empty);
+        EmptyState_ImportResultsClicked(sender, EventArgs.Empty);
     }
 
-    private async void NewEvaluation_Click(object sender, RoutedEventArgs e)
+    private void NewEvaluation_Click(object sender, RoutedEventArgs e)
     {
-        await EmptyState_TestModelClicked(sender, EventArgs.Empty);
+        EmptyState_TestModelClicked(sender, EventArgs.Empty);
     }
 
     // Helper to get selected count for binding

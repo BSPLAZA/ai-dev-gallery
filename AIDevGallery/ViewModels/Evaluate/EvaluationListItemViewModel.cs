@@ -44,7 +44,7 @@ namespace AIDevGallery.ViewModels.Evaluate
         {
             if (_evaluation.Status == EvaluationStatus.Running)
             {
-                _evaluation.RunningProgress = progress;
+                _evaluation.ProgressPercentage = progress;
                 OnPropertyChanged(nameof(RunningProgress));
             }
         }
