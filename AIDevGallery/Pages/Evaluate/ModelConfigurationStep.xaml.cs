@@ -266,7 +266,7 @@ namespace AIDevGallery.Pages.Evaluate
         /// <summary>
         /// Saves the API key securely and gets the evaluation data for this step
         /// </summary>
-        public ModelConfigurationData GetStepData()
+        internal ModelConfigurationData GetStepData()
         {
             // Save API key securely if provided
             if (!string.IsNullOrWhiteSpace(ApiKeyPasswordBox.Password) && selectedModelId != null)
