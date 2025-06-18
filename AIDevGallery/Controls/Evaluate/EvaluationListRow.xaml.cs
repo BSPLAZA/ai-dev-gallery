@@ -43,10 +43,9 @@ namespace AIDevGallery.Controls.Evaluate
             get => ViewModel?.IsSelected ?? false;
             set
             {
-                if (ViewModel != null && ViewModel.IsSelected != value)
+                if (ViewModel != null)
                 {
                     ViewModel.IsSelected = value;
-                    OnPropertyChanged(nameof(IsSelected));
                 }
             }
         }
@@ -74,15 +73,21 @@ namespace AIDevGallery.Controls.Evaluate
         {
             if (d is EvaluationListRow row)
             {
-                row.UpdateBindings();
+                row.UpdateBindings(e.OldValue as EvaluationListItemViewModel);
             }
         }
 
-        private void UpdateBindings()
+        private void UpdateBindings(EvaluationListItemViewModel? oldViewModel)
         {
+            // Unsubscribe from old ViewModel
+            if (oldViewModel != null)
+            {
+                oldViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            }
+            
             Bindings.Update();
             
-            // Subscribe to ViewModel property changes
+            // Subscribe to new ViewModel property changes
             if (ViewModel != null)
             {
                 ViewModel.PropertyChanged += OnViewModelPropertyChanged;
@@ -91,9 +96,18 @@ namespace AIDevGallery.Controls.Evaluate
 
         private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(EvaluationListItemViewModel.IsSelected))
+            switch (e.PropertyName)
             {
-                OnPropertyChanged(nameof(IsSelected));
+                case nameof(EvaluationListItemViewModel.IsSelected):
+                    OnPropertyChanged(nameof(IsSelected));
+                    UpdateVisualState();
+                    break;
+                case nameof(EvaluationListItemViewModel.AverageScore):
+                    OnPropertyChanged(nameof(AverageScore));
+                    break;
+                case nameof(EvaluationListItemViewModel.ItemCount):
+                    OnPropertyChanged(nameof(ItemCount));
+                    break;
             }
         }
 
@@ -109,13 +123,20 @@ namespace AIDevGallery.Controls.Evaluate
 
         private void OnRowTapped(object sender, TappedRoutedEventArgs e)
         {
-            // Don't toggle selection if checkbox was clicked
-            if (e.OriginalSource is CheckBox)
+            // Check if the tap was on the checkbox
+            var originalSource = e.OriginalSource as FrameworkElement;
+            while (originalSource != null)
             {
-                return;
+                // Check if we're clicking on a CheckBox (using type check instead of reference)
+                if (originalSource is CheckBox)
+                {
+                    // Checkbox will handle this
+                    return;
+                }
+                originalSource = originalSource.Parent as FrameworkElement;
             }
 
-            // Toggle the ViewModel's IsSelected, not the local property
+            // Toggle selection for tap on row
             if (ViewModel != null)
             {
                 ViewModel.IsSelected = !ViewModel.IsSelected;
@@ -128,20 +149,12 @@ namespace AIDevGallery.Controls.Evaluate
             ItemDoubleClicked?.Invoke(this, ViewModel);
         }
 
-        private void OnCheckboxChecked(object sender, RoutedEventArgs e)
+        private void OnCheckboxClick(object sender, RoutedEventArgs e)
         {
-            if (ViewModel != null)
-            {
-                ViewModel.IsSelected = true;
-            }
-        }
-
-        private void OnCheckboxUnchecked(object sender, RoutedEventArgs e)
-        {
-            if (ViewModel != null)
-            {
-                ViewModel.IsSelected = false;
-            }
+            // Let the binding handle the state change
+            // Just stop propagation to prevent row tap from toggling again
+            e.Handled = true;
+            ItemClicked?.Invoke(this, ViewModel);
         }
 
 

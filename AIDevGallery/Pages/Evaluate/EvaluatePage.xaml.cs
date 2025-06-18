@@ -533,8 +533,13 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             {
                 // ImportFromJsonlAsync returns a new evaluation with all data populated
                 evaluation = await _evaluationStore.ImportFromJsonlAsync(wizardState.Dataset.FilePath, evaluation.Name);
-                // Update with the folder name we determined
-                evaluation.DatasetName = GetDatasetFolderName(wizardState.Dataset);
+                // Only update dataset name if it would be more meaningful
+                var folderName = GetDatasetFolderName(wizardState.Dataset);
+                if (folderName != "Dataset" && !string.IsNullOrEmpty(folderName))
+                {
+                    evaluation.DatasetName = folderName;
+                }
+                // The import already set the correct DatasetItemCount from counting actual entries
             }
             else
             {

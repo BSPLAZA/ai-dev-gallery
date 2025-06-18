@@ -138,6 +138,11 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                         
                         if (scoreProp.Value.TryGetDouble(out var score))
                         {
+                            // Check if score is in 0-1 range and convert to 1-5
+                            if (score >= 0 && score <= 1)
+                            {
+                                score = score * 4 + 1; // Convert 0-1 to 1-5
+                            }
                             // Ensure score is in 1-5 range
                             score = Math.Max(1, Math.Min(5, score));
                             criteriaScores[scoreProp.Name].Add(score);
@@ -164,6 +169,18 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                 evaluation.CriteriaScores[criterion] = Math.Round(scores.Average(), 1);
             }
         }
+        
+        // Debug logging
+        System.Diagnostics.Debug.WriteLine($"Import Summary:");
+        System.Diagnostics.Debug.WriteLine($"  Model: {evaluation.ModelName}");
+        System.Diagnostics.Debug.WriteLine($"  Dataset: {evaluation.DatasetName}");
+        System.Diagnostics.Debug.WriteLine($"  Item Count: {evaluation.DatasetItemCount}");
+        System.Diagnostics.Debug.WriteLine($"  Criteria Count: {evaluation.CriteriaScores.Count}");
+        foreach (var (criterion, score) in evaluation.CriteriaScores)
+        {
+            System.Diagnostics.Debug.WriteLine($"  - {criterion}: {score}");
+        }
+        System.Diagnostics.Debug.WriteLine($"  Average Score: {evaluation.AverageScore}");
         
         // Save the evaluation
         await SaveEvaluationAsync(evaluation);

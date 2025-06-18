@@ -36,11 +36,11 @@
                    Visibility="{x:Bind IsSelected, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
 
         <!-- Checkbox -->
-        <CheckBox Grid.Column="0" 
+        <CheckBox x:Name="SelectionCheckBox"
+                  Grid.Column="0" 
                   VerticalAlignment="Center"
                   IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                  Checked="OnCheckboxChecked"
-                  Unchecked="OnCheckboxUnchecked"/>
+                  Click="OnCheckboxClick"/>
 
         <!-- Workflow Icon -->
         <TextBlock Grid.Column="1" 
