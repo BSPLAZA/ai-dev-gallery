@@ -16,7 +16,7 @@ namespace AIDevGallery.ViewModels.Evaluate;
 /// <summary>
 /// ViewModel for evaluation card display
 /// </summary>
-internal partial class EvaluationCardViewModel : ObservableObject
+public partial class EvaluationCardViewModel : ObservableObject
 {
     private readonly EvaluationResult _evaluationResult;
     
@@ -75,10 +75,29 @@ internal partial class EvaluationCardViewModel : ObservableObject
     // Colors and Gradients
     public string ScoreColorStart => GetScoreColor(AverageScore, true);
     public string ScoreColorEnd => GetScoreColor(AverageScore, false);
-    public SolidColorBrush ScoreColorBrush => new(ColorHelper.FromArgb(255, 
-        Convert.ToByte(ScoreColorStart.Substring(1, 2), 16),
-        Convert.ToByte(ScoreColorStart.Substring(3, 2), 16),
-        Convert.ToByte(ScoreColorStart.Substring(5, 2), 16)));
+    public SolidColorBrush ScoreColorBrush
+    {
+        get
+        {
+            var colorString = ScoreColorStart;
+            if (colorString.Length >= 7 && colorString.StartsWith("#"))
+            {
+                try
+                {
+                    return new SolidColorBrush(ColorHelper.FromArgb(255,
+                        Convert.ToByte(colorString.Substring(1, 2), 16),
+                        Convert.ToByte(colorString.Substring(3, 2), 16),
+                        Convert.ToByte(colorString.Substring(5, 2), 16)));
+                }
+                catch
+                {
+                    // Fall back to accent color if parsing fails
+                }
+            }
+            // Default fallback color
+            return new SolidColorBrush(ColorHelper.FromArgb(255, 33, 150, 243)); // Material Blue
+        }
+    }
     
     // Progress Display (for running evaluations)
     public bool ShowProgress => Status == EvaluationStatus.Running && 

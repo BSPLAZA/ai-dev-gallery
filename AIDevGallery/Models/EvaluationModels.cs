@@ -202,7 +202,7 @@ internal enum EvaluationType
 /// Evaluation workflow type
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<EvaluationWorkflow>))]
-internal enum EvaluationWorkflow
+public enum EvaluationWorkflow
 {
     TestModel,          // Generate responses + evaluate
     EvaluateResponses,  // Evaluate existing responses
@@ -213,7 +213,7 @@ internal enum EvaluationWorkflow
 /// Evaluation status following existing app state patterns
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter<EvaluationStatus>))]
-internal enum EvaluationStatus
+public enum EvaluationStatus
 {
     Draft,      // Being configured
     Ready,      // Ready to run

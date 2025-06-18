@@ -10,7 +10,7 @@ namespace AIDevGallery.Models;
 /// <summary>
 /// Represents an evaluation result with scores on a 1-5 scale
 /// </summary>
-internal class EvaluationResult
+public class EvaluationResult
 {
     public required string Id { get; set; }
     public required string Name { get; set; }
@@ -64,7 +64,7 @@ internal class EvaluationResult
 /// <summary>
 /// Score rating categories
 /// </summary>
-internal enum ScoreRating
+public enum ScoreRating
 {
     Excellent,        // 4.5-5.0
     Good,            // 3.75-4.49
