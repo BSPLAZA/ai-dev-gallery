@@ -11,7 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.UI;
+using Microsoft.UI;
 
 namespace AIDevGallery.Pages.Evaluate
 {
@@ -336,12 +336,12 @@ namespace AIDevGallery.Pages.Evaluate
         
         private SolidColorBrush GetGreenBrush()
         {
-            return new SolidColorBrush(Windows.UI.Color.FromArgb(255, 16, 124, 16));
+            return new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 16, 124, 16));
         }
         
         private SolidColorBrush GetRedBrush()
         {
-            return new SolidColorBrush(Windows.UI.Color.FromArgb(255, 196, 49, 75));
+            return new SolidColorBrush(Microsoft.UI.Color.FromArgb(255, 196, 49, 75));
         }
         
         private void NotifyValidationChanged()

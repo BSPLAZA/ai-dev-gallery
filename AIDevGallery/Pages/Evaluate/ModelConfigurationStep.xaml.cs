@@ -340,7 +340,7 @@ namespace AIDevGallery.Pages.Evaluate
     /// <summary>
     /// Data collected from the Model Configuration step
     /// </summary>
-    public class ModelConfigurationData
+    internal class ModelConfigurationData
     {
         public required string EvaluationName { get; set; }
         public required string FinalEvaluationName { get; set; }

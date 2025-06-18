@@ -58,28 +58,45 @@ internal partial class HoverLight : XamlLight
 
     private void MoveToRestingPosition()
     {
-        // Start animation on SpotLight's Offset
-        CompositionLight?.StartAnimation("Offset", _offsetAnimation);
+        // Start animation on SpotLight's Offset only if not disposed
+        if (CompositionLight != null && _offsetAnimation != null)
+        {
+            try
+            {
+                CompositionLight.StartAnimation("Offset", _offsetAnimation);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Light was already disposed, ignore
+            }
+        }
     }
 
     private void TargetElement_PointerMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (CompositionLight != null)
+        if (CompositionLight != null && _lightPositionExpression != null)
         {
-            // touch input is still UI thread-bound as of the Creator's Update
-            if (e.Pointer.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Touch)
+            try
             {
-                Vector2 offset = e.GetCurrentPoint((UIElement)sender).Position.ToVector2();
-
-                if (CompositionLight is SpotLight light)
+                // touch input is still UI thread-bound as of the Creator's Update
+                if (e.Pointer.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Touch)
                 {
-                    light.Offset = new Vector3(offset.X, offset.Y, 15);
+                    Vector2 offset = e.GetCurrentPoint((UIElement)sender).Position.ToVector2();
+
+                    if (CompositionLight is SpotLight light)
+                    {
+                        light.Offset = new Vector3(offset.X, offset.Y, 15);
+                    }
+                }
+                else
+                {
+                    // Get the pointer's current position from the property and bind the SpotLight's X-Y Offset
+                    CompositionLight.StartAnimation("Offset", _lightPositionExpression);
                 }
             }
-            else
+            catch (ObjectDisposedException)
             {
-                // Get the pointer's current position from the property and bind the SpotLight's X-Y Offset
-                CompositionLight.StartAnimation("Offset", _lightPositionExpression);
+                // Light was already disposed, ignore
             }
         }
     }
@@ -92,12 +109,20 @@ internal partial class HoverLight : XamlLight
 
     protected override void OnDisconnected(UIElement oldElement)
     {
+        // Unsubscribe from events first to prevent access after disposal
+        oldElement.PointerMoved -= TargetElement_PointerMoved;
+        oldElement.PointerExited -= TargetElement_PointerExited;
+        
         // Dispose Light and Composition resources when it is removed from the tree
         RemoveTargetElement(GetId(), oldElement);
-        CompositionLight.Dispose();
+        CompositionLight?.Dispose();
 
         _lightPositionExpression?.Dispose();
         _offsetAnimation?.Dispose();
+        
+        // Clear references
+        _lightPositionExpression = null;
+        _offsetAnimation = null;
     }
 
     protected override string GetId()
