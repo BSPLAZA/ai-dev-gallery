@@ -5,7 +5,6 @@ using AIDevGallery.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
@@ -40,7 +39,15 @@ namespace AIDevGallery.Pages.Evaluate
             ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"
         };
 
+        /// <summary>
+        /// Delegate for validation state changes.
+        /// </summary>
+        /// <param name="isValid">Whether the current state is valid.</param>
         public delegate void ValidationChangedEventHandler(bool isValid);
+        
+        /// <summary>
+        /// Event raised when validation state changes.
+        /// </summary>
         public event ValidationChangedEventHandler? ValidationChanged;
 
         // Current state
@@ -57,6 +64,9 @@ namespace AIDevGallery.Pages.Evaluate
         private string? _modelName;  // For workflows 2 & 3
         private string? _defaultPrompt;  // Default prompt for entries without one
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DatasetUploadPage"/> class.
+        /// </summary>
         public DatasetUploadPage()
         {
             this.InitializeComponent();
@@ -209,13 +219,14 @@ namespace AIDevGallery.Pages.Evaluate
         }
 
         /// <summary>
-        /// Checks if this step has valid input
+        /// Gets a value indicating whether this step has valid input.
         /// </summary>
         public bool IsValid => _datasetConfig?.ValidationResult?.IsValid ?? false;
 
         /// <summary>
-        /// Gets the dataset configuration for this step
+        /// Gets the dataset configuration for this step.
         /// </summary>
+        /// <returns>The dataset configuration, or null if not configured.</returns>
         internal DatasetConfiguration? GetStepData()
         {
             System.Diagnostics.Debug.WriteLine($"[DatasetUploadPage.GetStepData] Returning dataset: {_datasetConfig != null}, ValidEntries: {_datasetConfig?.ValidEntries ?? 0}");
@@ -1195,7 +1206,7 @@ namespace AIDevGallery.Pages.Evaluate
                 DefaultPromptPanel.Visibility = Visibility.Visible;
                 
                 // Auto-fill model name if found in JSONL
-                if (result.FoundModelNames != null && result.FoundModelNames.Any() && string.IsNullOrEmpty(ModelNameInput.Text))
+                if (result.FoundModelNames != null && result.FoundModelNames.Count > 0 && string.IsNullOrEmpty(ModelNameInput.Text))
                 {
                     // If all entries have the same model name, use it
                     if (result.FoundModelNames.Count == 1)
@@ -1215,7 +1226,7 @@ namespace AIDevGallery.Pages.Evaluate
                 }
                 
                 // Auto-fill default prompt if found in JSONL
-                if (result.FoundPrompts != null && result.FoundPrompts.Any() && string.IsNullOrEmpty(DefaultPromptInput.Text))
+                if (result.FoundPrompts != null && result.FoundPrompts.Count > 0 && string.IsNullOrEmpty(DefaultPromptInput.Text))
                 {
                     // If all entries have the same prompt, use it as default
                     if (result.FoundPrompts.Count == 1)
@@ -1233,7 +1244,7 @@ namespace AIDevGallery.Pages.Evaluate
                 TwoPartValidationInfoBar.Title = "Validation Successful";
                 TwoPartValidationInfoBar.Message = $"Successfully matched {result.MatchedCount} entries";
                 
-                if (result.Warnings.Any())
+                if (result.Warnings.Count > 0)
                 {
                     TwoPartValidationInfoBar.Severity = InfoBarSeverity.Warning;
                     TwoPartValidationInfoBar.Message += $"\n{string.Join("\n", result.Warnings)}";
@@ -1260,7 +1271,7 @@ namespace AIDevGallery.Pages.Evaluate
             
             // Update button visibility
             FixIssuesButton.Visibility = result.UnmatchedCount > 0 ? Visibility.Visible : Visibility.Collapsed;
-            ProceedAnywayButton.Visibility = (result.Warnings.Any() && result.Errors.Count == 0) ? Visibility.Visible : Visibility.Collapsed;
+            ProceedAnywayButton.Visibility = (result.Warnings.Count > 0 && result.Errors.Count == 0) ? Visibility.Visible : Visibility.Collapsed;
         }
         
         private Task CreateFinalDatasetConfiguration(TwoPartValidationResult validationResult)
@@ -1298,11 +1309,14 @@ namespace AIDevGallery.Pages.Evaluate
             foreach (var entry in validationResult.Entries)
             {
                 var folder = Path.GetDirectoryName(entry.OriginalImagePath) ?? "root";
-                if (!_datasetConfig.FolderStructure.ContainsKey(folder))
+                if (_datasetConfig.FolderStructure.TryGetValue(folder, out var count))
                 {
-                    _datasetConfig.FolderStructure[folder] = 0;
+                    _datasetConfig.FolderStructure[folder] = count + 1;
                 }
-                _datasetConfig.FolderStructure[folder]++;
+                else
+                {
+                    _datasetConfig.FolderStructure[folder] = 1;
+                }
             }
             
             // Apply model name and default prompt to entries that need them
@@ -1425,7 +1439,7 @@ namespace AIDevGallery.Pages.Evaluate
                 ValidationInfoBar.Message = GetValidationErrorSummary();
                 
                 // Show first few errors
-                if (_datasetConfig.ValidationResult.Issues.Any())
+                if (_datasetConfig.ValidationResult.Issues.Count > 0)
                 {
                     var errorList = string.Join("\n", _datasetConfig.ValidationResult.Issues.Take(5).Select(i => $"• {i.Message}"));
                     ValidationInfoBar.Message += $"\n\nErrors:\n{errorList}";
@@ -1461,7 +1475,7 @@ namespace AIDevGallery.Pages.Evaluate
 
         private void ShowPreview()
         {
-            if (_datasetConfig == null || !_datasetConfig.Entries.Any()) return;
+            if (_datasetConfig == null || _datasetConfig.Entries.Count == 0) return;
 
             _previewItems.Clear();
             foreach (var entry in _datasetConfig.Entries.Take(5))
@@ -1503,7 +1517,7 @@ namespace AIDevGallery.Pages.Evaluate
         private string TruncateText(string text, int maxLength)
         {
             if (text.Length <= maxLength) return text;
-            return text.Substring(0, maxLength - 3) + "...";
+            return string.Concat(text.AsSpan(0, maxLength - 3), "...");
         }
 
         private void UpdateParentDialogState()
@@ -1825,26 +1839,70 @@ namespace AIDevGallery.Pages.Evaluate
         
     }
 
-    #region Helper Classes
-
+    /// <summary>
+    /// Represents a preview item for the dataset.
+    /// </summary>
     public class DatasetPreviewItem
     {
+        /// <summary>
+        /// Gets or sets the image path.
+        /// </summary>
         public string ImagePath { get; set; } = string.Empty;
+        
+        /// <summary>
+        /// Gets or sets the prompt.
+        /// </summary>
         public string Prompt { get; set; } = string.Empty;
     }
     
+    /// <summary>
+    /// Represents validation results for two-part upload.
+    /// </summary>
     internal class TwoPartValidationResult
     {
+        /// <summary>
+        /// Gets or sets a value indicating whether the validation is successful.
+        /// </summary>
         public bool IsValid { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the count of matched entries.
+        /// </summary>
         public int MatchedCount { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the count of unmatched entries.
+        /// </summary>
         public int UnmatchedCount { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the list of dataset entries.
+        /// </summary>
         public List<DatasetEntry> Entries { get; set; } = new();
+        
+        /// <summary>
+        /// Gets or sets the list of unmatched paths.
+        /// </summary>
         public List<string> UnmatchedPaths { get; set; } = new();
+        
+        /// <summary>
+        /// Gets or sets the list of error messages.
+        /// </summary>
         public List<string> Errors { get; set; } = new();
+        
+        /// <summary>
+        /// Gets or sets the list of warning messages.
+        /// </summary>
         public List<string> Warnings { get; set; } = new();
+        
+        /// <summary>
+        /// Gets or sets the list of model names found in the dataset.
+        /// </summary>
         public List<string> FoundModelNames { get; set; } = new();
+        
+        /// <summary>
+        /// Gets or sets the list of prompts found in the dataset.
+        /// </summary>
         public List<string> FoundPrompts { get; set; } = new();
     }
-
-    #endregion
 }

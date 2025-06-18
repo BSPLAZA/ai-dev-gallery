@@ -49,7 +49,7 @@ namespace AIDevGallery.Pages.Evaluate
             _ = Task.Run(async () =>
             {
                 await Task.Delay(100);
-                await DispatcherQueue.TryEnqueue(() => NotifyValidationChanged());
+                DispatcherQueue.TryEnqueue(() => NotifyValidationChanged());
             });
         }
         
