@@ -1290,8 +1290,20 @@ namespace AIDevGallery.Pages.Evaluate
                     IsValid = true,
                     Issues = new List<ValidationIssue>(),
                     Warnings = validationResult.Warnings
-                }
+                },
+                FolderStructure = new Dictionary<string, int>() // Initialize to avoid null
             };
+            
+            // Populate folder structure from entries
+            foreach (var entry in validationResult.Entries)
+            {
+                var folder = Path.GetDirectoryName(entry.OriginalImagePath) ?? "root";
+                if (!_datasetConfig.FolderStructure.ContainsKey(folder))
+                {
+                    _datasetConfig.FolderStructure[folder] = 0;
+                }
+                _datasetConfig.FolderStructure[folder]++;
+            }
             
             // Apply model name and default prompt to entries that need them
             foreach (var entry in _datasetConfig.Entries)

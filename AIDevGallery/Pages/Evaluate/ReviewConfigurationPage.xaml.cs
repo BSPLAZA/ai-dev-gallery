@@ -48,8 +48,17 @@ namespace AIDevGallery.Pages.Evaluate
                 _dataset = state.Dataset;
                 _metrics = state.Metrics;
                 
+                // Debug logging
+                System.Diagnostics.Debug.WriteLine($"[ReviewConfigurationPage.OnNavigatedTo] Workflow: {_workflow}");
+                System.Diagnostics.Debug.WriteLine($"[ReviewConfigurationPage.OnNavigatedTo] Dataset: {_dataset != null}, Name: {_dataset?.Name}, ValidEntries: {_dataset?.ValidEntries ?? 0}");
+                System.Diagnostics.Debug.WriteLine($"[ReviewConfigurationPage.OnNavigatedTo] ModelConfig: {_modelConfig != null}");
+                System.Diagnostics.Debug.WriteLine($"[ReviewConfigurationPage.OnNavigatedTo] Metrics: {_metrics != null}");
+                
                 // Update display with state data
                 UpdateDisplay();
+                
+                // Notify parent dialog about validation state after loading data
+                NotifyValidationChanged();
             }
         }
         
@@ -377,7 +386,7 @@ namespace AIDevGallery.Pages.Evaluate
         {
             get
             {
-                return _workflow switch
+                var result = _workflow switch
                 {
                     EvaluationWorkflow.TestModel => 
                         _modelConfig != null && _dataset != null && _metrics != null,
@@ -387,6 +396,9 @@ namespace AIDevGallery.Pages.Evaluate
                         _dataset != null,
                     _ => false
                 };
+                
+                System.Diagnostics.Debug.WriteLine($"[ReviewConfigurationPage.IsReadyToExecute] Workflow: {_workflow}, Dataset: {_dataset != null}, ModelConfig: {_modelConfig != null}, Metrics: {_metrics != null}, Result: {result}");
+                return result;
             }
         }
         
