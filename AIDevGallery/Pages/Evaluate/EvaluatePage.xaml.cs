@@ -286,6 +286,8 @@ namespace AIDevGallery.Pages
                 // Handle Next/Create button clicks
                 dialog.NextClicked += (_, __) =>
                 {
+                    System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] currentStep: {currentStep}, workflow: {workflowSelectionData?.Workflow}, CurrentPage: {dialog.Frame.Content?.GetType().Name}");
+                    
                     if (currentStep == 0)
                     {
                         // Move from Step 1 (Evaluation Type) to Step 2 (Workflow Selection)
@@ -352,7 +354,7 @@ namespace AIDevGallery.Pages
                                 System.Diagnostics.Debug.WriteLine($"[EvaluatePage] WizardState.Dataset: {wizardState.Dataset != null}");
                                 
                                 // Navigate directly to ReviewConfigurationPage
-                                wizardState.CurrentStep = 6;
+                                wizardState.CurrentStep = 4;  // Step 4 for ImportResults workflow
                                 dialog.Frame.Navigate(typeof(ReviewConfigurationPage), wizardState);
                                 // The ReviewConfigurationPage will get all data from wizardState in OnNavigatedTo
                                 
@@ -374,7 +376,7 @@ namespace AIDevGallery.Pages
                         {
                             metricsConfiguration = metricsPage.GetStepData();
                             wizardState.Metrics = metricsConfiguration;
-                            wizardState.CurrentStep = 6;
+                            wizardState.CurrentStep = 5;  // Step 5 for other workflows
                             
                             // Navigate to ReviewConfigurationPage
                             dialog.Frame.Navigate(typeof(ReviewConfigurationPage), wizardState);
@@ -397,6 +399,8 @@ namespace AIDevGallery.Pages
                     }
                     else if (currentStep == 5 || (currentStep == 4 && workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults))
                     {
+                        System.Diagnostics.Debug.WriteLine($"[EvaluatePage.NextClicked] Executing evaluation - currentStep: {currentStep}, workflow: {workflowSelectionData?.Workflow}");
+                        
                         // Execute evaluation from ReviewConfigurationPage
                         if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
                         {
