@@ -56,6 +56,7 @@ namespace AIDevGallery.Pages.Evaluate
         private string? _jsonlFilePath;
         private Dictionary<string, string>? _imagePathMapping;  // Maps JSONL paths to actual image paths
         private string? _modelName;  // For workflows 2 & 3
+        private string? _defaultPrompt;  // Default prompt for entries without one
 
         public DatasetUploadPage()
         {
@@ -111,6 +112,12 @@ namespace AIDevGallery.Pages.Evaluate
             {
                 _modelName = ModelNameInput.Text.Trim();
             }
+            
+            // Save default prompt if entered
+            if (!string.IsNullOrEmpty(DefaultPromptInput.Text))
+            {
+                _defaultPrompt = DefaultPromptInput.Text.Trim();
+            }
         }
 
         private void UpdateUIForWorkflow()
@@ -135,7 +142,7 @@ namespace AIDevGallery.Pages.Evaluate
                     HeaderDescriptionText.Text = "Upload your images and evaluation data separately for better organization.";
                     RequirementsText.Inlines.Clear();
                     RequirementsText.Inlines.Add(new Run { Text = "• Step 1: Upload image folder\n" });
-                    RequirementsText.Inlines.Add(new Run { Text = "• Step 2: Upload JSONL with prompts and responses\n" });
+                    RequirementsText.Inlines.Add(new Run { Text = "• Step 2: Upload JSONL with responses\n" });
                     RequirementsText.Inlines.Add(new Run { Text = "• Model name will be applied to all entries\n" });
                     RequirementsText.Inlines.Add(new Run { Text = "• Max dataset size: 1,000 images" });
                     
@@ -143,7 +150,8 @@ namespace AIDevGallery.Pages.Evaluate
                     SingleUploadArea.Visibility = Visibility.Collapsed;
                     TwoPartUploadArea.Visibility = Visibility.Visible;
                     ModelNamePanel.Visibility = Visibility.Visible;
-                    JsonlRequiredFieldsText.Text = "image_path, prompt, response";
+                    DefaultPromptPanel.Visibility = Visibility.Visible;
+                    JsonlRequiredFieldsText.Text = "image_path, response (prompt is optional)";
                     break;
                     
                 case EvaluationWorkflow.ImportResults:
@@ -158,7 +166,8 @@ namespace AIDevGallery.Pages.Evaluate
                     SingleUploadArea.Visibility = Visibility.Collapsed;
                     TwoPartUploadArea.Visibility = Visibility.Visible;
                     ModelNamePanel.Visibility = Visibility.Visible;
-                    JsonlRequiredFieldsText.Text = "image_path, prompt, response, criteria_scores";
+                    DefaultPromptPanel.Visibility = Visibility.Visible;
+                    JsonlRequiredFieldsText.Text = "image_path, response, criteria_scores (prompt is optional)";
                     break;
             }
         }
@@ -503,16 +512,12 @@ namespace AIDevGallery.Pages.Evaluate
                     var saveButton = new Button { Content = "Save generated JSONL" };
                     saveButton.Click += async (s, e) => await SaveGeneratedJsonl();
                     
-                    var infoBar = new InfoBar
+                    // Show the save option in the validation info bar
+                    if (ValidationInfoBar != null)
                     {
-                        Title = "Dataset Generated",
-                        Message = "A JSONL file was generated from your image folder. You can save it for future use.",
-                        Severity = InfoBarSeverity.Success,
-                        IsOpen = true,
-                        ActionButton = saveButton
-                    };
-                    
-                    // Add to UI (implementation depends on layout)
+                        ValidationInfoBar.ActionButton = saveButton;
+                        ValidationInfoBar.Message += "\n\nA JSONL file was generated from your image folder. You can save it for future use.";
+                    }
                 }
             }
             catch (Exception ex)
@@ -943,6 +948,20 @@ namespace AIDevGallery.Pages.Evaluate
                 result.Entries = entries;
                 result.UnmatchedPaths = unmatchedPaths;
                 
+                // Check how many entries are missing prompts
+                var entriesWithoutPrompt = entries.Count(e => string.IsNullOrEmpty(e.Prompt));
+                if (entriesWithoutPrompt > 0)
+                {
+                    if (string.IsNullOrEmpty(_defaultPrompt))
+                    {
+                        result.Warnings.Add($"{entriesWithoutPrompt} entries have no prompt. Consider adding a default prompt above.");
+                    }
+                    else
+                    {
+                        result.Warnings.Add($"{entriesWithoutPrompt} entries will use the default prompt: \"{_defaultPrompt}\"");
+                    }
+                }
+                
                 // Check if we have enough matches
                 if (result.MatchedCount == 0)
                 {
@@ -1018,12 +1037,8 @@ namespace AIDevGallery.Pages.Evaluate
         
         private bool ValidateJsonlFields(JsonElement root, EvaluationWorkflow workflow, int lineNumber, TwoPartValidationResult result)
         {
-            // Check prompt field
-            if (!root.TryGetProperty("prompt", out _))
-            {
-                result.Errors.Add($"Line {lineNumber}: Missing required field 'prompt'");
-                return false;
-            }
+            // Prompt field is now optional for workflows 2 & 3
+            // If not provided, we'll use the default prompt from UI
             
             // Check workflow-specific fields
             if (workflow == EvaluationWorkflow.EvaluateResponses)
@@ -1033,7 +1048,8 @@ namespace AIDevGallery.Pages.Evaluate
                     result.Errors.Add($"Line {lineNumber}: Missing required field 'response'");
                     return false;
                 }
-                // Model field is now optional - will use UI input
+                // Model field is optional - will use UI input
+                // Prompt field is optional - will use default if not provided
             }
             else if (workflow == EvaluationWorkflow.ImportResults)
             {
@@ -1047,6 +1063,7 @@ namespace AIDevGallery.Pages.Evaluate
                     result.Errors.Add($"Line {lineNumber}: Missing required field 'criteria_scores'");
                     return false;
                 }
+                // Prompt field is optional - will use default if not provided
             }
             
             return true;
@@ -1057,9 +1074,22 @@ namespace AIDevGallery.Pages.Evaluate
             var entry = new DatasetEntry
             {
                 OriginalImagePath = originalImagePath,
-                ResolvedImagePath = matchedImagePath,
-                Prompt = root.GetProperty("prompt").GetString() ?? string.Empty
+                ResolvedImagePath = matchedImagePath
             };
+            
+            // Use prompt from JSONL if available, otherwise use default prompt
+            if (root.TryGetProperty("prompt", out var promptElement))
+            {
+                entry.Prompt = promptElement.GetString() ?? string.Empty;
+            }
+            else if (!string.IsNullOrEmpty(_defaultPrompt))
+            {
+                entry.Prompt = _defaultPrompt;
+            }
+            else
+            {
+                entry.Prompt = string.Empty; // Will need to be filled in later
+            }
             
             if (root.TryGetProperty("response", out var responseElement))
             {
@@ -1145,6 +1175,9 @@ namespace AIDevGallery.Pages.Evaluate
                 _modelName = "Unknown Model";
             }
             
+            // Get default prompt from UI
+            _defaultPrompt = DefaultPromptInput.Text.Trim();
+            
             // Create dataset configuration
             _datasetConfig = new DatasetConfiguration
             {
@@ -1163,12 +1196,17 @@ namespace AIDevGallery.Pages.Evaluate
                 }
             };
             
-            // Apply model name to all entries that don't have one
+            // Apply model name and default prompt to entries that need them
             foreach (var entry in _datasetConfig.Entries)
             {
                 if (string.IsNullOrEmpty(entry.Model))
                 {
                     entry.Model = _modelName;
+                }
+                
+                if (string.IsNullOrEmpty(entry.Prompt) && !string.IsNullOrEmpty(_defaultPrompt))
+                {
+                    entry.Prompt = _defaultPrompt;
                 }
             }
             
@@ -1454,23 +1492,38 @@ namespace AIDevGallery.Pages.Evaluate
             dataPackage.SetText(example);
             Clipboard.SetContentWithOptions(dataPackage, null);
             
-            // Show confirmation
-            TeachingTip copyTip = new TeachingTip
+            // Show confirmation using InfoBar instead of TeachingTip
+            // TeachingTip requires being added to visual tree which is complex here
+            var infoBar = new InfoBar
             {
-                Target = CopyExampleButton,
                 Title = "Copied!",
-                Subtitle = "Example JSONL copied to clipboard",
+                Message = "Example JSONL copied to clipboard",
+                Severity = InfoBarSeverity.Success,
                 IsOpen = true
             };
             
-            // Auto-close after 2 seconds
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
-            timer.Tick += (s, e) =>
+            // Find a suitable container to add the InfoBar temporarily
+            if (this.Content is ScrollViewer scrollViewer && scrollViewer.Content is StackPanel mainPanel)
             {
-                copyTip.IsOpen = false;
-                timer.Stop();
-            };
-            timer.Start();
+                mainPanel.Children.Insert(0, infoBar);
+                
+                // Auto-close after 2 seconds
+                var timer = new Microsoft.UI.Xaml.DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+                timer.Tick += (s, e) =>
+                {
+                    infoBar.IsOpen = false;
+                    timer.Stop();
+                    // Remove from visual tree after a short delay
+                    var removeTimer = new Microsoft.UI.Xaml.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+                    removeTimer.Tick += (s2, e2) =>
+                    {
+                        mainPanel.Children.Remove(infoBar);
+                        removeTimer.Stop();
+                    };
+                    removeTimer.Start();
+                };
+                timer.Start();
+            }
         }
 
         private string GetExampleJsonl()
@@ -1487,12 +1540,16 @@ namespace AIDevGallery.Pages.Evaluate
                     break;
                     
                 case EvaluationWorkflow.EvaluateResponses:
-                    examples.AppendLine(@"{""image_path"": ""images/product1.jpg"", ""prompt"": ""Describe this product"", ""response"": ""A red running shoe with white laces and modern design"", ""model"": ""gpt-4o""}");
-                    examples.AppendLine(@"{""image_path"": ""images/product2.jpg"", ""prompt"": ""Describe this product"", ""response"": ""A leather handbag with gold hardware"", ""model"": ""gpt-4o""}");
+                    examples.AppendLine(@"{""image_path"": ""images/product1.jpg"", ""prompt"": ""Describe this product"", ""response"": ""A red running shoe with white laces and modern design""}");
+                    examples.AppendLine(@"{""image_path"": ""images/product2.jpg"", ""response"": ""A leather handbag with gold hardware""}");
+                    examples.AppendLine(@"// Note: 'prompt' field is optional - will use default prompt if not provided");
+                    examples.AppendLine(@"// Note: 'model' field is optional - will use model name from UI");
                     break;
                     
                 case EvaluationWorkflow.ImportResults:
-                    examples.AppendLine(@"{""image_path"": ""images/test1.jpg"", ""prompt"": ""Describe this image"", ""response"": ""A sunny beach scene"", ""model"": ""gpt-4o"", ""criteria_scores"": {""accuracy"": {""score"": 4, ""range"": ""1-5""}, ""completeness"": {""score"": 3, ""range"": ""1-5""}}}");
+                    examples.AppendLine(@"{""image_path"": ""images/test1.jpg"", ""prompt"": ""Describe this image"", ""response"": ""A sunny beach scene"", ""criteria_scores"": {""accuracy"": {""score"": 4, ""range"": ""1-5""}, ""completeness"": {""score"": 3, ""range"": ""1-5""}}}");
+                    examples.AppendLine(@"{""image_path"": ""images/test2.jpg"", ""response"": ""A mountain landscape"", ""criteria_scores"": {""accuracy"": {""score"": 5, ""range"": ""1-5""}, ""completeness"": {""score"": 4, ""range"": ""1-5""}}}");
+                    examples.AppendLine(@"// Note: 'prompt' and 'model' fields are optional");
                     break;
             }
             
@@ -1576,7 +1633,9 @@ namespace AIDevGallery.Pages.Evaluate
             ResetImageUpload();
             ResetJsonlUpload();
             ModelNameInput.Text = string.Empty;
+            DefaultPromptInput.Text = string.Empty;
             _modelName = null;
+            _defaultPrompt = null;
             
             // Clear validation state
             ValidationChanged?.Invoke(false);
@@ -1661,6 +1720,23 @@ namespace AIDevGallery.Pages.Evaluate
                     if (string.IsNullOrEmpty(entry.Model) || entry.Model == "Unknown Model")
                     {
                         entry.Model = _modelName;
+                    }
+                }
+            }
+        }
+        
+        private void DefaultPromptInput_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _defaultPrompt = DefaultPromptInput.Text.Trim();
+            
+            // If we already have a valid dataset, update prompts for entries without one
+            if (_datasetConfig != null && !string.IsNullOrEmpty(_defaultPrompt))
+            {
+                foreach (var entry in _datasetConfig.Entries)
+                {
+                    if (string.IsNullOrEmpty(entry.Prompt))
+                    {
+                        entry.Prompt = _defaultPrompt;
                     }
                 }
             }
