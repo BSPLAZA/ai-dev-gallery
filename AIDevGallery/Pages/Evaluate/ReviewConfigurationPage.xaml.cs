@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using AIDevGallery.Controls;
 using AIDevGallery.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -11,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.UI;
+using Microsoft.UI.Dispatching;
 
 namespace AIDevGallery.Pages.Evaluate
 {
@@ -33,6 +35,14 @@ namespace AIDevGallery.Pages.Evaluate
         public ReviewConfigurationPage()
         {
             this.InitializeComponent();
+            this.Loaded += OnPageLoaded;
+        }
+        
+        private void OnPageLoaded(object sender, RoutedEventArgs e)
+        {
+            // Re-check validation state after page is fully loaded
+            System.Diagnostics.Debug.WriteLine("[ReviewConfigurationPage.OnPageLoaded] Page loaded, rechecking validation");
+            NotifyValidationChanged();
         }
         
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -48,8 +58,14 @@ namespace AIDevGallery.Pages.Evaluate
                 _dataset = state.Dataset;
                 _metrics = state.Metrics;
                 
+                // Debug logging
+                System.Diagnostics.Debug.WriteLine($"[ReviewConfigurationPage.OnNavigatedTo] Dataset: {_dataset != null}, ValidEntries: {_dataset?.ValidEntries ?? 0}, Workflow: {_workflow}");
+                
                 // Update display with state data
                 UpdateDisplay();
+                
+                // Notify parent dialog about validation state after loading data
+                NotifyValidationChanged();
             }
         }
         
@@ -72,6 +88,9 @@ namespace AIDevGallery.Pages.Evaluate
             _wizardFrame = wizardFrame;
             
             UpdateDisplay();
+            
+            // Notify parent dialog about validation state after setting data
+            NotifyValidationChanged();
         }
         
         private void UpdateDisplay()
@@ -425,6 +444,45 @@ namespace AIDevGallery.Pages.Evaluate
             };
             
             return $"{_evaluationType} {workflowShort} - {timestamp}";
+        }
+        
+        /// <summary>
+        /// Notifies the parent dialog about validation state changes
+        /// </summary>
+        private void NotifyValidationChanged()
+        {
+            // Debug logging
+            System.Diagnostics.Debug.WriteLine($"[ReviewConfigurationPage.NotifyValidationChanged] IsReadyToExecute: {IsReadyToExecute}, Dataset: {_dataset != null}, Workflow: {_workflow}");
+            
+            // Navigate up the visual tree to find the WizardDialog
+            var current = Parent;
+            while (current != null)
+            {
+                if (current is Controls.WizardDialog dialog)
+                {
+                    dialog.IsPrimaryButtonEnabled = IsReadyToExecute;
+                    System.Diagnostics.Debug.WriteLine($"[ReviewConfigurationPage.NotifyValidationChanged] Found WizardDialog, set IsPrimaryButtonEnabled to {IsReadyToExecute}");
+                    return;
+                }
+                current = (current as FrameworkElement)?.Parent;
+            }
+            
+            // If we couldn't find the dialog immediately, try again after layout
+            System.Diagnostics.Debug.WriteLine("[ReviewConfigurationPage.NotifyValidationChanged] WizardDialog not found, scheduling retry");
+            _ = DispatcherQueue.TryEnqueue(() =>
+            {
+                var current2 = Parent;
+                while (current2 != null)
+                {
+                    if (current2 is Controls.WizardDialog dialog)
+                    {
+                        dialog.IsPrimaryButtonEnabled = IsReadyToExecute;
+                        System.Diagnostics.Debug.WriteLine($"[ReviewConfigurationPage.NotifyValidationChanged] Found WizardDialog on retry, set IsPrimaryButtonEnabled to {IsReadyToExecute}");
+                        break;
+                    }
+                    current2 = (current2 as FrameworkElement)?.Parent;
+                }
+            });
         }
     }
     

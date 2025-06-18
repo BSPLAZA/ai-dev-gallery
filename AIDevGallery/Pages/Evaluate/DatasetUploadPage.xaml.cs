@@ -143,6 +143,9 @@ namespace AIDevGallery.Pages.Evaluate
                 _defaultPrompt = DefaultPromptInput.Text.Trim();
                 _wizardState.DefaultPrompt = _defaultPrompt;
             }
+            
+            // Debug logging
+            System.Diagnostics.Debug.WriteLine($"[DatasetUploadPage.SaveToState] Dataset saved: {_datasetConfig != null}, ValidEntries: {_datasetConfig?.ValidEntries ?? 0}");
         }
 
         private void UpdateUIForWorkflow()
@@ -1204,6 +1207,8 @@ namespace AIDevGallery.Pages.Evaluate
         
         private Task CreateFinalDatasetConfiguration(TwoPartValidationResult validationResult)
         {
+            System.Diagnostics.Debug.WriteLine($"[DatasetUploadPage.CreateFinalDatasetConfiguration] Starting dataset creation for workflow: {_currentWorkflow}");
+            
             // Get model name from UI
             _modelName = ModelNameInput.Text.Trim();
             if (string.IsNullOrEmpty(_modelName))
@@ -1245,6 +1250,11 @@ namespace AIDevGallery.Pages.Evaluate
                     entry.Prompt = _defaultPrompt;
                 }
             }
+            
+            // Save state immediately after creating dataset
+            SaveToState();
+            
+            System.Diagnostics.Debug.WriteLine($"[DatasetUploadPage.CreateFinalDatasetConfiguration] Dataset created and saved. ValidEntries: {_datasetConfig.ValidEntries}, IsValid: {IsValid}");
             
             // Notify parent
             ValidationChanged?.Invoke(IsValid);

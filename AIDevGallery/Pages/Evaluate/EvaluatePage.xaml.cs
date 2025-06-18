@@ -267,7 +267,8 @@ namespace AIDevGallery.Pages
                     else if (args.Content is ReviewConfigurationPage reviewPage)
                     {
                         // Final step - change button text based on workflow
-                        dialog.IsPrimaryButtonEnabled = reviewPage.IsReadyToExecute;
+                        // Don't check IsReadyToExecute here as the page hasn't loaded its data yet
+                        dialog.IsPrimaryButtonEnabled = false; // Will be updated by NotifyValidationChanged
                         dialog.IsSecondaryButtonEnabled = true;
                         dialog.PrimaryButtonText = workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults 
                             ? "Log Evaluation" 
@@ -341,27 +342,16 @@ namespace AIDevGallery.Pages
                             datasetConfiguration = datasetPage.GetStepData();
                             wizardState.Dataset = datasetConfiguration;
                             
+                            System.Diagnostics.Debug.WriteLine($"[EvaluatePage] Dataset from GetStepData: {datasetConfiguration != null}, ValidEntries: {datasetConfiguration?.ValidEntries ?? 0}");
+                            System.Diagnostics.Debug.WriteLine($"[EvaluatePage] WizardState.Dataset: {wizardState.Dataset != null}, ValidEntries: {wizardState.Dataset?.ValidEntries ?? 0}");
+                            
                             // Skip metrics for ImportResults workflow
                             if (workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults)
                             {
                                 // Navigate directly to ReviewConfigurationPage
                                 wizardState.CurrentStep = 6;
                                 dialog.Frame.Navigate(typeof(ReviewConfigurationPage), wizardState);
-                                
-                                // Pass configuration data
-                                if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
-                                {
-                                    reviewPage.SetConfigurationData(
-                                        evaluationTypeData?.EvaluationType ?? EvaluationType.ImageDescription,
-                                        workflowSelectionData.Workflow,
-                                        modelConfigurationData,
-                                        datasetConfiguration,
-                                        null, // No metrics for ImportResults
-                                        dialog.Frame);
-                                    
-                                    // Update button state after setting data
-                                    dialog.IsPrimaryButtonEnabled = reviewPage.IsReadyToExecute;
-                                }
+                                // The ReviewConfigurationPage will get all data from wizardState in OnNavigatedTo
                             }
                             else
                             {
@@ -382,24 +372,10 @@ namespace AIDevGallery.Pages
                             
                             // Navigate to ReviewConfigurationPage
                             dialog.Frame.Navigate(typeof(ReviewConfigurationPage), wizardState);
-                            
-                            // Pass all configuration data to the review page
-                            if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
-                            {
-                                reviewPage.SetConfigurationData(
-                                    evaluationTypeData?.EvaluationType ?? EvaluationType.ImageDescription,
-                                    workflowSelectionData?.Workflow ?? EvaluationWorkflow.TestModel,
-                                    modelConfigurationData,
-                                    datasetConfiguration,
-                                    metricsConfiguration,
-                                    dialog.Frame);
-                                
-                                // Update button state after setting data
-                                dialog.IsPrimaryButtonEnabled = reviewPage.IsReadyToExecute;
-                            }
+                            // The ReviewConfigurationPage will get all data from wizardState in OnNavigatedTo
                         }
                     }
-                    else if (currentStep == 5)
+                    else if (currentStep == 5 || (currentStep == 4 && workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults))
                     {
                         // Execute evaluation from ReviewConfigurationPage
                         if (dialog.Frame.Content is ReviewConfigurationPage reviewPage)
@@ -432,7 +408,7 @@ namespace AIDevGallery.Pages
                 // Handle Back button clicks
                 dialog.BackClicked += (_, __) =>
                 {
-                    if (currentStep == 5)
+                    if (currentStep == 5 || (currentStep == 4 && workflowSelectionData?.Workflow == EvaluationWorkflow.ImportResults))
                     {
                         // Go back from Review Configuration to Metrics Selection
                         // Skip metrics for ImportResults workflow
