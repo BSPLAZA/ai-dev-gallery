@@ -14,6 +14,7 @@ using AIDevGallery.Pages.Evaluate;
 using AIDevGallery.Services.Evaluate;
 using AIDevGallery.Utils;
 using AIDevGallery.ViewModels.Evaluate;
+using System.Collections.Generic;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -25,8 +26,8 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
     private readonly IEvaluationResultsStore _evaluationStore;
     private ContentDialog? _activeDialog;
     
-    public ObservableCollection<EvaluationCardViewModel> AllEvaluations { get; } = new();
-    public ObservableCollection<EvaluationCardViewModel> FilteredEvaluations { get; } = new();
+    public ObservableCollection<EvaluationListItemViewModel> AllEvaluations { get; } = new();
+    public ObservableCollection<EvaluationListItemViewModel> FilteredEvaluations { get; } = new();
 
     private string _searchQuery = string.Empty;
     private bool _isLoading;
@@ -58,7 +59,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             AllEvaluations.Clear();
             foreach (var eval in evaluations)
             {
-                AllEvaluations.Add(new EvaluationCardViewModel(eval));
+                AllEvaluations.Add(new EvaluationListItemViewModel(eval));
             }
             
             ApplyFilter();
@@ -147,54 +148,13 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
 
     private void EvaluationsList_ItemClick(object sender, ItemClickEventArgs e)
     {
-        if (e.ClickedItem is EvaluationCardViewModel evaluation)
+        if (e.ClickedItem is EvaluationListItemViewModel evaluation)
         {
             NavigateToEvaluationDetails(evaluation);
         }
     }
 
-    private void EvaluationCard_ViewClicked(object sender, EvaluationCardViewModel e)
-    {
-        NavigateToEvaluationDetails(e);
-    }
-
-    private async void EvaluationCard_DeleteClicked(object sender, EvaluationCardViewModel e)
-    {
-        // Prevent multiple dialogs
-        if (_activeDialog != null) return;
-        
-        var dialog = new ContentDialog
-        {
-            Title = "Delete Evaluation",
-            Content = $"Are you sure you want to delete '{e.Name}'? This action cannot be undone.",
-            PrimaryButtonText = "Delete",
-            CloseButtonText = "Cancel",
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = this.XamlRoot
-        };
-        _activeDialog = dialog;
-
-        try
-        {
-            var result = await dialog.ShowAsync();
-            if (result == ContentDialogResult.Primary)
-            {
-                await _evaluationStore.DeleteEvaluationAsync(e.Id);
-                await LoadEvaluationsAsync();
-            }
-        }
-        finally
-        {
-            _activeDialog = null;
-        }
-    }
-
-    private void EvaluationCard_CardClicked(object sender, EvaluationCardViewModel e)
-    {
-        NavigateToEvaluationDetails(e);
-    }
-
-    private void NavigateToEvaluationDetails(EvaluationCardViewModel evaluation)
+    private void NavigateToEvaluationDetails(EvaluationListItemViewModel evaluation)
     {
         // TODO: Navigate to evaluation insights page when implemented
         // Frame.Navigate(typeof(EvaluationInsightsPage), evaluation.Id);
@@ -311,6 +271,85 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         {
             _activeDialog = null;
         }
+    }
+
+    // New event handlers for list rows
+    private void EvaluationRow_ItemClicked(object sender, EvaluationListItemViewModel e)
+    {
+        // Single click toggles selection (handled in the control)
+    }
+
+    private void EvaluationRow_ItemDoubleClicked(object sender, EvaluationListItemViewModel e)
+    {
+        // Double click opens details
+        NavigateToEvaluationDetails(e);
+    }
+
+    private void EvaluationRow_SelectionChanged(object sender, EvaluationListItemViewModel e)
+    {
+        // Update selection count for action bar
+        OnPropertyChanged(nameof(GetSelectedCount));
+    }
+
+    // Action bar event handlers
+    private async void ActionBar_CompareClicked(object sender, EventArgs e)
+    {
+        await ShowPlaceholderDialog("Comparison view will allow you to analyze multiple evaluations side-by-side.");
+    }
+
+    private async void ActionBar_DeleteClicked(object sender, EventArgs e)
+    {
+        var selectedItems = AllEvaluations.Where(x => x.IsSelected).ToList();
+        if (selectedItems.Count == 0) return;
+
+        var dialog = new ContentDialog
+        {
+            Title = "Delete Evaluations",
+            Content = $"Are you sure you want to delete {selectedItems.Count} evaluation(s)? This action cannot be undone.",
+            PrimaryButtonText = "Delete",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result == ContentDialogResult.Primary)
+        {
+            foreach (var item in selectedItems)
+            {
+                await _evaluationStore.DeleteEvaluationAsync(item.Id);
+                AllEvaluations.Remove(item);
+            }
+            ApplyFilter();
+            UpdateEmptyState();
+        }
+    }
+
+    private void ActionBar_CancelClicked(object sender, EventArgs e)
+    {
+        // Clear all selections
+        foreach (var item in AllEvaluations)
+        {
+            item.IsSelected = false;
+        }
+        OnPropertyChanged(nameof(GetSelectedCount));
+    }
+
+    // Empty state handlers for new design
+    private async void ImportResults_Click(object sender, RoutedEventArgs e)
+    {
+        await EmptyState_ImportResultsClicked(sender, EventArgs.Empty);
+    }
+
+    private async void NewEvaluation_Click(object sender, RoutedEventArgs e)
+    {
+        await EmptyState_TestModelClicked(sender, EventArgs.Empty);
+    }
+
+    // Helper to get selected count for binding
+    public int GetSelectedCount()
+    {
+        return AllEvaluations.Count(x => x.IsSelected);
     }
 
     // INotifyPropertyChanged implementation

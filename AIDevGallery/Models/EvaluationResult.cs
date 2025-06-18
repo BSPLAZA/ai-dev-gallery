@@ -17,6 +17,7 @@ public class EvaluationResult
     public required string ModelName { get; set; }
     public required string DatasetName { get; set; }
     public int DatasetItemCount { get; set; }
+    public int ItemCount => DatasetItemCount; // Alias for compatibility
     public EvaluationWorkflow WorkflowType { get; set; }
     public EvaluationStatus Status { get; set; }
     public DateTime Timestamp { get; set; }
@@ -49,6 +50,7 @@ public class EvaluationResult
     /// For running evaluations - progress percentage
     /// </summary>
     public double? ProgressPercentage { get; set; }
+    public double? RunningProgress => ProgressPercentage; // Alias for compatibility
     
     /// <summary>
     /// For running evaluations - current operation
