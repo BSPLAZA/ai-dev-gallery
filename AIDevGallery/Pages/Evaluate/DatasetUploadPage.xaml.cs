@@ -1420,7 +1420,12 @@ namespace AIDevGallery.Pages.Evaluate
                 if (_datasetConfig.FolderStructure.Count > 1)
                 {
                     FolderStructureExpander.Visibility = Visibility.Visible;
-                    BuildFolderTreeView();
+                    
+                    // Force UI to update before building tree view
+                    _ = DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, () =>
+                    {
+                        BuildFolderTreeView();
+                    });
                 }
 
                 // Enable action buttons
@@ -1431,6 +1436,9 @@ namespace AIDevGallery.Pages.Evaluate
 
                 // Check for relative paths
                 CheckRelativePaths();
+                
+                // Force UI refresh to ensure folder options are visible
+                ForceUIRefresh();
             }
             else
             {
@@ -1711,6 +1719,18 @@ namespace AIDevGallery.Pages.Evaluate
                 CloseButtonText = "OK"
             };
             await dialog.ShowAsync();
+        }
+        
+        private void ForceUIRefresh()
+        {
+            // Force layout update to ensure all UI elements are properly rendered
+            ValidationResultsPanel.UpdateLayout();
+            
+            // Ensure expander content is visible
+            if (FolderStructureExpander != null && FolderStructureExpander.Visibility == Visibility.Visible)
+            {
+                FolderStructureExpander.IsExpanded = true;
+            }
         }
 
         public void Reset()
