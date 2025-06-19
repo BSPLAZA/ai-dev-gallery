@@ -134,46 +134,79 @@
                 </StackPanel>
             </StackPanel>
 
-            <!-- Evaluations List -->
-            <ListView x:Name="EvaluationsList"
-                     Padding="0"
-                     ItemsSource="{x:Bind FilteredEvaluations}"
-                     SelectionMode="None"
-                     IsItemClickEnabled="True"
-                     ItemClick="EvaluationsList_ItemClick"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <!-- Evaluations List Container -->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
                 
-                <ListView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <ItemsStackPanel />
-                    </ItemsPanelTemplate>
-                </ListView.ItemsPanel>
+                <!-- List Header with Select All -->
+                <Border Grid.Row="0" 
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        Padding="16,8"
+                        Visibility="{x:Bind GetListHeaderVisibility(FilteredEvaluations.Count), Mode=OneWay}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="32"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <CheckBox x:Name="SelectAllCheckBox"
+                                  Grid.Column="0"
+                                  Click="SelectAllCheckBox_Click"
+                                  VerticalAlignment="Center"/>
+                        
+                        <TextBlock Grid.Column="1"
+                                   Text="Select All"
+                                   VerticalAlignment="Center"
+                                   Margin="8,0,0,0"/>
+                    </Grid>
+                </Border>
+                
+                <!-- Evaluations List -->
+                <ListView x:Name="EvaluationsList"
+                         Grid.Row="1"
+                         Padding="0"
+                         ItemsSource="{x:Bind FilteredEvaluations}"
+                         SelectionMode="None"
+                         IsItemClickEnabled="True"
+                         ItemClick="EvaluationsList_ItemClick"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <ItemsStackPanel />
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
 
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                        <Setter Property="Padding" Value="0"/>
-                        <Setter Property="Margin" Value="0"/>
-                    </Style>
-                </ListView.ItemContainerStyle>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
 
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <evalcontrols:EvaluationListRow 
-                            ViewModel="{Binding}"
-                            ItemClicked="EvaluationRow_ItemClicked"
-                            ItemDoubleClicked="EvaluationRow_ItemDoubleClicked"/>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <evalcontrols:EvaluationListRow 
+                                ViewModel="{Binding}"
+                                ItemClicked="EvaluationRow_ItemClicked"
+                                ItemDoubleClicked="EvaluationRow_ItemDoubleClicked"/>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
             
             <!-- Floating Action Bar -->
             <evalcontrols:SelectionActionBar x:Name="SelectionActionBar"
                                               SelectedCount="{x:Bind SelectedCount, Mode=OneWay}"
                                               CompareClicked="ActionBar_CompareClicked"
                                               DeleteClicked="ActionBar_DeleteClicked"
-                                              CancelClicked="ActionBar_CancelClicked"/>
+                                              CancelClicked="ActionBar_CancelClicked"
+                                              Visibility="Collapsed"/>
         </Grid>
     </Grid>
 </Page>

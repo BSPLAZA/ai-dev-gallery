@@ -33,9 +33,30 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
     private string _searchQuery = string.Empty;
     private bool _isLoading;
 
+    // Multi-selection support
+    private bool _isMultiSelectMode;
+    public bool IsMultiSelectMode
+    {
+        get => _isMultiSelectMode;
+        set
+        {
+            if (_isMultiSelectMode != value)
+            {
+                _isMultiSelectMode = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(SelectedCount));
+                OnPropertyChanged(nameof(HasSelection));
+            }
+        }
+    }
+    
+    public int SelectedCount => AllEvaluations.Count(e => e.IsSelected);
+    public bool HasSelection => SelectedCount > 0;
+
     public EvaluatePage()
     {
         this.InitializeComponent();
+        this.DataContext = this;
         
         // Create the evaluation store service
         _evaluationStore = new EvaluationResultsStore();
@@ -66,7 +87,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
                 {
                     if (e.PropertyName == nameof(EvaluationListItemViewModel.IsSelected))
                     {
-                        OnPropertyChanged(nameof(SelectedCount));
+                        UpdateSelectionState();
                     }
                 };
                 AllEvaluations.Add(viewModel);
@@ -83,6 +104,39 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         finally
         {
             SetLoadingState(false);
+        }
+    }
+
+    private void UpdateSelectionState()
+    {
+        IsMultiSelectMode = AllEvaluations.Any(e => e.IsSelected);
+        OnPropertyChanged(nameof(SelectedCount));
+        OnPropertyChanged(nameof(HasSelection));
+        
+        // Show/hide the selection action bar
+        if (SelectionActionBar != null)
+        {
+            SelectionActionBar.Visibility = IsMultiSelectMode ? Visibility.Visible : Visibility.Collapsed;
+        }
+        
+        // Update select all checkbox state
+        if (SelectAllCheckBox != null && FilteredEvaluations.Count > 0)
+        {
+            var allSelected = FilteredEvaluations.All(e => e.IsSelected);
+            var someSelected = FilteredEvaluations.Any(e => e.IsSelected);
+            
+            if (allSelected)
+            {
+                SelectAllCheckBox.IsChecked = true;
+            }
+            else if (someSelected)
+            {
+                SelectAllCheckBox.IsChecked = null; // Indeterminate state
+            }
+            else
+            {
+                SelectAllCheckBox.IsChecked = false;
+            }
         }
     }
 
@@ -335,6 +389,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             }
             ApplyFilter();
             UpdateEmptyState();
+            UpdateSelectionState();
         }
     }
 
@@ -346,6 +401,12 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             item.IsSelected = false;
         }
         OnPropertyChanged(nameof(SelectedCount));
+        
+        // Uncheck the select all checkbox
+        if (SelectAllCheckBox != null)
+        {
+            SelectAllCheckBox.IsChecked = false;
+        }
     }
 
     // Empty state handlers for new design
@@ -365,6 +426,25 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
 
     // Helper to get selected count for binding
     public int SelectedCount => AllEvaluations.Count(x => x.IsSelected);
+    
+    // Helper for visibility binding
+    public Visibility GetListHeaderVisibility(int count)
+    {
+        return count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+    
+    // Select All checkbox handler
+    private void SelectAllCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is CheckBox checkBox)
+        {
+            var isChecked = checkBox.IsChecked ?? false;
+            foreach (var eval in FilteredEvaluations)
+            {
+                eval.IsSelected = isChecked;
+            }
+        }
+    }
 
     // INotifyPropertyChanged implementation
     public event PropertyChangedEventHandler? PropertyChanged;
