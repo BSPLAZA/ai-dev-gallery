@@ -17,7 +17,6 @@
           Background="{x:Bind GetRowBackground(IsHovered, IsSelected), Mode=OneWay}"
           PointerEntered="OnPointerEntered"
           PointerExited="OnPointerExited"
-          Tapped="OnRowTapped"
           DoubleTapped="OnRowDoubleTapped">
         
         <Grid.ColumnDefinitions>
@@ -42,6 +41,12 @@
                       IsHitTestVisible="False"/>
         </Grid>
 
+        <!-- Clickable content area (all columns except checkbox) -->
+        <Grid Grid.Column="1" 
+              Grid.ColumnSpan="3"
+              Background="Transparent"
+              Tapped="OnContentAreaTapped"/>
+        
         <!-- Workflow Icon -->
         <TextBlock Grid.Column="1" 
                    VerticalAlignment="Center"

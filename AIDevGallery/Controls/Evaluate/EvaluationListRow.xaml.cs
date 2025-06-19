@@ -123,19 +123,12 @@ namespace AIDevGallery.Controls.Evaluate
 
         private void OnRowTapped(object sender, TappedRoutedEventArgs e)
         {
-            // Check if the tap was on the checkbox
-            var originalSource = e.OriginalSource as FrameworkElement;
-            while (originalSource != null)
-            {
-                if (originalSource is CheckBox)
-                {
-                    // Checkbox will handle this
-                    return;
-                }
-                originalSource = originalSource.Parent as FrameworkElement;
-            }
+            // This method is no longer used since we removed Tapped from the main Grid
+        }
 
-            // For non-checkbox clicks, invoke the item click (for opening details)
+        private void OnContentAreaTapped(object sender, TappedRoutedEventArgs e)
+        {
+            // This is for clicking on the content area (not checkbox)
             if (ViewModel != null)
             {
                 ItemClicked?.Invoke(this, ViewModel);
