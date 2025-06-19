@@ -423,9 +423,6 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         // Call the new evaluation handler directly
         NewEvaluationButton_Click(sender, e);
     }
-
-    // Helper to get selected count for binding
-    public int SelectedCount => AllEvaluations.Count(x => x.IsSelected);
     
     // Helper for visibility binding
     public Visibility GetListHeaderVisibility(int count)
