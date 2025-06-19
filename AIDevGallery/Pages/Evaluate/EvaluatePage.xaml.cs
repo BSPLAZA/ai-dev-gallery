@@ -423,7 +423,12 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
 
     private Type? GetNextPage(object currentPage, EvaluationWizardState state)
     {
-        return currentPage switch
+        var currentPageType = currentPage.GetType().Name;
+        var workflow = state.Workflow;
+        
+        System.Diagnostics.Debug.WriteLine($"GetNextPage: Current={currentPageType}, Workflow={workflow}");
+        
+        var nextPage = currentPage switch
         {
             SelectEvaluationTypePage => typeof(WorkflowSelectionPage),
             WorkflowSelectionPage => state.Workflow == EvaluationWorkflow.TestModel 
@@ -437,6 +442,10 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             ReviewConfigurationPage => null,
             _ => null
         };
+        
+        System.Diagnostics.Debug.WriteLine($"GetNextPage: Next={nextPage?.Name ?? "null"}");
+        
+        return nextPage;
     }
 
     private void UpdateWizardProgress(WizardDialog dialog, EvaluationWizardState state)

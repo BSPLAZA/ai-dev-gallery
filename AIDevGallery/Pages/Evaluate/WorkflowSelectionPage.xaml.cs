@@ -61,6 +61,12 @@ public sealed partial class WorkflowSelectionPage : Page
                 selectedWorkflow = EvaluationWorkflow.ImportResults;
             }
 
+            // Save state immediately when selection changes to fix navigation timing issue
+            SaveToState();
+            
+            // Debug logging to verify state is saved
+            System.Diagnostics.Debug.WriteLine($"WorkflowType_Checked: Selected {selectedWorkflow}, WizardState.Workflow = {_wizardState?.Workflow}");
+
             // Notify parent dialog that validation state has changed (though it's always valid)
             ValidationChanged?.Invoke(IsValid);
 
@@ -101,7 +107,16 @@ public sealed partial class WorkflowSelectionPage : Page
         if (e.Parameter is EvaluationWizardState state)
         {
             _wizardState = state;
-            RestoreFromState();
+            
+            // If no workflow is set yet, set the default
+            if (_wizardState.Workflow == null)
+            {
+                _wizardState.Workflow = selectedWorkflow;
+            }
+            else
+            {
+                RestoreFromState();
+            }
         }
 
         // Since we have a default selection, the page is always valid
