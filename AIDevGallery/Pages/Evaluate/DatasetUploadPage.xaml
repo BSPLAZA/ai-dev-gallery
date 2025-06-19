@@ -330,7 +330,7 @@
                     
                     <!-- Validation Action Buttons -->
                     <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                        <Button x:Name="ViewDetailsButton" Content="View Details" Click="ViewDetails_Click" />
+                        <!-- View Details button removed as it wasn't functional -->
                         <Button x:Name="FixIssuesButton" Content="Fix Issues" Click="FixIssues_Click" Visibility="Collapsed" />
                         <Button x:Name="ProceedAnywayButton" Content="Proceed Anyway" Click="ProceedAnyway_Click" Visibility="Collapsed" />
                     </StackPanel>
@@ -340,6 +340,28 @@
                         <TextBlock Text="Matching Summary" Style="{StaticResource BodyStrongTextBlockStyle}" />
                         <TextBlock x:Name="MatchSummaryText" Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="Wrap" />
                     </StackPanel>
+                    
+                    <!-- Folder Structure for Two-Part Upload -->
+                    <Expander 
+                        x:Name="TwoPartFolderStructureExpander"
+                        Header="Folder Structure"
+                        IsExpanded="True"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Visibility="Collapsed">
+                        <TreeView 
+                            x:Name="TwoPartFolderTreeView"
+                            MinHeight="100"
+                            MaxHeight="200" />
+                    </Expander>
+                    
+                    <!-- Group by Folder Toggle -->
+                    <ToggleSwitch 
+                        x:Name="TwoPartGroupByFolderToggle"
+                        Header="Group evaluations by folder"
+                        IsEnabled="False"
+                        OffContent="No"
+                        OnContent="Yes" />
                     
                     <!-- Action Buttons -->
                     <StackPanel Orientation="Horizontal" Spacing="12">

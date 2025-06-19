@@ -20,6 +20,7 @@ using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.UI;
+using Microsoft.UI.Dispatching;
 
 namespace AIDevGallery.Pages.Evaluate
 {
@@ -99,16 +100,32 @@ namespace AIDevGallery.Pages.Evaluate
             if (_wizardState.Dataset != null)
             {
                 _datasetConfig = _wizardState.Dataset;
-                // Show validation results for the restored dataset
-                ShowValidationResults();
                 
-                // For two-part upload workflows, also show model/prompt panels if we have valid data
-                if ((_currentWorkflow == EvaluationWorkflow.EvaluateResponses || 
-                     _currentWorkflow == EvaluationWorkflow.ImportResults) && 
-                    _datasetConfig.ValidationResult?.IsValid == true)
+                // For two-part upload workflows, restore differently
+                if (_currentWorkflow == EvaluationWorkflow.EvaluateResponses || 
+                    _currentWorkflow == EvaluationWorkflow.ImportResults)
                 {
-                    ModelNamePanel.Visibility = Visibility.Visible;
-                    DefaultPromptPanel.Visibility = Visibility.Visible;
+                    if (_datasetConfig.ValidationResult?.IsValid == true)
+                    {
+                        // Show the two-part validation panel with folder structure
+                        TwoPartValidationPanel.Visibility = Visibility.Visible;
+                        ModelNamePanel.Visibility = Visibility.Visible;
+                        DefaultPromptPanel.Visibility = Visibility.Visible;
+                        
+                        // Show folder structure if available
+                        if (_datasetConfig.FolderStructure != null && _datasetConfig.FolderStructure.Count > 0)
+                        {
+                            TwoPartFolderStructureExpander.Visibility = Visibility.Visible;
+                            BuildTwoPartFolderTreeView();
+                            TwoPartGroupByFolderToggle.IsEnabled = _datasetConfig.FolderStructure.Count > 1;
+                            TwoPartGroupByFolderToggle.Visibility = _datasetConfig.FolderStructure.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+                        }
+                    }
+                }
+                else
+                {
+                    // Show validation results for single upload workflow
+                    ShowValidationResults();
                 }
             }
             
@@ -1197,6 +1214,7 @@ namespace AIDevGallery.Pages.Evaluate
         
         private void ShowTwoPartValidationReport(TwoPartValidationResult result)
         {
+            System.Diagnostics.Debug.WriteLine($"[ShowTwoPartValidationReport] Showing validation report. IsValid: {result.IsValid}, MatchedCount: {result.MatchedCount}");
             TwoPartValidationPanel.Visibility = Visibility.Visible;
             
             // Show model name and prompt panels after validation
@@ -1308,7 +1326,17 @@ namespace AIDevGallery.Pages.Evaluate
             // Populate folder structure from entries
             foreach (var entry in validationResult.Entries)
             {
-                var folder = Path.GetDirectoryName(entry.OriginalImagePath) ?? "root";
+                var folder = Path.GetDirectoryName(entry.OriginalImagePath) ?? "";
+                if (string.IsNullOrEmpty(folder))
+                {
+                    folder = "(root)";
+                }
+                else
+                {
+                    // Normalize folder separators
+                    folder = folder.Replace('\\', '/');
+                }
+                
                 if (_datasetConfig.FolderStructure.TryGetValue(folder, out var count))
                 {
                     _datasetConfig.FolderStructure[folder] = count + 1;
@@ -1338,6 +1366,33 @@ namespace AIDevGallery.Pages.Evaluate
             
             System.Diagnostics.Debug.WriteLine($"[DatasetUploadPage.CreateFinalDatasetConfiguration] Dataset created. ValidEntries: {_datasetConfig.ValidEntries}, IsValid: {IsValid}");
             System.Diagnostics.Debug.WriteLine($"[DatasetUploadPage.CreateFinalDatasetConfiguration] WizardState.Dataset is now: {_wizardState?.Dataset != null}");
+            
+            // Show folder structure for two-part upload if applicable
+            if (_datasetConfig.FolderStructure.Count > 0)
+            {
+                TwoPartFolderStructureExpander.Visibility = Visibility.Visible;
+                BuildTwoPartFolderTreeView();
+                TwoPartGroupByFolderToggle.IsEnabled = _datasetConfig.FolderStructure.Count > 1;
+                TwoPartGroupByFolderToggle.Visibility = _datasetConfig.FolderStructure.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+                // Default to grouping by folder when available
+                if (_datasetConfig.FolderStructure.Count > 1)
+                {
+                    TwoPartGroupByFolderToggle.IsOn = true;
+                }
+                
+                // Force UI refresh to ensure folder structure is displayed
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    TwoPartValidationPanel.UpdateLayout();
+                    TwoPartFolderStructureExpander.UpdateLayout();
+                });
+            }
+            
+            // Save group by folder preference to wizard state
+            if (_wizardState != null && TwoPartGroupByFolderToggle.IsEnabled)
+            {
+                _wizardState.Dataset.PathTypes = TwoPartGroupByFolderToggle.IsOn ? PathType.Relative : PathType.Absolute;
+            }
             
             // Notify parent
             ValidationChanged?.Invoke(IsValid);
@@ -1732,6 +1787,26 @@ namespace AIDevGallery.Pages.Evaluate
                 FolderStructureExpander.IsExpanded = true;
             }
         }
+        
+        private void BuildTwoPartFolderTreeView()
+        {
+            if (_datasetConfig == null) return;
+
+            System.Diagnostics.Debug.WriteLine($"[BuildTwoPartFolderTreeView] Building folder tree with {_datasetConfig.FolderStructure.Count} folders");
+
+            TwoPartFolderTreeView.RootNodes.Clear();
+
+            foreach (var folder in _datasetConfig.FolderStructure.OrderBy(f => f.Key))
+            {
+                System.Diagnostics.Debug.WriteLine($"[BuildTwoPartFolderTreeView] Adding folder: {folder.Key} with {folder.Value} images");
+                var node = new TreeViewNode
+                {
+                    Content = $"📁 {folder.Key} ({folder.Value} images)",
+                    IsExpanded = true
+                };
+                TwoPartFolderTreeView.RootNodes.Add(node);
+            }
+        }
 
         public void Reset()
         {
@@ -1794,11 +1869,7 @@ namespace AIDevGallery.Pages.Evaluate
             Reset();
         }
         
-        private void ViewDetails_Click(object sender, RoutedEventArgs e)
-        {
-            // Show detailed validation report
-            // TODO: Implement detailed view dialog
-        }
+        // ViewDetails_Click method removed - button was not functional
         
         private void FixIssues_Click(object sender, RoutedEventArgs e)
         {
