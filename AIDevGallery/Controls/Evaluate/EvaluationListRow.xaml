@@ -28,7 +28,15 @@
 
         <!-- Selection Indicator - Removed per user request -->
 
+        <!-- Clickable content area (all columns except checkbox) -->
+        <!-- Place this FIRST so it's behind the checkbox -->
+        <Grid Grid.Column="1" 
+              Grid.ColumnSpan="3"
+              Background="Transparent"
+              Tapped="OnContentAreaTapped"/>
+
         <!-- Checkbox in its own Grid to handle clicks -->
+        <!-- Place this AFTER content area so it's on top -->
         <Grid Grid.Column="0" 
               Tapped="OnCheckboxAreaTapped"
               Background="Transparent">
@@ -40,12 +48,6 @@
                       IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
                       IsHitTestVisible="False"/>
         </Grid>
-
-        <!-- Clickable content area (all columns except checkbox) -->
-        <Grid Grid.Column="1" 
-              Grid.ColumnSpan="3"
-              Background="Transparent"
-              Tapped="OnContentAreaTapped"/>
         
         <!-- Workflow Icon -->
         <TextBlock Grid.Column="1" 

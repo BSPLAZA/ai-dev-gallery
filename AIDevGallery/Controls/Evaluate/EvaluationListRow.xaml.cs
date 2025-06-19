@@ -128,6 +128,8 @@ namespace AIDevGallery.Controls.Evaluate
 
         private void OnContentAreaTapped(object sender, TappedRoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine("OnContentAreaTapped called");
+            
             // This is for clicking on the content area (not checkbox)
             if (ViewModel != null)
             {
@@ -150,6 +152,8 @@ namespace AIDevGallery.Controls.Evaluate
 
         private void OnCheckboxAreaTapped(object sender, TappedRoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine("OnCheckboxAreaTapped called");
+            
             // Toggle checkbox state when clicking in the checkbox area
             if (ViewModel != null)
             {
