@@ -46,12 +46,12 @@
                         TextChanged="RequiredField_TextChanged"
                         MaxLength="100"
                         AutomationProperties.Name="Evaluation name"
-                        AutomationProperties.HelpText="Enter a name for your evaluation. The model name will be automatically added" />
+                        AutomationProperties.HelpText="Enter a name for your evaluation" />
                     <TextBlock 
                         x:Name="EvaluationNamePreview"
                         Style="{StaticResource CaptionTextBlockStyle}"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="We'll automatically add the model name to your evaluation"
+                        Text="Enter a name for your evaluation"
                         Margin="0,4,0,0" />
                 </StackPanel>
 

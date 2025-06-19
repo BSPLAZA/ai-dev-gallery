@@ -51,28 +51,24 @@
                     VerticalAlignment="Center"
                     Margin="8,0,16,0">
             
-            <!-- First Line: Evaluation Name • Dataset Name -->
+            <!-- First Line: Evaluation Name • Item count • Time -->
             <TextBlock TextTrimming="CharacterEllipsis"
                        FontSize="14">
                 <Run Text="{x:Bind EvaluationName}"/>
-                <Run Text=" • "/>
-                <Run Text="{x:Bind DatasetName}"/>
+                <Run Text=" • " Opacity="0.6"/>
+                <Run Text="{x:Bind ItemCount}" Opacity="0.6"/>
+                <Run Text=" items • " Opacity="0.6"/>
+                <Run Text="{x:Bind GetFormattedDate(Timestamp), Mode=OneWay}" Opacity="0.6"/>
             </TextBlock>
             
-            <!-- Item count and time -->
-            <TextBlock Opacity="0.6" 
-                       FontSize="12"
-                       TextTrimming="CharacterEllipsis"
-                       Margin="0,2,0,0">
-                <Run Text="{x:Bind ItemCount}"/>
-                <Run Text=" items • "/>
-                <Run Text="{x:Bind GetFormattedDate(Timestamp), Mode=OneWay}"/>
-            </TextBlock>
-            
-            <!-- Criteria Line -->
+            <!-- Second Line: Model and Criteria -->
             <TextBlock FontSize="12"
                        TextTrimming="CharacterEllipsis"
                        Margin="0,2,0,0">
+                <Run Text="Model" FontWeight="Bold"/>
+                <Run Text=": "/>
+                <Run Text="{x:Bind ModelName}"/>
+                <Run Text=" • " Opacity="0.6"/>
                 <Run Text="Criteria" FontWeight="Bold"/>
                 <Run Text=": "/>
                 <Run Text="{x:Bind GetCriteriaDisplay(), Mode=OneWay}"/>

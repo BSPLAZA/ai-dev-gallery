@@ -574,8 +574,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         if (wizardState.Workflow == EvaluationWorkflow.ImportResults && wizardState.Dataset != null)
         {
             var datasetName = GetDatasetFolderName(wizardState.Dataset);
-            var modelName = wizardState.ModelName ?? "Model";
-            return $"{modelName} - {datasetName}";
+            return $"{datasetName} Evaluation";
         }
 
         // Default fallback

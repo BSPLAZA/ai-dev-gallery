@@ -48,18 +48,6 @@ namespace AIDevGallery.Pages.Evaluate
             }
         }
 
-        /// <summary>
-        /// Gets the final evaluation name with model appended
-        /// </summary>
-        public string GetFinalEvaluationName()
-        {
-            string baseName = EvaluationNameTextBox.Text.Trim();
-            if (!string.IsNullOrEmpty(selectedModelName))
-            {
-                return $"{baseName} - {selectedModelName}";
-            }
-            return baseName;
-        }
 
         private void ModelSelectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -132,17 +120,13 @@ namespace AIDevGallery.Pages.Evaluate
         private void UpdateEvaluationNamePreview()
         {
             string baseName = EvaluationNameTextBox.Text.Trim();
-            if (!string.IsNullOrEmpty(baseName) && !string.IsNullOrEmpty(selectedModelName))
+            if (!string.IsNullOrEmpty(baseName))
             {
-                EvaluationNamePreview.Text = $"Final name: {baseName} - {selectedModelName}";
-            }
-            else if (!string.IsNullOrEmpty(selectedModelName))
-            {
-                EvaluationNamePreview.Text = $"Final name will be: [Your Name] - {selectedModelName}";
+                EvaluationNamePreview.Text = $"Evaluation name: {baseName}";
             }
             else
             {
-                EvaluationNamePreview.Text = "We'll automatically add the model name to your evaluation";
+                EvaluationNamePreview.Text = "Enter a name for your evaluation";
             }
         }
 
@@ -278,7 +262,6 @@ namespace AIDevGallery.Pages.Evaluate
             return new ModelConfigurationData
             {
                 EvaluationName = EvaluationNameTextBox.Text.Trim(),
-                FinalEvaluationName = GetFinalEvaluationName(),
                 EvaluationGoal = EvaluationGoalTextBox.Text.Trim(),
                 SelectedModelId = selectedModelId ?? string.Empty,
                 SelectedModelName = selectedModelName ?? string.Empty,
@@ -343,7 +326,6 @@ namespace AIDevGallery.Pages.Evaluate
     internal class ModelConfigurationData
     {
         public required string EvaluationName { get; set; }
-        public required string FinalEvaluationName { get; set; }
         public string EvaluationGoal { get; set; } = string.Empty;
         public required string SelectedModelId { get; set; }
         public required string SelectedModelName { get; set; }
