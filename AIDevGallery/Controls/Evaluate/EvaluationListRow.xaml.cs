@@ -123,14 +123,26 @@ namespace AIDevGallery.Controls.Evaluate
 
         private void OnRowTapped(object sender, TappedRoutedEventArgs e)
         {
-            // This method is no longer used since we removed Tapped from the main Grid
-        }
-
-        private void OnContentAreaTapped(object sender, TappedRoutedEventArgs e)
-        {
-            System.Diagnostics.Debug.WriteLine("OnContentAreaTapped called");
+            System.Diagnostics.Debug.WriteLine($"OnRowTapped called, OriginalSource: {e.OriginalSource?.GetType().Name}");
             
-            // This is for clicking on the content area (not checkbox)
+            // Check if the tap originated from the checkbox
+            var originalSource = e.OriginalSource as DependencyObject;
+            
+            // Walk up the visual tree to see if we hit a checkbox
+            while (originalSource != null)
+            {
+                if (originalSource == SelectionCheckBox)
+                {
+                    System.Diagnostics.Debug.WriteLine("Tap originated from checkbox, ignoring row tap");
+                    return; // Don't process row tap for checkbox clicks
+                }
+                
+                // For WinUI 3, use VisualTreeHelper
+                originalSource = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(originalSource);
+            }
+            
+            System.Diagnostics.Debug.WriteLine("Tap not from checkbox, invoking ItemClicked");
+            // For non-checkbox clicks, invoke the item click (for opening details)
             if (ViewModel != null)
             {
                 ItemClicked?.Invoke(this, ViewModel);
@@ -144,23 +156,10 @@ namespace AIDevGallery.Controls.Evaluate
 
         private void OnCheckboxClick(object sender, RoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine("OnCheckboxClick called");
             // Let the binding handle the state change
             // Don't invoke ItemClicked since that's for row clicks
             // Checkbox state is already handled by two-way binding
-            // Note: RoutedEventArgs in WinUI 3 doesn't have Handled property
-        }
-
-        private void OnCheckboxAreaTapped(object sender, TappedRoutedEventArgs e)
-        {
-            System.Diagnostics.Debug.WriteLine("OnCheckboxAreaTapped called");
-            
-            // Toggle checkbox state when clicking in the checkbox area
-            if (ViewModel != null)
-            {
-                ViewModel.IsSelected = !ViewModel.IsSelected;
-            }
-            // Mark as handled to prevent the row tap from firing
-            e.Handled = true;
         }
 
 

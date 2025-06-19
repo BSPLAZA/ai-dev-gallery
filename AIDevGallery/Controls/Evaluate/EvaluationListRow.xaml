@@ -17,6 +17,7 @@
           Background="{x:Bind GetRowBackground(IsHovered, IsSelected), Mode=OneWay}"
           PointerEntered="OnPointerEntered"
           PointerExited="OnPointerExited"
+          Tapped="OnRowTapped"
           DoubleTapped="OnRowDoubleTapped">
         
         <Grid.ColumnDefinitions>
@@ -28,26 +29,15 @@
 
         <!-- Selection Indicator - Removed per user request -->
 
-        <!-- Clickable content area (all columns except checkbox) -->
-        <!-- Place this FIRST so it's behind the checkbox -->
-        <Grid Grid.Column="1" 
-              Grid.ColumnSpan="3"
-              Background="Transparent"
-              Tapped="OnContentAreaTapped"/>
-
-        <!-- Checkbox in its own Grid to handle clicks -->
-        <!-- Place this AFTER content area so it's on top -->
-        <Grid Grid.Column="0" 
-              Tapped="OnCheckboxAreaTapped"
-              Background="Transparent">
-            <CheckBox x:Name="SelectionCheckBox"
-                      VerticalAlignment="Center"
-                      HorizontalAlignment="Center"
-                      MinWidth="32"
-                      MinHeight="32"
-                      IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                      IsHitTestVisible="False"/>
-        </Grid>
+        <!-- Checkbox - Simple approach, let it handle its own clicks -->
+        <CheckBox x:Name="SelectionCheckBox"
+                  Grid.Column="0"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  MinWidth="32"
+                  MinHeight="32"
+                  IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                  Click="OnCheckboxClick"/>
         
         <!-- Workflow Icon -->
         <TextBlock Grid.Column="1" 
