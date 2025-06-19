@@ -29,15 +29,18 @@
 
         <!-- Selection Indicator - Removed per user request -->
 
-        <!-- Checkbox -->
-        <CheckBox x:Name="SelectionCheckBox"
-                  Grid.Column="0" 
-                  VerticalAlignment="Center"
-                  HorizontalAlignment="Center"
-                  MinWidth="32"
-                  MinHeight="32"
-                  IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                  Click="OnCheckboxClick"/>
+        <!-- Checkbox in its own Grid to handle clicks -->
+        <Grid Grid.Column="0" 
+              Tapped="OnCheckboxAreaTapped"
+              Background="Transparent">
+            <CheckBox x:Name="SelectionCheckBox"
+                      VerticalAlignment="Center"
+                      HorizontalAlignment="Center"
+                      MinWidth="32"
+                      MinHeight="32"
+                      IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
+                      IsHitTestVisible="False"/>
+        </Grid>
 
         <!-- Workflow Icon -->
         <TextBlock Grid.Column="1" 

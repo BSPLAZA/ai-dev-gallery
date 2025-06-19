@@ -155,6 +155,17 @@ namespace AIDevGallery.Controls.Evaluate
             // Note: RoutedEventArgs in WinUI 3 doesn't have Handled property
         }
 
+        private void OnCheckboxAreaTapped(object sender, TappedRoutedEventArgs e)
+        {
+            // Toggle checkbox state when clicking in the checkbox area
+            if (ViewModel != null)
+            {
+                ViewModel.IsSelected = !ViewModel.IsSelected;
+            }
+            // Mark as handled to prevent the row tap from firing
+            e.Handled = true;
+        }
+
 
         private void UpdateVisualState()
         {
