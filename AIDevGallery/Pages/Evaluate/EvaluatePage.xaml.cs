@@ -348,7 +348,8 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
     // New event handlers for list rows
     private void EvaluationRow_ItemClicked(object sender, EvaluationListItemViewModel e)
     {
-        // Single click toggles selection (handled in the control)
+        // Single click on row (not checkbox) opens details
+        NavigateToEvaluationDetails(e);
     }
 
     private void EvaluationRow_ItemDoubleClicked(object sender, EvaluationListItemViewModel e)

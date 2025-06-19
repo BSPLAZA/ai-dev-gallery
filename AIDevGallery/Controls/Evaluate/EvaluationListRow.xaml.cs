@@ -127,7 +127,6 @@ namespace AIDevGallery.Controls.Evaluate
             var originalSource = e.OriginalSource as FrameworkElement;
             while (originalSource != null)
             {
-                // Check if we're clicking on a CheckBox (using type check instead of reference)
                 if (originalSource is CheckBox)
                 {
                     // Checkbox will handle this
@@ -136,10 +135,9 @@ namespace AIDevGallery.Controls.Evaluate
                 originalSource = originalSource.Parent as FrameworkElement;
             }
 
-            // Toggle selection for tap on row
+            // For non-checkbox clicks, invoke the item click (for opening details)
             if (ViewModel != null)
             {
-                ViewModel.IsSelected = !ViewModel.IsSelected;
                 ItemClicked?.Invoke(this, ViewModel);
             }
         }
@@ -152,8 +150,9 @@ namespace AIDevGallery.Controls.Evaluate
         private void OnCheckboxClick(object sender, RoutedEventArgs e)
         {
             // Let the binding handle the state change
-            // The CheckBox click event doesn't bubble in WinUI 3, so no need to mark as handled
-            ItemClicked?.Invoke(this, ViewModel);
+            // Don't invoke ItemClicked since that's for row clicks
+            // Checkbox state is already handled by two-way binding
+            e.Handled = true; // Prevent event from bubbling
         }
 
 

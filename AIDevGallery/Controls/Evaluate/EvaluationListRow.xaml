@@ -27,18 +27,15 @@
             <ColumnDefinition Width="Auto"/> <!-- Score -->
         </Grid.ColumnDefinitions>
 
-        <!-- Selection Indicator -->
-        <Rectangle x:Name="SelectionBorder"
-                   Grid.ColumnSpan="4"
-                   Width="3"
-                   HorizontalAlignment="Left"
-                   Fill="#2196F3"
-                   Visibility="{x:Bind IsSelected, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}"/>
+        <!-- Selection Indicator - Removed per user request -->
 
         <!-- Checkbox -->
         <CheckBox x:Name="SelectionCheckBox"
                   Grid.Column="0" 
                   VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  MinWidth="32"
+                  MinHeight="32"
                   IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
                   Click="OnCheckboxClick"/>
 
