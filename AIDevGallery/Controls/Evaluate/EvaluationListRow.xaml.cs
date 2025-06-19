@@ -152,7 +152,7 @@ namespace AIDevGallery.Controls.Evaluate
             // Let the binding handle the state change
             // Don't invoke ItemClicked since that's for row clicks
             // Checkbox state is already handled by two-way binding
-            e.Handled = true; // Prevent event from bubbling
+            // Note: RoutedEventArgs in WinUI 3 doesn't have Handled property
         }
 
 
