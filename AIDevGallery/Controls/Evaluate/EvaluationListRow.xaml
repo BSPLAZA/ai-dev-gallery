@@ -51,29 +51,32 @@
                     VerticalAlignment="Center"
                     Margin="8,0,16,0">
             
-            <!-- Title -->
-            <TextBlock Text="{x:Bind EvaluationName}" 
-                       FontWeight="SemiBold"
-                       TextTrimming="CharacterEllipsis"/>
-            
-            <!-- Metadata Line -->
-            <TextBlock Opacity="0.7" 
-                       FontSize="12"
-                       TextTrimming="CharacterEllipsis">
-                <Run Text="{x:Bind ModelName}"/>
+            <!-- First Line: Evaluation Name • Dataset Name -->
+            <TextBlock TextTrimming="CharacterEllipsis"
+                       FontSize="14">
+                <Run Text="{x:Bind EvaluationName}"/>
                 <Run Text=" • "/>
                 <Run Text="{x:Bind DatasetName}"/>
-                <Run Text=" ("/>
+            </TextBlock>
+            
+            <!-- Item count and time -->
+            <TextBlock Opacity="0.6" 
+                       FontSize="12"
+                       TextTrimming="CharacterEllipsis"
+                       Margin="0,2,0,0">
                 <Run Text="{x:Bind ItemCount}"/>
-                <Run Text=" items) • "/>
+                <Run Text=" items • "/>
                 <Run Text="{x:Bind GetFormattedDate(Timestamp), Mode=OneWay}"/>
             </TextBlock>
             
             <!-- Criteria Line -->
-            <TextBlock Text="{x:Bind GetCriteriaDisplay(), Mode=OneWay}" 
-                       Opacity="0.6" 
-                       FontSize="12"
-                       TextTrimming="CharacterEllipsis"/>
+            <TextBlock FontSize="12"
+                       TextTrimming="CharacterEllipsis"
+                       Margin="0,2,0,0">
+                <Run Text="Criteria" FontWeight="Bold"/>
+                <Run Text=": "/>
+                <Run Text="{x:Bind GetCriteriaDisplay(), Mode=OneWay}"/>
+            </TextBlock>
         </StackPanel>
 
         <!-- Score Badge (for completed evaluations) -->

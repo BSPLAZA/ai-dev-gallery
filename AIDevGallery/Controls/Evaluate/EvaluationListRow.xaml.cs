@@ -215,11 +215,11 @@ namespace AIDevGallery.Controls.Evaluate
         {
             if (ViewModel?.CriteriaNames == null || !ViewModel.CriteriaNames.Any())
             {
-                return "No criteria";
+                return "None";
             }
 
             var criteria = ViewModel.CriteriaNames.ToList();
-            return $"Criteria: {string.Join(", ", criteria)}";
+            return string.Join(", ", criteria);
         }
 
         public string GetStarRating(double score)

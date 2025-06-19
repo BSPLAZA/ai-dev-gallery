@@ -107,39 +107,95 @@
                        Visibility="Collapsed"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
-                       Spacing="20"
-                       MaxWidth="500">
+                       Spacing="24"
+                       MaxWidth="600">
                 <TextBlock Text="Welcome to Evaluate" 
-                          Style="{StaticResource SubtitleTextBlockStyle}"
-                          HorizontalAlignment="Center"/>
+                          Style="{StaticResource TitleTextBlockStyle}"
+                          HorizontalAlignment="Center"
+                          Margin="0,0,0,8"/>
                 
-                <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                <TextBlock Style="{StaticResource SubtitleTextBlockStyle}"
                           TextAlignment="Center"
                           TextWrapping="Wrap"
-                          Opacity="0.8"
-                          HorizontalAlignment="Center">
+                          Opacity="0.9"
+                          HorizontalAlignment="Center"
+                          FontSize="18"
+                          Margin="0,0,0,16">
                     <Run Text="Evaluate helps you test and compare AI model performance with your datasets."/>
-                    <LineBreak/>
-                    <LineBreak/>
-                    <Run Text="You can:"/>
-                    <LineBreak/>
-                    <Run Text="• Test models with custom prompts and datasets"/>
-                    <LineBreak/>
-                    <Run Text="• Compare results across different models"/>
-                    <LineBreak/>
-                    <Run Text="• Import existing evaluation results"/>
-                    <LineBreak/>
-                    <Run Text="• Track performance metrics over time"/>
                 </TextBlock>
                 
-                <TextBlock Style="{StaticResource BodyTextBlockStyle}"
-                          TextAlignment="Center"
-                          Margin="0,10,0,0"
-                          HorizontalAlignment="Center">
-                    <Run Text="Click"/>
-                    <Run Text="New Evaluation" FontWeight="SemiBold"/>
-                    <Run Text="above to get started"/>
-                </TextBlock>
+                <Grid HorizontalAlignment="Center" MaxWidth="500">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="✓" 
+                              Style="{StaticResource BodyLargeTextBlockStyle}"
+                              Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                              Margin="0,0,12,8"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" 
+                              Style="{StaticResource BodyLargeTextBlockStyle}"
+                              TextWrapping="Wrap"
+                              Margin="0,0,0,8">
+                        <Run Text="Test models with custom prompts and datasets"/>
+                    </TextBlock>
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="✓" 
+                              Style="{StaticResource BodyLargeTextBlockStyle}"
+                              Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                              Margin="0,0,12,8"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" 
+                              Style="{StaticResource BodyLargeTextBlockStyle}"
+                              TextWrapping="Wrap"
+                              Margin="0,0,0,8">
+                        <Run Text="Compare results across different models"/>
+                    </TextBlock>
+                    
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="✓" 
+                              Style="{StaticResource BodyLargeTextBlockStyle}"
+                              Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                              Margin="0,0,12,8"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" 
+                              Style="{StaticResource BodyLargeTextBlockStyle}"
+                              TextWrapping="Wrap"
+                              Margin="0,0,0,8">
+                        <Run Text="Import existing evaluation results"/>
+                    </TextBlock>
+                    
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="✓" 
+                              Style="{StaticResource BodyLargeTextBlockStyle}"
+                              Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                              Margin="0,0,12,0"/>
+                    <TextBlock Grid.Row="3" Grid.Column="1" 
+                              Style="{StaticResource BodyLargeTextBlockStyle}"
+                              TextWrapping="Wrap">
+                        <Run Text="Track performance metrics over time"/>
+                    </TextBlock>
+                </Grid>
+                
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="20,16"
+                        HorizontalAlignment="Center"
+                        Margin="0,24,0,0">
+                    <TextBlock Style="{StaticResource BodyLargeTextBlockStyle}"
+                              TextAlignment="Center"
+                              HorizontalAlignment="Center">
+                        <Run Text="Click"/>
+                        <Run Text="New Evaluation" FontWeight="SemiBold" 
+                             Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                        <Run Text="above to get started"/>
+                    </TextBlock>
+                </Border>
             </StackPanel>
 
             <!-- Evaluations List Container -->
