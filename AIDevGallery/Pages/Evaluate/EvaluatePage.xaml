@@ -33,7 +33,7 @@
 
             <StackPanel Grid.Column="0">
                 <TextBlock
-                    Text="AI Evaluations"
+                    Text="Evaluate"
                     Style="{StaticResource TitleTextBlockStyle}"
                     Margin="0,0,0,4" />
                 <TextBlock
@@ -107,31 +107,39 @@
                        Visibility="Collapsed"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
-                       Spacing="16">
-                <TextBlock Text="No evaluations yet" 
+                       Spacing="20"
+                       MaxWidth="500">
+                <TextBlock Text="Welcome to Evaluate" 
                           Style="{StaticResource SubtitleTextBlockStyle}"
                           HorizontalAlignment="Center"/>
                 
-                <TextBlock Text="Import existing results or start a new evaluation"
-                          Style="{StaticResource BodyTextBlockStyle}"
-                          Opacity="0.6"
-                          HorizontalAlignment="Center"/>
+                <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                          TextAlignment="Center"
+                          TextWrapping="Wrap"
+                          Opacity="0.8"
+                          HorizontalAlignment="Center">
+                    <Run Text="Evaluate helps you test and compare AI model performance with your datasets."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="You can:"/>
+                    <LineBreak/>
+                    <Run Text="• Test models with custom prompts and datasets"/>
+                    <LineBreak/>
+                    <Run Text="• Compare results across different models"/>
+                    <LineBreak/>
+                    <Run Text="• Import existing evaluation results"/>
+                    <LineBreak/>
+                    <Run Text="• Track performance metrics over time"/>
+                </TextBlock>
                 
-                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
-                    <Button Click="ImportResults_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="📥" FontFamily="Segoe UI Emoji" FontSize="16"/>
-                            <TextBlock Text="Import Results"/>
-                        </StackPanel>
-                    </Button>
-                    
-                    <Button Click="NewEvaluation_Click" Style="{StaticResource AccentButtonStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="🧪" FontFamily="Segoe UI Emoji" FontSize="16"/>
-                            <TextBlock Text="New Evaluation"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
+                <TextBlock Style="{StaticResource BodyTextBlockStyle}"
+                          TextAlignment="Center"
+                          Margin="0,10,0,0"
+                          HorizontalAlignment="Center">
+                    <Run Text="Click"/>
+                    <Run Text="New Evaluation" FontWeight="SemiBold"/>
+                    <Run Text="above to get started"/>
+                </TextBlock>
             </StackPanel>
 
             <!-- Evaluations List Container -->

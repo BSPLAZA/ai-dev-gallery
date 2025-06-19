@@ -40,11 +40,11 @@
                   Click="OnCheckboxClick"/>
         
         <!-- Workflow Icon -->
-        <TextBlock Grid.Column="1" 
-                   VerticalAlignment="Center"
-                   FontFamily="Segoe UI Emoji"
-                   FontSize="18"
-                   Text="{x:Bind GetWorkflowIcon(WorkflowType), Mode=OneWay}"/>
+        <FontIcon Grid.Column="1" 
+                  VerticalAlignment="Center"
+                  FontSize="18"
+                  Foreground="{ThemeResource SystemFillColorAttentionBrush}"
+                  Glyph="{x:Bind GetWorkflowGlyph(WorkflowType), Mode=OneWay}"/>
 
         <!-- Main Content -->
         <StackPanel Grid.Column="2" 
@@ -89,7 +89,7 @@
                        VerticalAlignment="Center"/>
             
             <TextBlock Text="{x:Bind GetStarRating(AverageScore), Mode=OneWay}" 
-                       Foreground="#FFD700" 
+                       Foreground="{ThemeResource SystemFillColorAttentionBrush}" 
                        FontSize="14"
                        FontFamily="Segoe UI Emoji"
                        VerticalAlignment="Center"/>

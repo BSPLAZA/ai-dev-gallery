@@ -189,6 +189,15 @@ namespace AIDevGallery.Controls.Evaluate
             };
         }
 
+        public string GetWorkflowGlyph(EvaluationWorkflow workflow)
+        {
+            return workflow switch
+            {
+                EvaluationWorkflow.ImportResults => "\uE118", // Download icon
+                _ => "\uEA80" // Test/Science icon
+            };
+        }
+
         public string GetFormattedDate(DateTime date)
         {
             var timeSpan = DateTime.Now - date;
