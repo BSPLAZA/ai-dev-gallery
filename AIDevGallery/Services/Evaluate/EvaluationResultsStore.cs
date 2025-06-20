@@ -37,6 +37,7 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
         Directory.CreateDirectory(_storagePath);
         
         // Load existing evaluations synchronously to avoid race conditions
+        // Note: Consider using async factory pattern to avoid sync-over-async
         Task.Run(async () => await LoadEvaluationsAsync()).GetAwaiter().GetResult();
     }
     

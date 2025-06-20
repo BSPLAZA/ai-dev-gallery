@@ -87,6 +87,9 @@ namespace AIDevGallery.Pages.Evaluate
         
         private void CleanupResources()
         {
+            // Unsubscribe from events to prevent memory leaks
+            this.KeyDown -= OnPageKeyDown;
+            
             // Clear collections
             _allTreeItems?.Clear();
             
@@ -347,7 +350,7 @@ namespace AIDevGallery.Pages.Evaluate
             }
             
             // Show box plot legend if we have detailed results
-            if (_viewModel.HasDetailedResults && _viewModel.ItemResults != null && _viewModel.ItemResults.Count > 0)
+            if (_viewModel != null && _viewModel.HasDetailedResults && _viewModel.ItemResults != null && _viewModel.ItemResults.Count > 0)
             {
                 BoxPlotLegend.Visibility = Visibility.Visible;
             }
@@ -376,7 +379,7 @@ namespace AIDevGallery.Pages.Evaluate
                 canvas.Children.Add(label);
                 
                 // Check if we have detailed results for box plot
-                if (_viewModel.HasDetailedResults && _viewModel.ItemResults != null && _viewModel.ItemResults.Count > 0)
+                if (_viewModel != null && _viewModel.HasDetailedResults && _viewModel.ItemResults != null && _viewModel.ItemResults.Count > 0)
                 {
                     // Get individual scores for this criterion
                     var scores = _viewModel.ItemResults
@@ -708,7 +711,7 @@ namespace AIDevGallery.Pages.Evaluate
             StatisticalSummaryCard.Children.Add(headerText);
             
             // If we have detailed results, show per-criterion statistics
-            if (_viewModel.HasDetailedResults && _viewModel.ItemResults != null && _viewModel.ItemResults.Count > 0)
+            if (_viewModel != null && _viewModel.HasDetailedResults && _viewModel.ItemResults != null && _viewModel.ItemResults.Count > 0)
             {
                 System.Diagnostics.Debug.WriteLine($"Using detailed results for per-criterion statistics ({_viewModel.ItemResults.Count} items)");
                 

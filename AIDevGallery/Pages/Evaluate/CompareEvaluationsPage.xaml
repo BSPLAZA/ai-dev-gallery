@@ -92,12 +92,14 @@ Licensed under the MIT License.
                                     <Button x:Name="CopyChartButton"
                                             Click="CopyChart_Click"
                                             ToolTipService.ToolTip="Copy chart to clipboard"
+                                            AutomationProperties.Name="Copy chart to clipboard"
                                             Style="{StaticResource SubtleButtonStyle}">
                                         <FontIcon Glyph="&#xE8C8;" FontSize="14"/>
                                     </Button>
                                     <Button x:Name="SaveChartButton"
                                             Click="SaveChart_Click"
                                             ToolTipService.ToolTip="Save chart as image"
+                                            AutomationProperties.Name="Save chart as image"
                                             Style="{StaticResource SubtleButtonStyle}">
                                         <FontIcon Glyph="&#xE74E;" FontSize="14"/>
                                     </Button>
@@ -390,7 +392,9 @@ Licensed under the MIT License.
                         HorizontalAlignment="Right" 
                         Spacing="8">
                 
-                <Button x:Name="ExportDataButton">
+                <Button x:Name="ExportDataButton"
+                        AutomationProperties.Name="Export evaluation data"
+                        ToolTipService.ToolTip="Export evaluation data">
                     <Button.Flyout>
                         <MenuFlyout>
                             <MenuFlyoutItem Text="Export as CSV" 
@@ -413,7 +417,9 @@ Licensed under the MIT License.
                     </StackPanel>
                 </Button>
                 
-                <Button x:Name="PrintButton" Click="PrintInsights_Click">
+                <Button x:Name="PrintButton" Click="PrintInsights_Click"
+                        AutomationProperties.Name="Print comparison report"
+                        ToolTipService.ToolTip="Print comparison report">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE749;" FontSize="16"/>
                         <TextBlock Text="Print Report"/>

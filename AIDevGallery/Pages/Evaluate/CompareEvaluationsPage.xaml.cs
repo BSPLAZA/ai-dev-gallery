@@ -31,9 +31,9 @@ namespace AIDevGallery.Pages.Evaluate
     public sealed partial class CompareEvaluationsPage : Page
     {
         private readonly IEvaluationResultsStore _evaluationStore;
-        private List<EvaluationResult> _evaluations = new();
-        private List<string> _commonCriteria = new();
-        private Dictionary<string, List<double>> _criteriaScores = new();
+        private readonly List<EvaluationResult> _evaluations = new();
+        private readonly List<string> _commonCriteria = new();
+        private readonly Dictionary<string, List<double>> _criteriaScores = new();
 
         // Chart dimensions
         private const double ChartPadding = 40;
