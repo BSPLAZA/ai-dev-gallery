@@ -102,6 +102,11 @@
                                           FontSize="16"
                                           Foreground="{ThemeResource SystemFillColorSuccessBrush}"/>
                                 <TextBlock x:Name="StatusText"/>
+                                <Grid>
+                                    <InfoBadge x:Name="StatusInfoBadge"
+                                               Style="{StaticResource InformationalValueInfoBadgeStyle}"
+                                               Value="&#xE946;"/>
+                                </Grid>
                             </StackPanel>
                             <TextBlock Text="|" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                             <StackPanel Orientation="Horizontal" Spacing="4">
@@ -360,40 +365,107 @@
                                     </ItemsRepeater.Layout>
                                     <ItemsRepeater.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Style="{StaticResource CardGridStyle}"
-                                                  Padding="12">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <!-- Folder Header -->
+                                                <Button Style="{StaticResource SubtleButtonStyle}"
+                                                        HorizontalAlignment="Stretch"
+                                                        HorizontalContentAlignment="Stretch"
+                                                        Padding="0"
+                                                        Click="FolderItem_Click"
+                                                        Tag="{Binding}">
+                                                    <Grid Style="{StaticResource CardGridStyle}"
+                                                          Padding="12">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        
+                                                        <!-- Expansion Chevron -->
+                                                        <FontIcon Grid.Column="0" 
+                                                                  Glyph="{Binding ChevronGlyph}" 
+                                                                  FontSize="12"
+                                                                  Margin="0,0,8,0"
+                                                                  VerticalAlignment="Center"/>
+                                                        
+                                                        <!-- Folder Icon -->
+                                                        <FontIcon Grid.Column="1" 
+                                                                  Glyph="&#xE8B7;" 
+                                                                  FontSize="16"
+                                                                  Margin="0,0,12,0"
+                                                                  VerticalAlignment="Center"/>
+                                                        
+                                                        <!-- Folder Path -->
+                                                        <TextBlock Grid.Column="2" 
+                                                                   Text="{Binding FolderPath}"
+                                                                   VerticalAlignment="Center"/>
+                                                        
+                                                        <!-- Item Count -->
+                                                        <TextBlock Grid.Column="3" 
+                                                                   Text="{Binding ItemCountText}" 
+                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                   Margin="0,0,12,0"
+                                                                   VerticalAlignment="Center"/>
+                                                        
+                                                        <!-- Average Score Badge -->
+                                                        <Border Grid.Column="4" 
+                                                                Background="{Binding ScoreBrush}"
+                                                                CornerRadius="4"
+                                                                Padding="12,6">
+                                                            <TextBlock Text="{Binding AverageScoreText}" 
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="White"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </Button>
                                                 
-                                                <FontIcon Grid.Column="0" 
-                                                          Glyph="&#xE8B7;" 
-                                                          FontSize="16"
-                                                          Margin="0,0,12,0"
-                                                          VerticalAlignment="Center"/>
-                                                
-                                                <TextBlock Grid.Column="1" 
-                                                           Text="{Binding FolderPath}"
-                                                           VerticalAlignment="Center"/>
-                                                
-                                                <TextBlock Grid.Column="2" 
-                                                           Text="{Binding ItemCountText}" 
-                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                           Margin="0,0,12,0"
-                                                           VerticalAlignment="Center"/>
-                                                
-                                                <Border Grid.Column="3" 
-                                                        Background="{Binding ScoreBrush}"
-                                                        CornerRadius="4"
-                                                        Padding="12,6">
-                                                    <TextBlock Text="{Binding AverageScoreText}" 
-                                                               FontWeight="SemiBold"
-                                                               Foreground="White"/>
-                                                </Border>
-                                            </Grid>
+                                                <!-- Expanded Content -->
+                                                <Grid Visibility="{Binding ExpandedVisibility}"
+                                                      Margin="40,0,0,8"
+                                                      Padding="16"
+                                                      Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                      CornerRadius="4">
+                                                    <StackPanel Spacing="8">
+                                                        <TextBlock Text="Criteria Scores for this Folder"
+                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                   Margin="0,0,0,4"/>
+                                                        
+                                                        <ItemsRepeater ItemsSource="{Binding CriteriaScores}">
+                                                            <ItemsRepeater.Layout>
+                                                                <StackLayout Spacing="4"/>
+                                                            </ItemsRepeater.Layout>
+                                                            <ItemsRepeater.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Grid>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="*"/>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                        </Grid.ColumnDefinitions>
+                                                                        
+                                                                        <TextBlock Grid.Column="0" 
+                                                                                   Text="{Binding Name}"
+                                                                                   Style="{StaticResource BodyTextBlockStyle}"/>
+                                                                        
+                                                                        <Border Grid.Column="1" 
+                                                                                Background="{Binding StatusBrush}"
+                                                                                CornerRadius="4"
+                                                                                Padding="8,4"
+                                                                                MinWidth="60">
+                                                                            <TextBlock Text="{Binding ScoreText}" 
+                                                                                       HorizontalAlignment="Center"
+                                                                                       FontWeight="SemiBold"
+                                                                                       Foreground="White"/>
+                                                                        </Border>
+                                                                    </Grid>
+                                                                </DataTemplate>
+                                                            </ItemsRepeater.ItemTemplate>
+                                                        </ItemsRepeater>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </StackPanel>
                                         </DataTemplate>
                                     </ItemsRepeater.ItemTemplate>
                                 </ItemsRepeater>
@@ -422,52 +494,130 @@
                         <!-- Stats will be added programmatically -->
                     </Grid>
                     
-                    <!-- Image Preview Area (Future Enhancement) -->
+                    <!-- Image Preview Area -->
                     <Grid x:Name="ImagePreviewArea" 
                           Style="{StaticResource CardGridStyle}"
                           Visibility="Collapsed"
-                          MinHeight="400">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/> <!-- File navigation -->
-                            <ColumnDefinition Width="*"/>   <!-- Preview and details -->
-                        </Grid.ColumnDefinitions>
+                          MinHeight="500">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
                         
-                        <!-- Left: File Navigation -->
-                        <Grid Grid.Column="0" 
-                              Background="{ThemeResource LayerFillColorDefaultBrush}"
-                              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                              BorderThickness="0,0,1,0">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
+                        <!-- Header -->
+                        <Grid Grid.Row="0" Padding="16,16,16,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
                             
-                            <TextBlock Grid.Row="0" 
-                                       Text="Image Results" 
-                                       Style="{StaticResource BodyStrongTextBlockStyle}"
-                                       Margin="16"/>
+                            <TextBlock Grid.Column="0" 
+                                       Text="Individual Image Results" 
+                                       Style="{StaticResource BodyStrongTextBlockStyle}"/>
                             
-                            <!-- File list will be added when individual results are available -->
-                            <TextBlock Grid.Row="1" 
-                                       Text="Individual image results will be displayed here when available"
+                            <TextBlock Grid.Column="1"
+                                       Text="Preview feature - data collection in progress"
                                        Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                       TextWrapping="Wrap"
-                                       Margin="16"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Center"
-                                       TextAlignment="Center"/>
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                         </Grid>
                         
-                        <!-- Right: Image Preview and Metadata -->
-                        <Grid Grid.Column="1" Padding="24">
-                            <StackPanel Spacing="16">
-                                <TextBlock Text="Select an image from the left to view details"
-                                           Style="{StaticResource BodyTextBlockStyle}"
+                        <!-- Content Area -->
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="350"/> <!-- File navigation -->
+                                <ColumnDefinition Width="*"/>   <!-- Preview and details -->
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Left: File Navigation -->
+                            <Grid Grid.Column="0" 
+                                  Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                  BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                  BorderThickness="0,1,1,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <!-- Search Box -->
+                                <TextBox Grid.Row="0" 
+                                         PlaceholderText="Search images..."
+                                         Margin="16,16,16,8"
+                                         IsEnabled="False"/>
+                                
+                                <!-- Results Summary -->
+                                <TextBlock Grid.Row="1" 
+                                           x:Name="ImageResultsSummary"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                            </StackPanel>
+                                           Margin="16,0,16,8"/>
+                                
+                                <!-- File List Placeholder -->
+                                <Grid Grid.Row="2" Margin="16">
+                                    <StackPanel VerticalAlignment="Center" 
+                                                HorizontalAlignment="Center"
+                                                Spacing="12">
+                                        <FontIcon Glyph="&#xE91B;" 
+                                                  FontSize="48"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBlock Text="Individual image results"
+                                                   Style="{StaticResource BodyTextBlockStyle}"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock Text="When available, images will be listed here with their individual scores"
+                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   TextWrapping="Wrap"
+                                                   TextAlignment="Center"
+                                                   MaxWidth="250"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
+                            
+                            <!-- Right: Image Preview and Metadata -->
+                            <Grid Grid.Column="1" 
+                                  BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                  BorderThickness="0,1,0,0">
+                                <Grid Padding="24">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <!-- Preview Area -->
+                                    <Grid Grid.Row="0">
+                                        <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                CornerRadius="8"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Padding="48">
+                                            <StackPanel Spacing="16">
+                                                <FontIcon Glyph="&#xEB9F;" 
+                                                          FontSize="64"
+                                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                <TextBlock Text="No image selected"
+                                                           Style="{StaticResource BodyTextBlockStyle}"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                           HorizontalAlignment="Center"/>
+                                                <TextBlock Text="Select an image from the left panel to view details"
+                                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                           HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                    
+                                    <!-- Metadata Panel -->
+                                    <Grid Grid.Row="1" 
+                                          Margin="0,16,0,0"
+                                          Visibility="Collapsed">
+                                        <StackPanel Spacing="12">
+                                            <TextBlock Text="Image Details"
+                                                       Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                                            <!-- Details will be populated when an image is selected -->
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
                         </Grid>
                     </Grid>
                     
