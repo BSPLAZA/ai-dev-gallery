@@ -543,7 +543,7 @@ namespace AIDevGallery.Pages.Evaluate
                 
                 // Get pixels from the rendered bitmap
                 var pixelBuffer = await renderTargetBitmap.GetPixelsAsync();
-                var pixels = pixelBuffer.ToArray();
+                // IBuffer doesn't have ToArray, just use the buffer directly
                 
                 // Create a software bitmap
                 var softwareBitmap = SoftwareBitmap.CreateCopyFromBuffer(
@@ -647,7 +647,7 @@ namespace AIDevGallery.Pages.Evaluate
                         var properties = new BitmapPropertySet();
                         properties.Add("System.Comment", new BitmapTypedValue(
                             $"Evaluation Chart for {_viewModel.Name} - Generated on {DateTime.Now:yyyy-MM-dd HH:mm:ss}", 
-                            PropertyType.String));
+                            Windows.Foundation.PropertyType.String));
                         
                         await encoder.BitmapProperties.SetPropertiesAsync(properties);
                         await encoder.FlushAsync();
@@ -740,192 +740,109 @@ namespace AIDevGallery.Pages.Evaluate
         {
             try
             {
-                // Create print document
-                var printDoc = new Microsoft.UI.Xaml.Printing.PrintDocument();
-                var printDocSource = printDoc.DocumentSource;
+                // For now, export to HTML and let the user print from browser
+                // WinUI 3 printing is complex and requires significant setup
                 
-                // Create print task
-                var printTask = Windows.Graphics.Printing.PrintManager.GetForCurrentView().PrintTaskRequested;
-                Windows.Foundation.TypedEventHandler<Windows.Graphics.Printing.PrintManager, Windows.Graphics.Printing.PrintTaskRequestedEventArgs> printTaskHandler = (s, args) =>
+                var savePicker = new FileSavePicker();
+                savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+                savePicker.FileTypeChoices.Add("HTML Report", new List<string>() { ".html" });
+                savePicker.SuggestedFileName = $"{_viewModel.Name}_evaluation_report_{DateTime.Now:yyyyMMdd}";
+                
+                // Get the window handle
+                var window = App.MainWindow;
+                if (window == null) return;
+                
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+                
+                var file = await savePicker.PickSaveFileAsync();
+                if (file != null)
                 {
-                    var task = args.Request.CreatePrintTask($"Evaluation Report - {_viewModel.Name}", sourceRequested =>
-                    {
-                        sourceRequested.SetSource(printDocSource);
-                    });
+                    var htmlContent = GenerateHtmlReport();
+                    await Windows.Storage.FileIO.WriteTextAsync(file, htmlContent);
                     
-                    task.Options.DocumentName = $"Evaluation_Report_{_viewModel.Name}_{DateTime.Now:yyyyMMdd}";
-                };
-                
-                Windows.Graphics.Printing.PrintManager.GetForCurrentView().PrintTaskRequested += printTaskHandler;
-                
-                // Prepare pages when requested
-                printDoc.Paginate += (s, args) =>
-                {
-                    // Create print content
-                    var printContent = CreatePrintContent();
-                    printDoc.SetPreviewPageCount(1, Microsoft.UI.Xaml.Printing.PreviewPageCountType.Final);
-                };
-                
-                printDoc.GetPreviewPage += (s, args) =>
-                {
-                    printDoc.SetPreviewPage(args.PageNumber, CreatePrintContent());
-                };
-                
-                printDoc.AddPages += (s, args) =>
-                {
-                    printDoc.AddPage(CreatePrintContent());
-                    printDoc.AddPagesComplete();
-                };
-                
-                // Show print UI
-                await Windows.Graphics.Printing.PrintManager.ShowPrintUIAsync();
-                
-                // Clean up event handler
-                Windows.Graphics.Printing.PrintManager.GetForCurrentView().PrintTaskRequested -= printTaskHandler;
+                    // Optionally open the file
+                    await Windows.System.Launcher.LaunchFileAsync(file);
+                }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error printing report: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error generating print report: {ex.Message}");
             }
         }
         
-        private FrameworkElement CreatePrintContent()
+        private string GenerateHtmlReport()
         {
-            // Create a printable version of the report
-            var printGrid = new Grid
-            {
-                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255)),
-                Padding = new Thickness(40),
-                Width = 800
-            };
-            
-            var content = new StackPanel { Spacing = 20 };
+            var html = new System.Text.StringBuilder();
+            html.AppendLine("<!DOCTYPE html>");
+            html.AppendLine("<html>");
+            html.AppendLine("<head>");
+            html.AppendLine("<meta charset='utf-8'>");
+            html.AppendLine($"<title>Evaluation Report - {_viewModel.Name}</title>");
+            html.AppendLine("<style>");
+            html.AppendLine("body { font-family: Arial, sans-serif; margin: 40px; }");
+            html.AppendLine("h1, h2 { color: #333; }");
+            html.AppendLine("table { border-collapse: collapse; width: 100%; margin: 20px 0; }");
+            html.AppendLine("th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }");
+            html.AppendLine("th { background-color: #f2f2f2; }");
+            html.AppendLine(".score { font-weight: bold; }");
+            html.AppendLine(".excellent { color: #4CAF50; }");
+            html.AppendLine(".good { color: #2196F3; }");
+            html.AppendLine(".fair { color: #FFC107; }");
+            html.AppendLine(".needs-improvement { color: #FF5722; }");
+            html.AppendLine("@media print { body { margin: 20px; } }");
+            html.AppendLine("</style>");
+            html.AppendLine("</head>");
+            html.AppendLine("<body>");
             
             // Header
-            content.Children.Add(new TextBlock
-            {
-                Text = "Evaluation Insights Report",
-                Style = (Style)Application.Current.Resources["TitleTextBlockStyle"],
-                HorizontalAlignment = HorizontalAlignment.Center
-            });
+            html.AppendLine("<h1>Evaluation Insights Report</h1>");
+            html.AppendLine($"<h2>{_viewModel.Name}</h2>");
             
-            // Evaluation details
-            var detailsPanel = new StackPanel { Spacing = 8 };
-            detailsPanel.Children.Add(new TextBlock
-            {
-                Text = _viewModel.Name,
-                Style = (Style)Application.Current.Resources["SubtitleTextBlockStyle"]
-            });
+            // Metadata
+            html.AppendLine("<p>");
+            html.AppendLine($"<strong>Model:</strong> {_viewModel.ModelName}<br>");
+            html.AppendLine($"<strong>Dataset:</strong> {_viewModel.DatasetName}<br>");
+            html.AppendLine($"<strong>Date:</strong> {_viewModel.Timestamp:MMMM dd, yyyy h:mm tt}<br>");
+            html.AppendLine($"<strong>Status:</strong> {_viewModel.Status}<br>");
+            html.AppendLine($"<strong>Overall Score:</strong> <span class='score'>{_viewModel.AverageScore:F1}/5.0</span>");
+            html.AppendLine("</p>");
             
-            detailsPanel.Children.Add(new TextBlock
-            {
-                Text = $"Model: {_viewModel.ModelName} | Dataset: {_viewModel.DatasetName}",
-                Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
-            });
+            // Criteria Scores
+            html.AppendLine("<h3>Evaluation Criteria Scores</h3>");
+            html.AppendLine("<table>");
+            html.AppendLine("<tr><th>Criterion</th><th>Score</th><th>Rating</th></tr>");
             
-            detailsPanel.Children.Add(new TextBlock
-            {
-                Text = $"Date: {_viewModel.Timestamp:MMMM dd, yyyy h:mm tt}",
-                Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
-            });
-            
-            detailsPanel.Children.Add(new TextBlock
-            {
-                Text = $"Overall Score: {_viewModel.AverageScore:F1}/5.0",
-                Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"]
-            });
-            
-            content.Children.Add(detailsPanel);
-            
-            // Add separator
-            content.Children.Add(new Rectangle
-            {
-                Height = 1,
-                Fill = (Brush)Application.Current.Resources["DividerStrokeColorDefaultBrush"],
-                Margin = new Thickness(0, 10, 0, 10)
-            });
-            
-            // Criteria scores
-            content.Children.Add(new TextBlock
-            {
-                Text = "Evaluation Criteria Scores",
-                Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"]
-            });
-            
-            var criteriaGrid = new Grid();
-            criteriaGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
-            criteriaGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            criteriaGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            
-            int row = 0;
             foreach (var criterion in _viewModel.CriteriaScores)
             {
-                criteriaGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                
-                var nameText = new TextBlock
-                {
-                    Text = criterion.Key,
-                    Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
-                    Margin = new Thickness(0, 4, 0, 4)
-                };
-                Grid.SetRow(nameText, row);
-                Grid.SetColumn(nameText, 0);
-                criteriaGrid.Children.Add(nameText);
-                
-                var scoreText = new TextBlock
-                {
-                    Text = criterion.Value.ToString("F1"),
-                    Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Margin = new Thickness(0, 4, 0, 4)
-                };
-                Grid.SetRow(scoreText, row);
-                Grid.SetColumn(scoreText, 1);
-                criteriaGrid.Children.Add(scoreText);
-                
-                var ratingText = new TextBlock
-                {
-                    Text = GetPerformanceText(criterion.Value),
-                    Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Margin = new Thickness(0, 4, 0, 4)
-                };
-                Grid.SetRow(ratingText, row);
-                Grid.SetColumn(ratingText, 2);
-                criteriaGrid.Children.Add(ratingText);
-                
-                row++;
+                var rating = GetPerformanceText(criterion.Value);
+                var cssClass = rating.ToLower().Replace(" ", "-");
+                html.AppendLine($"<tr>");
+                html.AppendLine($"<td>{criterion.Key}</td>");
+                html.AppendLine($"<td class='score'>{criterion.Value:F1}</td>");
+                html.AppendLine($"<td class='{cssClass}'>{rating}</td>");
+                html.AppendLine($"</tr>");
             }
             
-            content.Children.Add(criteriaGrid);
+            html.AppendLine("</table>");
             
-            // Statistical summary if available
+            // Statistical Summary
             if (StatisticalSummaryCard.Visibility == Visibility.Visible)
             {
-                content.Children.Add(new Rectangle
-                {
-                    Height = 1,
-                    Fill = (Brush)Application.Current.Resources["DividerStrokeColorDefaultBrush"],
-                    Margin = new Thickness(0, 10, 0, 10)
-                });
-                
-                content.Children.Add(new TextBlock
-                {
-                    Text = "Statistical Summary",
-                    Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"]
-                });
-                
-                // Add stats text
+                html.AppendLine("<h3>Statistical Summary</h3>");
                 var scores = _viewModel.CriteriaScores.Values.ToList();
-                content.Children.Add(new TextBlock
-                {
-                    Text = $"Mean: {scores.Average():F2} | Std Dev: {CalculateStandardDeviation(scores):F2} | Min: {scores.Min():F2} | Max: {scores.Max():F2}",
-                    Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
-                });
+                html.AppendLine("<p>");
+                html.AppendLine($"<strong>Mean:</strong> {scores.Average():F2}<br>");
+                html.AppendLine($"<strong>Standard Deviation:</strong> {CalculateStandardDeviation(scores):F2}<br>");
+                html.AppendLine($"<strong>Min:</strong> {scores.Min():F2}<br>");
+                html.AppendLine($"<strong>Max:</strong> {scores.Max():F2}<br>");
+                html.AppendLine("</p>");
             }
             
-            printGrid.Children.Add(content);
-            return printGrid;
+            html.AppendLine("</body>");
+            html.AppendLine("</html>");
+            
+            return html.ToString();
         }
         
         private string GenerateCsvContent()
