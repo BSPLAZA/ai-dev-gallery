@@ -1671,9 +1671,9 @@ namespace AIDevGallery.Pages.Evaluate
                     string imagePath = fileItem.FullPath;
                     
                     // If we have a dataset base path and the image path is relative, combine them
-                    if (!string.IsNullOrEmpty(_viewModel.DatasetBasePath) && !Path.IsPathRooted(imagePath))
+                    if (!string.IsNullOrEmpty(_viewModel.DatasetBasePath) && !System.IO.Path.IsPathRooted(imagePath))
                     {
-                        imagePath = Path.Combine(_viewModel.DatasetBasePath, imagePath);
+                        imagePath = System.IO.Path.Combine(_viewModel.DatasetBasePath, imagePath);
                         System.Diagnostics.Debug.WriteLine($"Resolved image path: {imagePath}");
                     }
                     
@@ -1683,8 +1683,8 @@ namespace AIDevGallery.Pages.Evaluate
                         // Try with just the filename in the dataset base path
                         if (!string.IsNullOrEmpty(_viewModel.DatasetBasePath))
                         {
-                            var fileName = Path.GetFileName(fileItem.FullPath);
-                            var altPath = Path.Combine(_viewModel.DatasetBasePath, fileName);
+                            var fileName = System.IO.Path.GetFileName(fileItem.FullPath);
+                            var altPath = System.IO.Path.Combine(_viewModel.DatasetBasePath, fileName);
                             if (File.Exists(altPath))
                             {
                                 imagePath = altPath;
