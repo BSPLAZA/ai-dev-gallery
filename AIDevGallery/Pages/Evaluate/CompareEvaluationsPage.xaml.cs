@@ -6,6 +6,7 @@ using AIDevGallery.Services.Evaluate;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using System;
@@ -22,6 +23,7 @@ using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.System;
 using Windows.UI;
+using Microsoft.UI;
 
 namespace AIDevGallery.Pages.Evaluate
 {

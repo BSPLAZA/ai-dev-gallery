@@ -94,7 +94,6 @@ namespace AIDevGallery.Pages.Evaluate
             ChartContentGrid?.Children.Clear();
             ImageScoresPanel?.Children.Clear();
             CriteriaTableRepeater.ItemsSource = null;
-            FolderRepeater.ItemsSource = null;
             ImageFileTreeView.ItemsSource = null;
             
             // Clear image preview
