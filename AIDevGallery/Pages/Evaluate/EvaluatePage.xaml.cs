@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.UI.Xaml.Media;
+using Windows.UI;
 
 namespace AIDevGallery.Pages;
 
@@ -298,9 +300,9 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         return count >= 2;
     }
 
-    private void CompareButton_Click(object sender, RoutedEventArgs e)
+    private async void CompareButton_Click(object sender, RoutedEventArgs e)
     {
-        // TODO: Implement comparison view
+        await ShowEnhancedCompareDialog();
     }
 
     private void ExportButton_Click(object sender, RoutedEventArgs e)
@@ -341,6 +343,185 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             _activeDialog = null;
         }
     }
+    
+    private async Task ShowEnhancedCompareDialog()
+    {
+        // Prevent multiple dialogs
+        if (_activeDialog != null) return;
+        
+        var selectedCount = AllEvaluations.Count(e => e.IsSelected);
+        
+        // Create rich content for the dialog
+        var contentPanel = new StackPanel
+        {
+            Spacing = 16,
+            MaxWidth = 400
+        };
+        
+        // Header section with icon
+        var headerPanel = new Grid();
+        headerPanel.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        headerPanel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        
+        var compareIcon = new FontIcon 
+        { 
+            Glyph = "\uE9D5", // Compare icon
+            FontSize = 48,
+            Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 120, 212)) // Windows blue
+        };
+        Grid.SetColumn(compareIcon, 0);
+        headerPanel.Children.Add(compareIcon);
+        
+        var titlePanel = new StackPanel { Margin = new Thickness(16, 0, 0, 0) };
+        titlePanel.Children.Add(new TextBlock 
+        { 
+            Text = "Evaluation Comparison",
+            Style = (Style)Application.Current.Resources["SubtitleTextBlockStyle"]
+        });
+        titlePanel.Children.Add(new TextBlock 
+        { 
+            Text = "Coming in the next update!",
+            Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
+            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+        });
+        Grid.SetColumn(titlePanel, 1);
+        headerPanel.Children.Add(titlePanel);
+        
+        contentPanel.Children.Add(headerPanel);
+        
+        // Add a separator
+        contentPanel.Children.Add(new Border 
+        { 
+            Height = 1, 
+            Background = (Brush)Application.Current.Resources["DividerStrokeColorDefaultBrush"],
+            Margin = new Thickness(0, 8, 0, 8)
+        });
+        
+        // Feature highlights
+        var featuresPanel = new StackPanel { Spacing = 12 };
+        
+        featuresPanel.Children.Add(new TextBlock 
+        { 
+            Text = "What you'll be able to do:",
+            Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"]
+        });
+        
+        // Feature list
+        var features = new[]
+        {
+            ("\uE73E", "Side-by-side comparison", "View multiple evaluations in synchronized panels"),
+            ("\uE9D2", "Performance metrics", "Compare scores, accuracy, and timing across models"),
+            ("\uEA37", "Visual differences", "Spot trends and outliers with comparative charts"),
+            ("\uE7C1", "Export comparisons", "Save comparison reports for presentations")
+        };
+        
+        foreach (var (icon, title, description) in features)
+        {
+            var featurePanel = new Grid();
+            featurePanel.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            featurePanel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            
+            var featureIcon = new FontIcon 
+            { 
+                Glyph = icon,
+                FontSize = 20,
+                Foreground = new SolidColorBrush(Color.FromArgb(255, 76, 175, 80)), // Green
+                VerticalAlignment = VerticalAlignment.Top
+            };
+            Grid.SetColumn(featureIcon, 0);
+            featurePanel.Children.Add(featureIcon);
+            
+            var textPanel = new StackPanel { Margin = new Thickness(12, 0, 0, 0) };
+            textPanel.Children.Add(new TextBlock 
+            { 
+                Text = title,
+                Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
+                FontWeight = FontWeights.SemiBold
+            });
+            textPanel.Children.Add(new TextBlock 
+            { 
+                Text = description,
+                Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                TextWrapping = TextWrapping.Wrap
+            });
+            Grid.SetColumn(textPanel, 1);
+            featurePanel.Children.Add(textPanel);
+            
+            featuresPanel.Children.Add(featurePanel);
+        }
+        
+        contentPanel.Children.Add(featuresPanel);
+        
+        // Current selection info
+        if (selectedCount > 0)
+        {
+            contentPanel.Children.Add(new Border 
+            { 
+                Background = (Brush)Application.Current.Resources["SystemFillColorAttentionBackgroundBrush"],
+                CornerRadius = new CornerRadius(4),
+                Padding = new Thickness(12),
+                Margin = new Thickness(0, 12, 0, 0),
+                Child = new TextBlock
+                {
+                    Text = $"You have {selectedCount} evaluation{(selectedCount > 1 ? "s" : "")} selected and ready to compare!",
+                    Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
+                    TextWrapping = TextWrapping.Wrap
+                }
+            });
+        }
+        
+        // Create the dialog
+        var dialog = new ContentDialog
+        {
+            Title = "Compare Evaluations - Preview",
+            Content = contentPanel,
+            PrimaryButtonText = "Notify Me",
+            CloseButtonText = "Close",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = this.XamlRoot
+        };
+        _activeDialog = dialog;
+        
+        try
+        {
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                // Show notification setup dialog
+                await ShowNotificationDialog();
+            }
+        }
+        finally
+        {
+            _activeDialog = null;
+        }
+    }
+    
+    private async Task ShowNotificationDialog()
+    {
+        var dialog = new ContentDialog
+        {
+            Title = "Feature Notification",
+            Content = new TextBlock
+            {
+                Text = "We'll notify you when the comparison feature is available! Check the app's release notes for updates.",
+                TextWrapping = TextWrapping.Wrap
+            },
+            CloseButtonText = "Got it",
+            XamlRoot = this.XamlRoot
+        };
+        _activeDialog = dialog;
+        
+        try
+        {
+            await dialog.ShowAsync();
+        }
+        finally
+        {
+            _activeDialog = null;
+        }
+    }
 
     // New event handlers for list rows
     private void EvaluationRow_ItemClicked(object sender, EvaluationListItemViewModel e)
@@ -359,7 +540,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
     // Action bar event handlers
     private async void ActionBar_CompareClicked(object sender, EventArgs e)
     {
-        await ShowPlaceholderDialog("Comparison view will allow you to analyze multiple evaluations side-by-side.");
+        await ShowEnhancedCompareDialog();
     }
 
     private async void ActionBar_DeleteClicked(object sender, EventArgs e)
