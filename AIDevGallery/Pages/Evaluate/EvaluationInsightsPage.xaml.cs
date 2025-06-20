@@ -19,7 +19,6 @@ using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.UI;
-using Colors = Windows.UI.Colors;
 
 namespace AIDevGallery.Pages.Evaluate
 {
@@ -264,7 +263,7 @@ namespace AIDevGallery.Pages.Evaluate
                     Text = GetPerformanceText(criterion.Value),
                     FontSize = 12,
                     FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-                    Foreground = new SolidColorBrush(Colors.White)
+                    Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255))
                 };
                 
                 badge.Child = badgeText;
@@ -404,6 +403,6 @@ namespace AIDevGallery.Pages.Evaluate
         public string ScoreText { get; set; } = "";
         public string StatusText { get; set; } = "";
         public string StatusGlyph { get; set; } = "";
-        public Brush StatusBrush { get; set; } = new SolidColorBrush(Colors.Gray);
+        public Brush StatusBrush { get; set; } = new SolidColorBrush(Color.FromArgb(255, 128, 128, 128));
     }
 }
