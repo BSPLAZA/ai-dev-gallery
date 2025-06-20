@@ -1419,7 +1419,7 @@ namespace AIDevGallery.Pages.Evaluate
             }
             
             // Save group by folder preference to wizard state
-            if (_wizardState != null && TwoPartGroupByFolderToggle.IsEnabled)
+            if (_wizardState?.Dataset != null && TwoPartGroupByFolderToggle.IsEnabled)
             {
                 _wizardState.Dataset.PathTypes = TwoPartGroupByFolderToggle.IsOn ? PathType.Relative : PathType.Absolute;
             }

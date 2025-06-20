@@ -818,7 +818,10 @@ namespace AIDevGallery.Pages.Evaluate
         
         private void ViewToggle_Click(object sender, RoutedEventArgs e)
         {
-            if (sender == ChartViewToggle)
+            var toggleButton = sender as ToggleButton;
+            if (toggleButton == null) return;
+            
+            if (toggleButton == ChartViewToggle)
             {
                 ChartViewToggle.IsChecked = true;
                 TableViewToggle.IsChecked = false;
@@ -827,7 +830,7 @@ namespace AIDevGallery.Pages.Evaluate
                 TableView.Visibility = Visibility.Collapsed;
                 FolderView.Visibility = Visibility.Collapsed;
             }
-            else if (sender == TableViewToggle)
+            else if (toggleButton == TableViewToggle)
             {
                 TableViewToggle.IsChecked = true;
                 ChartViewToggle.IsChecked = false;
@@ -836,7 +839,7 @@ namespace AIDevGallery.Pages.Evaluate
                 ChartView.Visibility = Visibility.Collapsed;
                 FolderView.Visibility = Visibility.Collapsed;
             }
-            else if (sender == FolderViewToggle)
+            else if (toggleButton == FolderViewToggle)
             {
                 FolderViewToggle.IsChecked = true;
                 ChartViewToggle.IsChecked = false;

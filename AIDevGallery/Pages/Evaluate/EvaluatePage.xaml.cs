@@ -21,6 +21,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Media;
 using Windows.UI;
+using Windows.UI.Text;
 
 namespace AIDevGallery.Pages;
 
@@ -277,7 +278,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         }
     }
 
-    private async void EmptyState_TestModelClicked(object sender, EventArgs e)
+    private void EmptyState_TestModelClicked(object sender, EventArgs e)
     {
         // Just call the same handler as the header button
         NewEvaluationButton_Click(sender, new RoutedEventArgs());
@@ -800,10 +801,13 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
                 // Preserve the dataset base path from the wizard
                 evaluation.DatasetBasePath = wizardState.Dataset?.BaseDirectory;
                 // Only update dataset name if it would be more meaningful
-                var folderName = GetDatasetFolderName(wizardState.Dataset);
-                if (folderName != "Dataset" && !string.IsNullOrEmpty(folderName))
+                if (wizardState.Dataset != null)
                 {
-                    evaluation.DatasetName = folderName;
+                    var folderName = GetDatasetFolderName(wizardState.Dataset);
+                    if (folderName != "Dataset" && !string.IsNullOrEmpty(folderName))
+                    {
+                        evaluation.DatasetName = folderName;
+                    }
                 }
                 // The import already set the correct DatasetItemCount from counting actual entries
             }
