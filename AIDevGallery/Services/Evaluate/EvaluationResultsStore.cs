@@ -489,7 +489,7 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                 WorkflowType = EvaluationWorkflow.TestModel,
                 Status = EvaluationStatus.Failed,
                 Duration = TimeSpan.FromMinutes(45),
-                ErrorMessage = "Model timeout: Response generation exceeded 30 second limit on 127 documents",
+                CurrentOperation = "Failed: Model timeout on 127 documents",
                 CriteriaScores = new Dictionary<string, double>
                 {
                     { "Legal Accuracy", 2.8 },
