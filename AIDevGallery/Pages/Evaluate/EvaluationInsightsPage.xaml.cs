@@ -114,7 +114,8 @@ namespace AIDevGallery.Pages.Evaluate
             ScoreText.Text = _viewModel.AverageScore.ToString("F1") + "/5";
             
             // Update metric cards
-            ImagesProcessedText.Text = _viewModel.ItemCount.ToString("N0");
+            // Use DatasetItemCount for imported results (shows actual count)
+            ImagesProcessedText.Text = _viewModel.DatasetItemCount.ToString("N0");
             ProcessingStatusText.Text = _viewModel.Status == EvaluationStatus.Completed ? "100% Complete" : 
                                        _viewModel.Status == EvaluationStatus.Running ? $"{_viewModel.ProgressPercentage ?? 0}% Complete" : 
                                        "";
@@ -124,6 +125,17 @@ namespace AIDevGallery.Pages.Evaluate
             
             // Update table view
             UpdateTableView();
+            
+            // Update folder view if available
+            if (_viewModel.HasFolderStatistics)
+            {
+                UpdateFolderView();
+                FolderViewToggle.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                FolderViewToggle.Visibility = Visibility.Collapsed;
+            }
             
             // Show statistical summary if detailed results available
             if (_viewModel.HasDetailedResults)
@@ -222,7 +234,20 @@ namespace AIDevGallery.Pages.Evaluate
             var canvasHeight = canvas.ActualHeight;
             var barHeight = Math.Min(40, (canvasHeight - 40) / _viewModel.CriteriaScores.Count);
             var maxScore = 5.0;
-            var chartWidth = canvasWidth - 150; // Leave space for labels
+            var chartWidth = canvasWidth - 200; // Leave more space for labels and badges
+            
+            // Add vertical line at max score (5.0)
+            var maxScoreLine = new Line
+            {
+                X1 = 130 + chartWidth,
+                Y1 = 10,
+                X2 = 130 + chartWidth,
+                Y2 = canvasHeight - 10,
+                Stroke = new SolidColorBrush(Color.FromArgb(128, 128, 128, 128)), // Semi-transparent gray
+                StrokeThickness = 1,
+                StrokeDashArray = new DoubleCollection { 2, 2 } // Dotted line
+            };
+            canvas.Children.Add(maxScoreLine);
             
             int index = 0;
             foreach (var criterion in _viewModel.CriteriaScores)
@@ -241,8 +266,8 @@ namespace AIDevGallery.Pages.Evaluate
                 Canvas.SetTop(label, y + (barHeight - 20) / 2);
                 canvas.Children.Add(label);
                 
-                // Bar
-                var barWidth = (criterion.Value / maxScore) * chartWidth;
+                // Bar (reduced to 80% of maximum width to prevent overlap)
+                var barWidth = (criterion.Value / maxScore) * chartWidth * 0.8;
                 var bar = new Rectangle
                 {
                     Width = barWidth,
@@ -283,8 +308,8 @@ namespace AIDevGallery.Pages.Evaluate
                 };
                 
                 badge.Child = badgeText;
-                // Position badge at the right edge
-                Canvas.SetLeft(badge, canvasWidth - 100);
+                // Position badge with more space from the right edge to prevent overlap
+                Canvas.SetLeft(badge, canvasWidth - 120);
                 Canvas.SetTop(badge, y + (barHeight - 24) / 2);
                 canvas.Children.Add(badge);
                 
@@ -334,6 +359,33 @@ namespace AIDevGallery.Pages.Evaluate
             CriteriaTableRepeater.ItemsSource = tableItems;
         }
         
+        private void UpdateFolderView()
+        {
+            if (_viewModel.FolderStatistics == null) return;
+            
+            var folderItems = new List<FolderTableItem>();
+            
+            foreach (var folder in _viewModel.FolderStatistics)
+            {
+                var avgScore = folder.Value.AverageScores.Values.Any() 
+                    ? folder.Value.AverageScores.Values.Average() 
+                    : 0.0;
+                
+                folderItems.Add(new FolderTableItem
+                {
+                    FolderPath = folder.Key,
+                    ItemCount = folder.Value.ItemCount,
+                    ItemCountText = $"{folder.Value.ItemCount} items",
+                    AverageScore = avgScore,
+                    AverageScoreText = avgScore.ToString("F1") + "/5",
+                    ScoreBrush = new SolidColorBrush(GetScoreColor(avgScore))
+                });
+            }
+            
+            // Sort by average score descending
+            FolderStatsRepeater.ItemsSource = folderItems.OrderByDescending(f => f.AverageScore).ToList();
+        }
+        
         private void UpdateStatisticalSummary()
         {
             // This will be implemented when individual results are available
@@ -358,15 +410,28 @@ namespace AIDevGallery.Pages.Evaluate
             {
                 ChartViewToggle.IsChecked = true;
                 TableViewToggle.IsChecked = false;
+                FolderViewToggle.IsChecked = false;
                 ChartView.Visibility = Visibility.Visible;
                 TableView.Visibility = Visibility.Collapsed;
+                FolderView.Visibility = Visibility.Collapsed;
             }
             else if (sender == TableViewToggle)
             {
                 TableViewToggle.IsChecked = true;
                 ChartViewToggle.IsChecked = false;
+                FolderViewToggle.IsChecked = false;
                 TableView.Visibility = Visibility.Visible;
                 ChartView.Visibility = Visibility.Collapsed;
+                FolderView.Visibility = Visibility.Collapsed;
+            }
+            else if (sender == FolderViewToggle)
+            {
+                FolderViewToggle.IsChecked = true;
+                ChartViewToggle.IsChecked = false;
+                TableViewToggle.IsChecked = false;
+                FolderView.Visibility = Visibility.Visible;
+                ChartView.Visibility = Visibility.Collapsed;
+                TableView.Visibility = Visibility.Collapsed;
             }
         }
         
@@ -389,14 +454,66 @@ namespace AIDevGallery.Pages.Evaluate
         
         private async void ExportCsv_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement CSV export
-            await Task.CompletedTask;
+            try
+            {
+                var savePicker = new FileSavePicker();
+                savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+                savePicker.FileTypeChoices.Add("CSV", new List<string>() { ".csv" });
+                savePicker.SuggestedFileName = $"{_viewModel.Name}_evaluation_results_{DateTime.Now:yyyyMMdd}";
+                
+                // Get the window handle
+                var window = (Application.Current as App)?.MainWindow;
+                if (window == null) return;
+                
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+                
+                var file = await savePicker.PickSaveFileAsync();
+                if (file != null)
+                {
+                    var csvContent = GenerateCsvContent();
+                    await Windows.Storage.FileIO.WriteTextAsync(file, csvContent);
+                    
+                    // Show success notification (optional)
+                    System.Diagnostics.Debug.WriteLine($"CSV exported to: {file.Path}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error exporting CSV: {ex.Message}");
+            }
         }
         
         private async void ExportJson_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement JSON export
-            await Task.CompletedTask;
+            try
+            {
+                var savePicker = new FileSavePicker();
+                savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+                savePicker.FileTypeChoices.Add("JSON", new List<string>() { ".json" });
+                savePicker.SuggestedFileName = $"{_viewModel.Name}_evaluation_results_{DateTime.Now:yyyyMMdd}";
+                
+                // Get the window handle
+                var window = (Application.Current as App)?.MainWindow;
+                if (window == null) return;
+                
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+                
+                var file = await savePicker.PickSaveFileAsync();
+                if (file != null)
+                {
+                    var jsonContent = GenerateJsonContent();
+                    await Windows.Storage.FileIO.WriteTextAsync(file, jsonContent);
+                    
+                    // Show success notification (optional)
+                    System.Diagnostics.Debug.WriteLine($"JSON exported to: {file.Path}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error exporting JSON: {ex.Message}");
+            }
         }
         
         private void Share_Click(object sender, RoutedEventArgs e)
@@ -409,6 +526,148 @@ namespace AIDevGallery.Pages.Evaluate
             // TODO: Implement print report
             await Task.CompletedTask;
         }
+        
+        private string GenerateCsvContent()
+        {
+            var csv = new System.Text.StringBuilder();
+            
+            // Header
+            csv.AppendLine($"Evaluation Results: {_viewModel.Name}");
+            csv.AppendLine($"Model: {_viewModel.ModelName}");
+            csv.AppendLine($"Dataset: {_viewModel.DatasetName}");
+            csv.AppendLine($"Date: {_viewModel.Timestamp:yyyy-MM-dd HH:mm:ss}");
+            csv.AppendLine($"Status: {_viewModel.Status}");
+            csv.AppendLine($"Overall Average Score: {_viewModel.AverageScore:F2}/5.0");
+            csv.AppendLine();
+            
+            // Criteria Scores
+            csv.AppendLine("Criteria Scores");
+            csv.AppendLine("Criterion,Score,Rating");
+            
+            foreach (var criterion in _viewModel.CriteriaScores)
+            {
+                var rating = GetPerformanceText(criterion.Value);
+                csv.AppendLine($"\"{criterion.Key}\",{criterion.Value:F2},\"{rating}\"");
+            }
+            
+            csv.AppendLine();
+            
+            // Statistical Summary (if available)
+            if (_viewModel.HasDetailedResults && _viewModel.ItemResults != null)
+            {
+                csv.AppendLine("Statistical Summary");
+                csv.AppendLine($"Total Items,{_viewModel.ItemResults.Count}");
+                
+                // Calculate statistics per criterion
+                foreach (var criterionName in _viewModel.CriteriaScores.Keys)
+                {
+                    var scores = _viewModel.ItemResults
+                        .Where(item => item.CriteriaScores.ContainsKey(criterionName))
+                        .Select(item => item.CriteriaScores[criterionName])
+                        .ToList();
+                    
+                    if (scores.Any())
+                    {
+                        var mean = scores.Average();
+                        var min = scores.Min();
+                        var max = scores.Max();
+                        var stdDev = CalculateStandardDeviation(scores);
+                        
+                        csv.AppendLine();
+                        csv.AppendLine($"Statistics for {criterionName}");
+                        csv.AppendLine($"Mean,{mean:F2}");
+                        csv.AppendLine($"Min,{min:F2}");
+                        csv.AppendLine($"Max,{max:F2}");
+                        csv.AppendLine($"Std Dev,{stdDev:F2}");
+                    }
+                }
+                
+                // Folder Statistics (if available)
+                if (_viewModel.FolderStatistics != null && _viewModel.FolderStatistics.Any())
+                {
+                    csv.AppendLine();
+                    csv.AppendLine("Folder Performance");
+                    csv.AppendLine("Folder Path,Item Count,Average Score");
+                    
+                    foreach (var folder in _viewModel.FolderStatistics)
+                    {
+                        var avgScore = folder.Value.AverageScores.Values.Any() 
+                            ? folder.Value.AverageScores.Values.Average() 
+                            : 0.0;
+                        csv.AppendLine($"\"{folder.Key}\",{folder.Value.ItemCount},{avgScore:F2}");
+                    }
+                }
+            }
+            
+            return csv.ToString();
+        }
+        
+        private double CalculateStandardDeviation(List<double> values)
+        {
+            if (values.Count <= 1) return 0.0;
+            
+            var mean = values.Average();
+            var sumOfSquares = values.Sum(v => Math.Pow(v - mean, 2));
+            return Math.Sqrt(sumOfSquares / (values.Count - 1));
+        }
+        
+        private string GenerateJsonContent()
+        {
+            var exportData = new
+            {
+                evaluationName = _viewModel.Name,
+                modelName = _viewModel.ModelName,
+                datasetName = _viewModel.DatasetName,
+                timestamp = _viewModel.Timestamp,
+                status = _viewModel.Status.ToString(),
+                overallScore = _viewModel.AverageScore,
+                itemCount = _viewModel.DatasetItemCount,
+                criteriaScores = _viewModel.CriteriaScores.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => new
+                    {
+                        score = kvp.Value,
+                        rating = GetPerformanceText(kvp.Value)
+                    }
+                ),
+                statistics = _viewModel.HasDetailedResults && _viewModel.ItemResults != null
+                    ? _viewModel.CriteriaScores.Keys.ToDictionary(
+                        criterionName => criterionName,
+                        criterionName =>
+                        {
+                            var scores = _viewModel.ItemResults
+                                .Where(item => item.CriteriaScores.ContainsKey(criterionName))
+                                .Select(item => item.CriteriaScores[criterionName])
+                                .ToList();
+                            
+                            return scores.Any() ? new
+                            {
+                                mean = scores.Average(),
+                                min = scores.Min(),
+                                max = scores.Max(),
+                                stdDev = CalculateStandardDeviation(scores),
+                                count = scores.Count
+                            } : null;
+                        })
+                    : null,
+                folderStatistics = _viewModel.FolderStatistics?.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => new
+                    {
+                        itemCount = kvp.Value.ItemCount,
+                        averageScores = kvp.Value.AverageScores,
+                        overallAverage = kvp.Value.AverageScores.Values.Any() 
+                            ? kvp.Value.AverageScores.Values.Average() 
+                            : 0.0
+                    }
+                )
+            };
+            
+            return System.Text.Json.JsonSerializer.Serialize(exportData, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+        }
     }
     
     // Helper class for table view
@@ -420,5 +679,16 @@ namespace AIDevGallery.Pages.Evaluate
         public string StatusText { get; set; } = "";
         public string StatusGlyph { get; set; } = "";
         public Brush StatusBrush { get; set; } = new SolidColorBrush(Color.FromArgb(255, 128, 128, 128));
+    }
+    
+    // Helper class for folder view
+    public class FolderTableItem
+    {
+        public string FolderPath { get; set; } = "";
+        public int ItemCount { get; set; }
+        public string ItemCountText { get; set; } = "";
+        public double AverageScore { get; set; }
+        public string AverageScoreText { get; set; } = "";
+        public Brush ScoreBrush { get; set; } = new SolidColorBrush(Color.FromArgb(255, 128, 128, 128));
     }
 }

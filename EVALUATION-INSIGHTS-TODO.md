@@ -1,6 +1,67 @@
 # Evaluation Insights MVP - Implementation Tasks
 
-## Phase 1A: Data Model Enhancement (Priority: Critical)
+*Last Updated: June 20, 2025 - Added critical fixes from user testing*
+
+## Critical Fixes from User Testing (Priority: IMMEDIATE)
+
+### Navigation & UI Fixes
+- [ ] Fix double-click navigation issue (requires 2 clicks to go back)
+  - [ ] Check for duplicate Frame.Navigate calls
+  - [ ] Verify navigation stack management
+  - [ ] Test with single back button click
+- [ ] Fix back arrow alignment with "Evaluations" text
+  - [ ] Adjust VerticalAlignment in breadcrumb StackPanel
+  - [ ] Ensure consistent spacing
+- [ ] Fix/Remove status tooltip that shows no content
+  - [ ] Either implement tooltip with meaningful content
+  - [ ] Or remove the tooltip indicator entirely
+  - [ ] If keeping, position after "Imported" text, not before
+
+### Data Display Fixes
+- [ ] Show correct Images Processed count
+  - [ ] Use DatasetItemCount instead of hardcoded 0
+  - [ ] For imported results, show actual count from evaluation
+- [ ] Fix chart visualization issues
+  - [ ] Reduce bar width to prevent label overlap
+  - [ ] Add vertical line at max score (5.0)
+  - [ ] Increase margin between bars and performance badges
+  - [ ] Ensure "Excellent" label is not covered by green bar
+
+### Functional Button Implementation
+- [ ] Implement Export Data functionality
+  - [ ] CSV export
+  - [ ] JSON export
+  - [ ] Show file save dialog
+- [ ] Implement Print Report functionality
+  - [ ] Create print-friendly layout
+  - [ ] Show print preview dialog
+- [ ] Implement Copy Chart to Clipboard
+  - [ ] Render chart to bitmap
+  - [ ] Copy to clipboard
+  - [ ] Show confirmation
+- [ ] Implement Save Chart as Image
+  - [ ] Change icon from folder (&#xE838;) to image/photo icon
+  - [ ] Support PNG/JPEG export
+  - [ ] Use FileSavePicker
+
+### Missing Features Implementation
+- [ ] Display folder statistics (already loaded, just not shown)
+  - [ ] Add pivot/tab for folder view
+  - [ ] Show 6 folder stats from debug logs
+  - [ ] Display average scores per folder
+- [ ] Add statistical summary section
+  - [ ] Calculate and display standard deviation
+  - [ ] Show min/max values
+  - [ ] Add median and percentiles
+- [ ] Display evaluation prompt information
+  - [ ] Add prompt section in header or details
+  - [ ] Show the prompt used for the evaluation run
+- [ ] Fix Workflow 3 Next button disabled bug
+  - [ ] Debug Step 2 upload completion
+  - [ ] Check validation state management
+  - [ ] Ensure Next button enables after successful upload
+
+## Phase 1A: Data Model Enhancement (Priority: Critical - COMPLETED)
 
 ### 1. Update Data Models
 - [ ] Create `EvaluationItemResult` class in Models/
@@ -246,3 +307,69 @@
 - [ ] Performance is acceptable (< 2s load time)
 - [ ] Accessibility standards are met
 - [ ] No regressions in existing functionality
+
+## Future Enhancements & Questions
+
+### Evaluation Workflow Improvements
+- [ ] Determine if evaluation names should be required
+  - [ ] Add validation if required
+  - [ ] Show error message for empty names
+- [ ] Determine if evaluation names should be unique
+  - [ ] Check for duplicates before saving
+  - [ ] Suggest alternatives or append timestamp
+- [ ] Add evaluation name field to Import Results workflow
+  - [ ] Currently missing from wizard step
+
+### Enhanced Visualizations
+- [ ] Add image preview/browser functionality
+  - [ ] Show thumbnails in grid
+  - [ ] Click to view full details
+  - [ ] Display prompt and response
+- [ ] Implement advanced chart types
+  - [ ] Distribution histograms
+  - [ ] Box plots for outlier detection
+  - [ ] Radar charts for multi-criteria comparison
+- [ ] Add folder comparison views
+  - [ ] Side-by-side folder performance
+  - [ ] Heatmap of folder scores
+
+### Icon & UX Improvements
+- [ ] Replace confusing folder icon for "Save as Image"
+  - [ ] Use photography/image icon instead
+  - [ ] Consider &#xE91B; (SaveLocal) or &#xF210; (Photo)
+- [ ] Add tooltips with helpful information
+  - [ ] Explain what each metric means
+  - [ ] Show calculation methods
+  - [ ] Provide context for scores
+
+### Data Enhancements
+- [ ] Store and display prompts used in evaluations
+  - [ ] Add to data model
+  - [ ] Show in insights page
+  - [ ] Include in exports
+- [ ] Support for batch evaluation comparison
+  - [ ] Select multiple evaluations
+  - [ ] Show trends over time
+  - [ ] Identify improvements/regressions
+
+## Known Issues Log
+
+### From User Testing (June 20, 2025)
+1. **Navigation**: Double-click required to go back
+2. **UI**: Back arrow misaligned with text
+3. **Tooltip**: Shows indicator but no content
+4. **Data**: Images Processed shows 0 instead of 998
+5. **Chart**: Green bar covers "Excellent" label
+6. **Features**: Folder stats loaded but not displayed
+7. **Stats**: No std dev, min/max shown
+8. **Buttons**: Export/Print/Copy/Save not functional
+9. **Missing**: No prompt display
+10. **Missing**: No image preview
+11. **Bug**: Workflow 3 Next button disabled after upload
+12. **Question**: Should evaluation names be required/unique?
+13. **Icon**: Save as Image has confusing folder icon
+
+### Debug Insights
+- Data is loading correctly (998 items, 6 folders, 5 criteria)
+- Issue is UI implementation, not data retrieval
+- All statistics are available in memory

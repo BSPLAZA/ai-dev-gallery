@@ -46,6 +46,11 @@ namespace AIDevGallery.ViewModels
         public int ItemCount => _evaluation.DatasetItemCount;
         
         /// <summary>
+        /// Gets the dataset item count (same as ItemCount, for clarity).
+        /// </summary>
+        public int DatasetItemCount => _evaluation.DatasetItemCount;
+        
+        /// <summary>
         /// Gets the evaluation status.
         /// </summary>
         public EvaluationStatus Status => _evaluation.Status;

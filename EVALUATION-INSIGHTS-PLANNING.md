@@ -1189,3 +1189,111 @@ This approach delivers immediate value while building toward the full vision of 
 ---
 
 *This document will be continuously updated as we refine the design and gather feedback.*
+
+## User Testing Feedback (June 20, 2025)
+
+### Navigation Issues
+1. **Double Back Click Required**: Navigation back from evaluation insights page requires two clicks instead of one
+   - Root cause: Possible navigation stack issue or duplicate page navigation
+   - Fix: Check Frame.Navigate calls and navigation history
+
+2. **Back Arrow Alignment**: The back arrow is not properly aligned with the "Evaluations" text
+   - Current: Arrow appears off-center
+   - Fix: Adjust vertical alignment in breadcrumb navigation
+
+### UI/UX Issues
+
+3. **Status Tooltip Problem**: 
+   - Tooltip indicator appears but shows no information on hover
+   - Tooltip should appear after the word "Imported" not before
+   - Either implement proper tooltip content or remove the indicator
+
+4. **Images Processed Count**: Shows 0 even for imported results with 998 matches
+   - Should display the actual count from ItemResults.Count
+   - Update to show DatasetItemCount for imported evaluations
+
+5. **Chart Visualization Issues**:
+   - Green bar representing 4.5 score covers the "Excellent" label
+   - Need to reduce bar width or adjust layout
+   - Add vertical line to clearly indicate maximum score (5.0)
+   - Consider adding margin between bars and labels
+
+### Missing Features
+
+6. **Folder Grouping/Pivots**: No folder-based performance statistics visible
+   - Debug logs show 6 folder statistics loaded but not displayed
+   - Need to implement folder pivot view as designed
+   - Show performance breakdown by subfolder
+
+7. **Statistical Information Missing**:
+   - Standard deviation not shown
+   - High/low values not displayed
+   - Missing percentiles and distribution data
+   - Need to implement statistical summary section
+
+8. **Non-functional Buttons**:
+   - Export Data button not working
+   - Print Report button not working
+   - Copy to Clipboard button not working
+   - Save as Image button not working (unclear icon - looks like folder)
+   - Need better icon for Save as Image (current folder icon is confusing)
+
+### Data Display Issues
+
+9. **Missing Prompt Information**: 
+   - Should display the prompt used for the evaluation run
+   - Important for understanding context of results
+
+10. **No Image Preview**: 
+    - Design included image browser but not implemented
+    - Should show thumbnails with ability to view details
+
+### Workflow Issues
+
+11. **Workflow 3 Bug**: After uploading in Step 2, Next button becomes disabled
+    - User unable to proceed with evaluation
+    - Need to investigate state management in wizard
+
+### Data Validation Questions
+
+12. **Evaluation Name Requirements**:
+    - Should evaluation names be required?
+    - Should they be unique?
+    - Need validation rules and user feedback
+
+### Additional Improvements Needed
+
+13. **Icon Clarity**:
+    - Save as Image needs a clearer icon (photography/image icon instead of folder)
+    - Consider using standard export icons
+
+14. **Debug Output Shows Good Data**:
+    - 998 item results loaded successfully
+    - 6 folder statistics available
+    - 5 criteria scores present
+    - Issue is display/UI implementation, not data loading
+
+### Implementation Priority
+
+**Critical (Fix First)**:
+1. Navigation back button issue
+2. Workflow 3 Next button disabled bug
+3. Show correct Images Processed count
+4. Fix chart label overlap
+
+**High Priority**:
+1. Implement folder statistics view
+2. Add statistical summary (std dev, min/max)
+3. Make export buttons functional
+4. Add prompt display
+
+**Medium Priority**:
+1. Image preview/browser
+2. Better icons for actions
+3. Tooltip implementation or removal
+4. Back arrow alignment
+
+**Low Priority**:
+1. Evaluation name validation
+2. Enhanced visualizations
+3. Additional export formats
