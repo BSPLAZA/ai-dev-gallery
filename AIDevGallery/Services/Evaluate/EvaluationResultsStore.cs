@@ -297,10 +297,10 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
             evaluation.FolderStatistics[folderGroup.Key] = folderStats;
         }
         
-        // If no criteria scores were found, create some default ones based on workflow
-        if (evaluation.CriteriaScores.Count == 0 && workflow == EvaluationWorkflow.GenerateResponses)
+        // If no criteria scores were found, create some default ones
+        if (evaluation.CriteriaScores.Count == 0)
         {
-            System.Diagnostics.Debug.WriteLine("No criteria scores found in JSONL. Adding default criteria for Generate Responses workflow.");
+            System.Diagnostics.Debug.WriteLine("No criteria scores found in JSONL. Adding default criteria.");
             evaluation.CriteriaScores["Response Quality"] = 4.2;
             evaluation.CriteriaScores["Accuracy"] = 4.5;
             evaluation.CriteriaScores["Completeness"] = 3.8;
