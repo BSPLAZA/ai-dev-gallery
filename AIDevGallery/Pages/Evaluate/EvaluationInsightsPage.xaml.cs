@@ -19,6 +19,7 @@ using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.UI;
+using Colors = Windows.UI.Colors;
 
 namespace AIDevGallery.Pages.Evaluate
 {
@@ -267,7 +268,8 @@ namespace AIDevGallery.Pages.Evaluate
                 };
                 
                 badge.Child = badgeText;
-                Canvas.SetRight(badge, 10);
+                // Position badge at the right edge
+                Canvas.SetLeft(badge, canvasWidth - 100);
                 Canvas.SetTop(badge, y + (barHeight - 24) / 2);
                 canvas.Children.Add(badge);
                 
