@@ -31,7 +31,8 @@
                 <Button x:Name="BackButton" 
                         Click="BackButton_Click"
                         Style="{StaticResource SubtleButtonStyle}"
-                        VerticalAlignment="Center">
+                        VerticalAlignment="Center"
+                        AutomationProperties.Name="Go back to evaluations list">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <FontIcon Glyph="&#xE72B;" FontSize="16" VerticalAlignment="Center"/>
                         <TextBlock Text="Evaluations" VerticalAlignment="Center"/>
@@ -189,7 +190,9 @@
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <ToggleButton x:Name="ChartViewToggle" 
                                       IsChecked="True"
-                                      Click="ViewToggle_Click">
+                                      Click="ViewToggle_Click"
+                                      AutomationProperties.Name="Chart view"
+                                      ToolTipService.ToolTip="Show evaluation results as charts">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8A1;" FontSize="16"/>
                                 <TextBlock Text="Chart"/>
@@ -197,7 +200,9 @@
                         </ToggleButton>
                         
                         <ToggleButton x:Name="TableViewToggle" 
-                                      Click="ViewToggle_Click">
+                                      Click="ViewToggle_Click"
+                                      AutomationProperties.Name="Table view"
+                                      ToolTipService.ToolTip="Show evaluation results as table">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8A5;" FontSize="16"/>
                                 <TextBlock Text="Table"/>
@@ -206,7 +211,9 @@
                         
                         <ToggleButton x:Name="FolderViewToggle" 
                                       Click="ViewToggle_Click"
-                                      Visibility="{x:Bind _viewModel.HasFolderStatistics, Mode=OneWay}">
+                                      Visibility="{x:Bind _viewModel.HasFolderStatistics, Mode=OneWay}"
+                                      AutomationProperties.Name="Folder view"
+                                      ToolTipService.ToolTip="Show evaluation results by folder">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE8B7;" FontSize="16"/>
                                 <TextBlock Text="Folders"/>
@@ -625,12 +632,16 @@
                                 <StackPanel Grid.Row="0" Margin="16,16,16,8" Spacing="8">
                                     <TextBox x:Name="ImageSearchBox"
                                              PlaceholderText="Search images..."
-                                             TextChanged="ImageSearchBox_TextChanged"/>
+                                             TextChanged="ImageSearchBox_TextChanged"
+                                             AutomationProperties.Name="Search images"
+                                             AutomationProperties.HelpText="Type to filter images by filename"/>
                                     
                                     <!-- Filter Options -->
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <ToggleButton x:Name="ErrorFilterToggle"
-                                                      Click="ErrorFilterToggle_Click">
+                                                      Click="ErrorFilterToggle_Click"
+                                                      AutomationProperties.Name="Filter images with errors"
+                                                      ToolTipService.ToolTip="Show only images that have errors">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="&#xE783;" FontSize="14"/>
                                                 <TextBlock Text="Errors" FontSize="12"/>
@@ -638,7 +649,9 @@
                                         </ToggleButton>
                                         
                                         <ToggleButton x:Name="HighScoreFilterToggle"
-                                                      Click="HighScoreFilterToggle_Click">
+                                                      Click="HighScoreFilterToggle_Click"
+                                                      AutomationProperties.Name="Filter highest scoring images"
+                                                      ToolTipService.ToolTip="Show only images with the highest scores">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="&#xE734;" FontSize="14"/>
                                                 <TextBlock Text="Highest Scores" FontSize="12"/>
@@ -647,7 +660,9 @@
                                         
                                         <Button x:Name="ClearFiltersButton"
                                                 Click="ClearFilters_Click"
-                                                Visibility="Collapsed">
+                                                Visibility="Collapsed"
+                                                AutomationProperties.Name="Clear all filters"
+                                                ToolTipService.ToolTip="Remove all active filters">
                                             <StackPanel Orientation="Horizontal" Spacing="4">
                                                 <FontIcon Glyph="&#xE894;" FontSize="14"/>
                                                 <TextBlock Text="Clear" FontSize="12"/>
@@ -817,7 +832,8 @@
                                                                 ToolTipService.ToolTip="Copy filename"
                                                                 Style="{StaticResource SubtleButtonStyle}"
                                                                 Margin="8,0,0,0"
-                                                                Padding="8">
+                                                                Padding="8"
+                                                                AutomationProperties.Name="Copy filename to clipboard">
                                                             <FontIcon Glyph="&#xE8C8;" FontSize="14"/>
                                                         </Button>
                                                     </Grid>
@@ -934,15 +950,22 @@
                         HorizontalAlignment="Right" 
                         Spacing="8">
                 
-                <Button x:Name="ExportDataButton" Click="ExportData_Click">
+                <Button x:Name="ExportDataButton" 
+                        Click="ExportData_Click"
+                        AutomationProperties.Name="Export evaluation data"
+                        ToolTipService.ToolTip="Export evaluation data">
                     <Button.Flyout>
                         <MenuFlyout>
-                            <MenuFlyoutItem Text="Export as CSV" Click="ExportCsv_Click">
+                            <MenuFlyoutItem Text="Export as CSV" 
+                                            Click="ExportCsv_Click"
+                                            AutomationProperties.Name="Export evaluation as CSV file">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE8B7;"/>
                                 </MenuFlyoutItem.Icon>
                             </MenuFlyoutItem>
-                            <MenuFlyoutItem Text="Export as JSON" Click="ExportJson_Click">
+                            <MenuFlyoutItem Text="Export as JSON" 
+                                            Click="ExportJson_Click"
+                                            AutomationProperties.Name="Export evaluation as JSON file">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE943;"/>
                                 </MenuFlyoutItem.Icon>

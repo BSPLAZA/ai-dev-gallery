@@ -38,6 +38,26 @@ namespace AIDevGallery.Pages.Evaluate
         public EvaluationInsightsPage()
         {
             this.InitializeComponent();
+            
+            // Add keyboard navigation support
+            this.KeyDown += OnPageKeyDown;
+        }
+        
+        private void OnPageKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+        {
+            // Handle Escape key to go back
+            if (e.Key == Windows.System.VirtualKey.Escape)
+            {
+                BackButton_Click(null, null);
+                e.Handled = true;
+            }
+            // Handle Ctrl+P for print
+            else if (e.Key == Windows.System.VirtualKey.P && 
+                     (Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Control) & Windows.UI.Core.CoreVirtualKeyStates.Down) != 0)
+            {
+                PrintReport_Click(null, null);
+                e.Handled = true;
+            }
         }
         
         protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -55,6 +75,34 @@ namespace AIDevGallery.Pages.Evaluate
             {
                 ShowEmptyState();
             }
+        }
+        
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            
+            // Clean up resources to prevent memory leaks
+            CleanupResources();
+        }
+        
+        private void CleanupResources()
+        {
+            // Clear collections
+            _allTreeItems?.Clear();
+            
+            // Clear UI elements
+            ChartContentGrid?.Children.Clear();
+            ImageScoresPanel?.Children.Clear();
+            CriteriaTableRepeater.ItemsSource = null;
+            FolderRepeater.ItemsSource = null;
+            ImageFileTreeView.ItemsSource = null;
+            
+            // Clear image preview
+            PreviewImage.Source = null;
+            
+            // Clear references
+            _viewModel = null;
+            _evaluationStore = null;
         }
         
         private async Task LoadEvaluationAsync(string evaluationId)
