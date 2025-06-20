@@ -637,29 +637,34 @@
                                 
                                 <!-- File List -->
                                 <Grid Grid.Row="2">
-                                    <!-- File Navigation TreeView -->
-                                    <TreeView x:Name="ImageFileTreeView" 
-                                              SelectionMode="Single"
-                                              ItemInvoked="ImageFileTreeView_ItemInvoked"
-                                              Visibility="Collapsed">
-                                        <TreeView.ItemTemplate>
-                                            <DataTemplate>
-                                                <TreeViewItem ItemsSource="{Binding Children}">
-                                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                                        <FontIcon Glyph="{Binding IconGlyph}" 
-                                                                  FontSize="16"/>
-                                                        <TextBlock Text="{Binding Name}" 
-                                                                   VerticalAlignment="Center"/>
-                                                        <TextBlock Text="{Binding ScoreText}" 
-                                                                   Style="{StaticResource CaptionTextBlockStyle}"
-                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                                   VerticalAlignment="Center"
-                                                                   Margin="8,0,0,0"/>
-                                                    </StackPanel>
-                                                </TreeViewItem>
-                                            </DataTemplate>
-                                        </TreeView.ItemTemplate>
-                                    </TreeView>
+                                    <!-- File Navigation TreeView with constrained height -->
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled"
+                                                  MaxHeight="600">
+                                        <TreeView x:Name="ImageFileTreeView" 
+                                                  SelectionMode="Single"
+                                                  ItemInvoked="ImageFileTreeView_ItemInvoked"
+                                                  Visibility="Collapsed">
+                                            <TreeView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TreeViewItem ItemsSource="{Binding Children}"
+                                                                  IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
+                                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                                            <FontIcon Glyph="{Binding IconGlyph}" 
+                                                                      FontSize="16"/>
+                                                            <TextBlock Text="{Binding Name}" 
+                                                                       VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding ScoreText}" 
+                                                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                       VerticalAlignment="Center"
+                                                                       Margin="8,0,0,0"/>
+                                                        </StackPanel>
+                                                    </TreeViewItem>
+                                                </DataTemplate>
+                                            </TreeView.ItemTemplate>
+                                        </TreeView>
+                                    </ScrollViewer>
                                     
                                     <!-- Empty State -->
                                     <StackPanel x:Name="ImageFileEmptyState"
@@ -695,7 +700,9 @@
                                     
                                     <!-- Preview Area -->
                                     <Grid Grid.Row="0">
-                                        <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                        <!-- Empty State -->
+                                        <Border x:Name="ImagePreviewEmptyState"
+                                                Background="{ThemeResource LayerFillColorDefaultBrush}"
                                                 CornerRadius="8"
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
@@ -714,18 +721,118 @@
                                                            HorizontalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>
+                                        
+                                        <!-- Image Display -->
+                                        <Border x:Name="ImagePreviewContainer"
+                                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                CornerRadius="8"
+                                                Visibility="Collapsed">
+                                            <Grid>
+                                                <Image x:Name="PreviewImage"
+                                                       Stretch="Uniform"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       MaxHeight="400"/>
+                                                
+                                                <!-- Loading State -->
+                                                <ProgressRing x:Name="ImageLoadingRing"
+                                                              IsActive="False"
+                                                              Width="32"
+                                                              Height="32"
+                                                              HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
                                     </Grid>
                                     
                                     <!-- Metadata Panel -->
-                                    <Grid Grid.Row="1" 
-                                          Margin="0,16,0,0"
-                                          Visibility="Collapsed">
-                                        <StackPanel Spacing="12">
-                                            <TextBlock Text="Image Details"
+                                    <ScrollViewer Grid.Row="1" 
+                                                  x:Name="ImageMetadataPanel"
+                                                  Margin="0,16,0,0"
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  Visibility="Collapsed">
+                                        <StackPanel Spacing="16">
+                                            <TextBlock Text="Evaluation Results"
                                                        Style="{StaticResource BodyStrongTextBlockStyle}"/>
-                                            <!-- Details will be populated when an image is selected -->
+                                            
+                                            <!-- File Info -->
+                                            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="12">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="File Information"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                    <TextBlock x:Name="ImageFileNameText"
+                                                               Style="{StaticResource BodyTextBlockStyle}"/>
+                                                    <TextBlock x:Name="ImagePathText"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                               TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Border>
+                                            
+                                            <!-- Scores -->
+                                            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="12">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="Criteria Scores"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                    <StackPanel x:Name="ImageScoresPanel"
+                                                                Spacing="4"/>
+                                                </StackPanel>
+                                            </Border>
+                                            
+                                            <!-- Prompt/Response -->
+                                            <Border x:Name="PromptResponseContainer"
+                                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="12"
+                                                    Visibility="Collapsed">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="Prompt"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                    <TextBlock x:Name="ImagePromptText"
+                                                               Style="{StaticResource BodyTextBlockStyle}"
+                                                               TextWrapping="Wrap"/>
+                                                    
+                                                    <TextBlock Text="Model Response"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                               Margin="0,8,0,0"/>
+                                                    <TextBlock x:Name="ImageResponseText"
+                                                               Style="{StaticResource BodyTextBlockStyle}"
+                                                               TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Border>
+                                            
+                                            <!-- Processing Info -->
+                                            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="12">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="Processing Information"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                    <TextBlock x:Name="ProcessingTimeText"
+                                                               Style="{StaticResource BodyTextBlockStyle}"/>
+                                                    <TextBlock x:Name="AverageScoreText2"
+                                                               Style="{StaticResource BodyTextBlockStyle}"/>
+                                                </StackPanel>
+                                            </Border>
                                         </StackPanel>
-                                    </Grid>
+                                    </ScrollViewer>
                                 </Grid>
                             </Grid>
                         </Grid>

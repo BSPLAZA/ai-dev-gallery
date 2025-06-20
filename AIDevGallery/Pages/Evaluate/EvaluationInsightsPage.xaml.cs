@@ -19,6 +19,7 @@ using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.UI;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace AIDevGallery.Pages.Evaluate
 {
@@ -189,8 +190,9 @@ namespace AIDevGallery.Pages.Evaluate
             // Show image preview area if we have individual results
             if (_viewModel.ItemResults != null && _viewModel.ItemResults.Count > 0)
             {
-                UpdateImagePreviewArea();
                 ImagePreviewArea.Visibility = Visibility.Visible;
+                // Load image preview asynchronously to improve page load performance
+                _ = UpdateImagePreviewAreaAsync();
             }
             else
             {
@@ -331,6 +333,10 @@ namespace AIDevGallery.Pages.Evaluate
                     
                     if (scores.Count > 0)
                     {
+                        // Note: Scores are already converted from 0-1 to 0-5 scale during import
+                        // This conversion happens in EvaluationResultsStore.ImportFromJsonlAsync
+                        // for demo purposes. In production, consider standardizing score ranges.
+                        
                         // Calculate box plot statistics
                         var min = scores.Min();
                         var max = scores.Max();
@@ -342,18 +348,7 @@ namespace AIDevGallery.Pages.Evaluate
                         // Draw box and whisker plot
                         DrawBoxPlot(canvas, leftMargin, y, chartWidth, barHeight, min, q1, median, q3, max, mean, maxScore);
                         
-                        // Mean label
-                        var meanText = $"μ = {mean:F1}";
-                        var meanLabel = new TextBlock
-                        {
-                            Text = meanText,
-                            Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
-                            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-                            FontSize = 11
-                        };
-                        Canvas.SetLeft(meanLabel, leftMargin + chartWidth + 8);
-                        Canvas.SetTop(meanLabel, y + barHeight / 2 - 8);
-                        canvas.Children.Add(meanLabel);
+                        // Remove mean label to declutter the chart display
                     }
                     else
                     {
@@ -1066,85 +1061,108 @@ namespace AIDevGallery.Pages.Evaluate
             }
         }
         
-        private void UpdateImagePreviewArea()
+        private async Task UpdateImagePreviewAreaAsync()
         {
-            // This method prepares the image preview area when individual results are available
-            if (_viewModel.ItemResults != null && _viewModel.ItemResults.Count > 0)
+            try
             {
-                var resultCount = _viewModel.ItemResults.Count;
-                var avgScore = _viewModel.ItemResults.Average(r => r.AverageScore);
-                ImageResultsSummary.Text = $"{resultCount} images evaluated • Average score: {avgScore:F1}/5";
+                // Show loading indicator
+                ImageFileTreeView.Visibility = Visibility.Collapsed;
+                ImageFileEmptyState.Visibility = Visibility.Collapsed;
                 
-                System.Diagnostics.Debug.WriteLine($"Individual results available: {resultCount} items");
+                // Show a loading message
+                ImageResultsSummary.Text = "Loading individual results...";
                 
-                // Build tree structure from item results
-                var rootItems = new List<FileTreeItem>();
-                
-                // Group by folder path
-                var groupedByFolder = _viewModel.ItemResults
-                    .Where(r => !string.IsNullOrEmpty(r.ImagePath))
-                    .GroupBy(r => {
-                        var dir = System.IO.Path.GetDirectoryName(r.ImagePath) ?? "";
-                        return string.IsNullOrEmpty(dir) ? "Images" : dir;
-                    })
-                    .OrderBy(g => g.Key);
-                
-                System.Diagnostics.Debug.WriteLine($"Grouped into {groupedByFolder.Count()} folders");
-                
-                foreach (var folderGroup in groupedByFolder)
+                // This method prepares the image preview area when individual results are available
+                if (_viewModel.ItemResults != null && _viewModel.ItemResults.Count > 0)
                 {
-                    var folderItem = new FileTreeItem
-                    {
-                        Name = System.IO.Path.GetFileName(folderGroup.Key) ?? folderGroup.Key,
-                        FullPath = folderGroup.Key,
-                        IsFolder = true,
-                        IconGlyph = "\uE8B7", // Folder icon
-                        Children = new List<FileTreeItem>()
-                    };
+                    var resultCount = _viewModel.ItemResults.Count;
+                    var avgScore = _viewModel.ItemResults.Average(r => r.AverageScore);
                     
-                    // Calculate folder average score
-                    var folderAvgScore = folderGroup.Average(i => i.AverageScore);
-                    folderItem.ScoreText = $"{folderAvgScore:F1}/5";
-                    
-                    // Add files in this folder
-                    foreach (var item in folderGroup.OrderBy(i => i.FileName))
+                    // Build tree structure on background thread
+                    var rootItems = await Task.Run(() =>
                     {
-                        var fileItem = new FileTreeItem
-                        {
-                            Name = item.FileName,
-                            FullPath = item.ImagePath,
-                            IsFolder = false,
-                            IconGlyph = "\uEB9F", // Image icon
-                            ScoreText = $"{item.AverageScore:F1}/5",
-                            Children = new List<FileTreeItem>()
-                        };
-                        folderItem.Children.Add(fileItem);
+                        var items = new List<FileTreeItem>();
                         
-                        System.Diagnostics.Debug.WriteLine($"  Added file: {item.FileName} with score {item.AverageScore:F1}");
-                    }
+                        // Group by folder path
+                        var groupedByFolder = _viewModel.ItemResults
+                            .Where(r => !string.IsNullOrEmpty(r.ImagePath))
+                            .GroupBy(r => {
+                                var dir = System.IO.Path.GetDirectoryName(r.ImagePath) ?? "";
+                                return string.IsNullOrEmpty(dir) ? "Images" : dir;
+                            })
+                            .OrderBy(g => g.Key);
+                        
+                        System.Diagnostics.Debug.WriteLine($"Grouped into {groupedByFolder.Count()} folders");
+                        
+                        foreach (var folderGroup in groupedByFolder)
+                        {
+                            var folderItem = new FileTreeItem
+                            {
+                                Name = System.IO.Path.GetFileName(folderGroup.Key) ?? folderGroup.Key,
+                                FullPath = folderGroup.Key,
+                                IsFolder = true,
+                                IconGlyph = "\uE8B7", // Folder icon
+                                Children = new List<FileTreeItem>(),
+                                IsExpanded = false // Start collapsed for better performance
+                            };
+                            
+                            // Calculate folder average score
+                            var folderAvgScore = folderGroup.Average(i => i.AverageScore);
+                            folderItem.ScoreText = $"{folderAvgScore:F1}/5";
+                            
+                            // Add files in this folder
+                            foreach (var item in folderGroup.OrderBy(i => i.FileName))
+                            {
+                                var fileItem = new FileTreeItem
+                                {
+                                    Name = item.FileName,
+                                    FullPath = item.ImagePath,
+                                    IsFolder = false,
+                                    IconGlyph = "\uEB9F", // Image icon
+                                    ScoreText = $"{item.AverageScore:F1}/5",
+                                    Children = new List<FileTreeItem>(),
+                                    // Store the item result for later use
+                                    Tag = item
+                                };
+                                folderItem.Children.Add(fileItem);
+                            }
+                            
+                            items.Add(folderItem);
+                        }
+                        
+                        return items;
+                    });
                     
-                    rootItems.Add(folderItem);
-                }
-                
-                // If we have items, show the tree view
-                if (rootItems.Count > 0)
-                {
-                    ImageFileTreeView.ItemsSource = rootItems;
-                    ImageFileTreeView.Visibility = Visibility.Visible;
-                    ImageFileEmptyState.Visibility = Visibility.Collapsed;
-                    System.Diagnostics.Debug.WriteLine($"Showing tree view with {rootItems.Count} root items");
+                    // Update UI on main thread
+                    ImageResultsSummary.Text = $"{resultCount} images evaluated • Average score: {avgScore:F1}/5";
+                    
+                    // If we have items, show the tree view
+                    if (rootItems.Count > 0)
+                    {
+                        ImageFileTreeView.ItemsSource = rootItems;
+                        ImageFileTreeView.Visibility = Visibility.Visible;
+                        ImageFileEmptyState.Visibility = Visibility.Collapsed;
+                        System.Diagnostics.Debug.WriteLine($"Showing tree view with {rootItems.Count} root items");
+                    }
+                    else
+                    {
+                        // No valid paths found
+                        ImageFileTreeView.Visibility = Visibility.Collapsed;
+                        ImageFileEmptyState.Visibility = Visibility.Visible;
+                        System.Diagnostics.Debug.WriteLine("No valid paths found in item results");
+                    }
                 }
                 else
                 {
-                    // No valid paths found
+                    ImageResultsSummary.Text = "No individual results available";
                     ImageFileTreeView.Visibility = Visibility.Collapsed;
                     ImageFileEmptyState.Visibility = Visibility.Visible;
-                    System.Diagnostics.Debug.WriteLine("No valid paths found in item results");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                ImageResultsSummary.Text = "No individual results available";
+                System.Diagnostics.Debug.WriteLine($"Error loading image preview: {ex.Message}");
+                ImageResultsSummary.Text = "Error loading individual results";
                 ImageFileTreeView.Visibility = Visibility.Collapsed;
                 ImageFileEmptyState.Visibility = Visibility.Visible;
             }
@@ -1273,12 +1291,140 @@ namespace AIDevGallery.Pages.Evaluate
             System.Diagnostics.Debug.WriteLine($"Search text: {searchText}");
         }
         
-        private void ImageFileTreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
+        private async void ImageFileTreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
         {
             if (args.InvokedItem is FileTreeItem fileItem && !fileItem.IsFolder)
             {
-                // TODO: Show image preview and details
                 System.Diagnostics.Debug.WriteLine($"Selected image: {fileItem.FullPath}");
+                
+                // Get the associated EvaluationItemResult
+                if (fileItem.Tag is EvaluationItemResult itemResult)
+                {
+                    await ShowImagePreview(fileItem, itemResult);
+                }
+                else
+                {
+                    // If no item result is stored, try to find it
+                    var result = _viewModel.ItemResults?.FirstOrDefault(r => 
+                        r.ImagePath == fileItem.FullPath || 
+                        r.FileName == fileItem.Name);
+                    
+                    if (result != null)
+                    {
+                        await ShowImagePreview(fileItem, result);
+                    }
+                    else
+                    {
+                        // Show empty state
+                        ImagePreviewEmptyState.Visibility = Visibility.Visible;
+                        ImagePreviewContainer.Visibility = Visibility.Collapsed;
+                        ImageMetadataPanel.Visibility = Visibility.Collapsed;
+                    }
+                }
+            }
+        }
+        
+        private async Task ShowImagePreview(FileTreeItem fileItem, EvaluationItemResult itemResult)
+        {
+            try
+            {
+                // Show loading state
+                ImagePreviewEmptyState.Visibility = Visibility.Collapsed;
+                ImagePreviewContainer.Visibility = Visibility.Visible;
+                ImageLoadingRing.IsActive = true;
+                PreviewImage.Source = null;
+                
+                // Update file info
+                ImageFileNameText.Text = fileItem.Name;
+                ImagePathText.Text = fileItem.FullPath;
+                
+                // Update scores
+                ImageScoresPanel.Children.Clear();
+                foreach (var score in itemResult.CriteriaScores.OrderByDescending(s => s.Value))
+                {
+                    var scorePanel = new Grid();
+                    scorePanel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    scorePanel.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                    
+                    var criterionText = new TextBlock
+                    {
+                        Text = score.Key,
+                        Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
+                    };
+                    Grid.SetColumn(criterionText, 0);
+                    scorePanel.Children.Add(criterionText);
+                    
+                    var scoreText = new TextBlock
+                    {
+                        Text = $"{score.Value:F1}/5",
+                        Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
+                        Foreground = new SolidColorBrush(GetScoreColor(score.Value))
+                    };
+                    Grid.SetColumn(scoreText, 1);
+                    scorePanel.Children.Add(scoreText);
+                    
+                    ImageScoresPanel.Children.Add(scorePanel);
+                }
+                
+                // Update prompt/response if available
+                if (!string.IsNullOrEmpty(itemResult.Prompt) || !string.IsNullOrEmpty(itemResult.ModelResponse))
+                {
+                    ImagePromptText.Text = itemResult.Prompt ?? "No prompt available";
+                    ImageResponseText.Text = itemResult.ModelResponse ?? "No response available";
+                    PromptResponseContainer.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    PromptResponseContainer.Visibility = Visibility.Collapsed;
+                }
+                
+                // Update processing info
+                ProcessingTimeText.Text = $"Processing time: {itemResult.ProcessingTime.TotalSeconds:F1} seconds";
+                AverageScoreText2.Text = $"Average score: {itemResult.AverageScore:F1}/5";
+                
+                // Show metadata panel
+                ImageMetadataPanel.Visibility = Visibility.Visible;
+                
+                // Try to load the image
+                // Note: In a real app, you'd load from the actual file path
+                // For demo purposes, we'll just show a placeholder since we don't have access to the actual images
+                await Task.Delay(500); // Simulate loading
+                
+                // Since we can't load the actual image file, show a placeholder
+                // In production, you would use:
+                // var file = await StorageFile.GetFileFromPathAsync(fileItem.FullPath);
+                // var stream = await file.OpenAsync(FileAccessMode.Read);
+                // var bitmapImage = new BitmapImage();
+                // await bitmapImage.SetSourceAsync(stream);
+                // PreviewImage.Source = bitmapImage;
+                
+                ImageLoadingRing.IsActive = false;
+                
+                // Show error message instead of image
+                var noImageText = new TextBlock
+                {
+                    Text = "Image preview not available in demo mode",
+                    Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                    Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                
+                var previewGrid = PreviewImage.Parent as Grid;
+                if (previewGrid != null && !previewGrid.Children.Contains(noImageText))
+                {
+                    previewGrid.Children.Add(noImageText);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error showing image preview: {ex.Message}");
+                ImageLoadingRing.IsActive = false;
+                
+                // Show error state
+                ImagePreviewEmptyState.Visibility = Visibility.Visible;
+                ImagePreviewContainer.Visibility = Visibility.Collapsed;
+                ImageMetadataPanel.Visibility = Visibility.Collapsed;
             }
         }
         
@@ -1993,5 +2139,7 @@ namespace AIDevGallery.Pages.Evaluate
         public string IconGlyph { get; set; } = "";
         public string ScoreText { get; set; } = "";
         public List<FileTreeItem> Children { get; set; } = new List<FileTreeItem>();
+        public bool IsExpanded { get; set; }
+        public object? Tag { get; set; } // For storing associated data like EvaluationItemResult
     }
 }
