@@ -57,6 +57,21 @@ namespace AIDevGallery.Pages.Evaluate
                 
                 if (evaluation == null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"Evaluation not found for ID: {evaluationId}");
+                    ShowEmptyState();
+                    return;
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"Loaded evaluation: {evaluation.Name}");
+                System.Diagnostics.Debug.WriteLine($"  Criteria Scores: {evaluation.CriteriaScores.Count}");
+                System.Diagnostics.Debug.WriteLine($"  Item Results: {evaluation.ItemResults?.Count ?? 0}");
+                System.Diagnostics.Debug.WriteLine($"  Folder Statistics: {evaluation.FolderStatistics?.Count ?? 0}");
+                System.Diagnostics.Debug.WriteLine($"  Has Detailed Results: {evaluation.HasDetailedResults}");
+                
+                // Check if we have at least criteria scores to display
+                if (evaluation.CriteriaScores.Count == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("No criteria scores available");
                     ShowEmptyState();
                     return;
                 }
@@ -72,8 +87,9 @@ namespace AIDevGallery.Pages.Evaluate
                 ContentScrollViewer.Visibility = Visibility.Visible;
                 EmptyStatePanel.Visibility = Visibility.Collapsed;
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Error loading evaluation: {ex.Message}");
                 ShowEmptyState();
             }
         }
