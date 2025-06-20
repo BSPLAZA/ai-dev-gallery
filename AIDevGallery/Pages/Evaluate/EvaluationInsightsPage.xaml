@@ -294,9 +294,13 @@
                                                Visibility="Collapsed"
                                                Margin="24,0,0,0">
                                         <Run Text="Box Plot:"/>
+                                        <Run Text="  " />
                                         <Run Text="—" FontWeight="Bold"/> <Run Text="Min/Max"/>
+                                        <Run Text="  •  " Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
                                         <Run Text="□" Foreground="#2196F3"/> <Run Text="Q1-Q3"/>
+                                        <Run Text="  •  " Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
                                         <Run Text="|" FontWeight="Bold"/> <Run Text="Median"/>
+                                        <Run Text="  •  " Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
                                         <Run Text="◆" Foreground="#FF9800"/> <Run Text="Mean"/>
                                     </TextBlock>
                                 </Grid>

@@ -8,7 +8,7 @@ using System.Linq;
 namespace AIDevGallery.Models;
 
 /// <summary>
-/// Represents an evaluation result with scores on a 1-5 scale
+/// Represents an evaluation result with scores on a 0-5 scale
 /// </summary>
 public class EvaluationResult
 {
@@ -24,7 +24,7 @@ public class EvaluationResult
     public TimeSpan? Duration { get; set; }
     
     /// <summary>
-    /// Criteria scores on a 1-5 scale
+    /// Criteria scores on a 0-5 scale
     /// </summary>
     public Dictionary<string, double> CriteriaScores { get; set; } = new();
     

@@ -342,18 +342,18 @@ namespace AIDevGallery.Pages.Evaluate
                         // Draw box and whisker plot
                         DrawBoxPlot(canvas, leftMargin, y, chartWidth, barHeight, min, q1, median, q3, max, mean, maxScore);
                         
-                        // Stats label
-                        var statsText = $"μ={mean:F1} σ={CalculateStandardDeviation(scores):F1}";
-                        var statsLabel = new TextBlock
+                        // Mean label
+                        var meanText = $"μ = {mean:F1}";
+                        var meanLabel = new TextBlock
                         {
-                            Text = statsText,
+                            Text = meanText,
                             Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
                             Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
                             FontSize = 11
                         };
-                        Canvas.SetLeft(statsLabel, leftMargin + chartWidth + 8);
-                        Canvas.SetTop(statsLabel, y + barHeight / 2 - 8);
-                        canvas.Children.Add(statsLabel);
+                        Canvas.SetLeft(meanLabel, leftMargin + chartWidth + 8);
+                        Canvas.SetTop(meanLabel, y + barHeight / 2 - 8);
+                        canvas.Children.Add(meanLabel);
                     }
                     else
                     {
@@ -1076,16 +1076,78 @@ namespace AIDevGallery.Pages.Evaluate
                 ImageResultsSummary.Text = $"{resultCount} images evaluated • Average score: {avgScore:F1}/5";
                 
                 System.Diagnostics.Debug.WriteLine($"Individual results available: {resultCount} items");
+                
+                // Build tree structure from item results
+                var rootItems = new List<FileTreeItem>();
+                
+                // Group by folder path
+                var groupedByFolder = _viewModel.ItemResults
+                    .Where(r => !string.IsNullOrEmpty(r.ImagePath))
+                    .GroupBy(r => {
+                        var dir = System.IO.Path.GetDirectoryName(r.ImagePath) ?? "";
+                        return string.IsNullOrEmpty(dir) ? "Images" : dir;
+                    })
+                    .OrderBy(g => g.Key);
+                
+                System.Diagnostics.Debug.WriteLine($"Grouped into {groupedByFolder.Count()} folders");
+                
+                foreach (var folderGroup in groupedByFolder)
+                {
+                    var folderItem = new FileTreeItem
+                    {
+                        Name = System.IO.Path.GetFileName(folderGroup.Key) ?? folderGroup.Key,
+                        FullPath = folderGroup.Key,
+                        IsFolder = true,
+                        IconGlyph = "\uE8B7", // Folder icon
+                        Children = new List<FileTreeItem>()
+                    };
+                    
+                    // Calculate folder average score
+                    var folderAvgScore = folderGroup.Average(i => i.AverageScore);
+                    folderItem.ScoreText = $"{folderAvgScore:F1}/5";
+                    
+                    // Add files in this folder
+                    foreach (var item in folderGroup.OrderBy(i => i.FileName))
+                    {
+                        var fileItem = new FileTreeItem
+                        {
+                            Name = item.FileName,
+                            FullPath = item.ImagePath,
+                            IsFolder = false,
+                            IconGlyph = "\uEB9F", // Image icon
+                            ScoreText = $"{item.AverageScore:F1}/5",
+                            Children = new List<FileTreeItem>()
+                        };
+                        folderItem.Children.Add(fileItem);
+                        
+                        System.Diagnostics.Debug.WriteLine($"  Added file: {item.FileName} with score {item.AverageScore:F1}");
+                    }
+                    
+                    rootItems.Add(folderItem);
+                }
+                
+                // If we have items, show the tree view
+                if (rootItems.Count > 0)
+                {
+                    ImageFileTreeView.ItemsSource = rootItems;
+                    ImageFileTreeView.Visibility = Visibility.Visible;
+                    ImageFileEmptyState.Visibility = Visibility.Collapsed;
+                    System.Diagnostics.Debug.WriteLine($"Showing tree view with {rootItems.Count} root items");
+                }
+                else
+                {
+                    // No valid paths found
+                    ImageFileTreeView.Visibility = Visibility.Collapsed;
+                    ImageFileEmptyState.Visibility = Visibility.Visible;
+                    System.Diagnostics.Debug.WriteLine("No valid paths found in item results");
+                }
             }
             else
             {
                 ImageResultsSummary.Text = "No individual results available";
+                ImageFileTreeView.Visibility = Visibility.Collapsed;
+                ImageFileEmptyState.Visibility = Visibility.Visible;
             }
-            
-            // For now, dataset folder structure is not available in the view model
-            // Show empty state until dataset path is added to the data model
-            ImageFileTreeView.Visibility = Visibility.Collapsed;
-            ImageFileEmptyState.Visibility = Visibility.Visible;
         }
         
         private async void LoadDatasetFolderStructure(string datasetPath)
@@ -1166,10 +1228,33 @@ namespace AIDevGallery.Pages.Evaluate
                     };
                     
                     // Add score if available from item results
-                    var itemResult = _viewModel.ItemResults?.FirstOrDefault(r => r.ImagePath == file);
-                    if (itemResult != null)
+                    if (_viewModel.ItemResults != null)
                     {
-                        fileItem.ScoreText = $"{itemResult.AverageScore:F1}/5";
+                        // Try different matching approaches
+                        var fileName = System.IO.Path.GetFileName(file);
+                        var itemResult = _viewModel.ItemResults.FirstOrDefault(r => 
+                            r.ImagePath == file || // Exact match
+                            r.ImagePath == fileName || // Just filename
+                            r.FileName == fileName || // Match by filename property
+                            (!string.IsNullOrEmpty(r.ImagePath) && file.EndsWith(r.ImagePath)) // File ends with stored path
+                        );
+                        
+                        if (itemResult != null)
+                        {
+                            fileItem.ScoreText = $"{itemResult.AverageScore:F1}/5";
+                            System.Diagnostics.Debug.WriteLine($"Matched image: {fileName} with score {itemResult.AverageScore:F1}");
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine($"No match found for image: {fileName}");
+                            System.Diagnostics.Debug.WriteLine($"  Full path: {file}");
+                            // Log first few item results for debugging
+                            var sampleResults = _viewModel.ItemResults.Take(3);
+                            foreach (var sample in sampleResults)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"  Sample ImagePath: {sample.ImagePath}");
+                            }
+                        }
                     }
                     
                     items.Add(fileItem);
@@ -1450,31 +1535,63 @@ namespace AIDevGallery.Pages.Evaluate
                 
                 if (_viewModel.HasDetailedResults && _viewModel.ItemResults != null)
                 {
-                    // Per-criterion statistics
+                    // Overall summary first
+                    var summary = _viewModel.GetStatisticalSummary();
+                    if (summary != null)
+                    {
+                        html.AppendLine("<div class='metadata'>");
+                        html.AppendLine("<h4>Overall Performance Statistics</h4>");
+                        html.AppendLine($"<p><strong>Mean Score:</strong> {summary.Mean:F2}/5.0</p>");
+                        html.AppendLine($"<p><strong>Median Score:</strong> {summary.Median:F2}/5.0</p>");
+                        html.AppendLine($"<p><strong>Standard Deviation:</strong> {summary.StandardDeviation:F2}</p>");
+                        html.AppendLine($"<p><strong>Score Range:</strong> {summary.Min:F2} - {summary.Max:F2}</p>");
+                        html.AppendLine($"<p><strong>Total Items Evaluated:</strong> {summary.Count}</p>");
+                        html.AppendLine("</div>");
+                    }
+                    
+                    // Per-criterion statistics with box plot data
+                    html.AppendLine("<h4>Detailed Statistics by Criterion</h4>");
                     html.AppendLine("<table>");
-                    html.AppendLine("<tr><th>Criterion</th><th>Mean</th><th>Std Dev</th><th>Min</th><th>Max</th><th>Count</th></tr>");
+                    html.AppendLine("<tr><th>Criterion</th><th>Mean</th><th>Median</th><th>Std Dev</th><th>Min</th><th>Q1</th><th>Q3</th><th>Max</th><th>Count</th></tr>");
                     
                     foreach (var criterion in _viewModel.CriteriaScores.Keys)
                     {
                         var stats = _viewModel.GetCriterionStatistics(criterion);
                         if (stats != null)
                         {
+                            // Calculate quartiles for box plot data
+                            var scores = _viewModel.ItemResults
+                                .Where(r => r.IsSuccess && r.CriteriaScores.ContainsKey(criterion))
+                                .Select(r => r.CriteriaScores[criterion])
+                                .OrderBy(s => s)
+                                .ToList();
+                            
+                            var q1 = GetPercentile(scores, 25);
+                            var q3 = GetPercentile(scores, 75);
+                            
                             html.AppendLine("<tr>");
                             html.AppendLine($"<td>{criterion}</td>");
-                            html.AppendLine($"<td>{stats.Mean:F2}</td>");
+                            html.AppendLine($"<td class='score'>{stats.Mean:F2}</td>");
+                            html.AppendLine($"<td class='score'>{stats.Median:F2}</td>");
                             html.AppendLine($"<td>{stats.StandardDeviation:F2}</td>");
                             html.AppendLine($"<td>{stats.Min:F2}</td>");
+                            html.AppendLine($"<td>{q1:F2}</td>");
+                            html.AppendLine($"<td>{q3:F2}</td>");
                             html.AppendLine($"<td>{stats.Max:F2}</td>");
                             html.AppendLine($"<td>{stats.Count}</td>");
                             html.AppendLine("</tr>");
                         }
                     }
                     html.AppendLine("</table>");
+                    html.AppendLine("<p style='margin-top: 10px; font-size: 0.85em; color: #666;'>");
+                    html.AppendLine("<strong>Box Plot Legend:</strong> Min/Max | Q1-Q3 (interquartile range) | Median | Mean");
+                    html.AppendLine("</p>");
                 }
                 else
                 {
                     // Overall statistics only
                     var scores = _viewModel.CriteriaScores.Values.ToList();
+                    html.AppendLine("<div class='metadata'>");
                     html.AppendLine("<p>");
                     html.AppendLine($"<strong>Overall Mean:</strong> {scores.Average():F2}<br>");
                     html.AppendLine($"<strong>Overall Standard Deviation:</strong> {CalculateStandardDeviation(scores):F2}<br>");
@@ -1482,6 +1599,7 @@ namespace AIDevGallery.Pages.Evaluate
                     html.AppendLine($"<strong>Overall Max:</strong> {scores.Max():F2}<br>");
                     html.AppendLine($"<strong>Criteria Count:</strong> {scores.Count}<br>");
                     html.AppendLine("</p>");
+                    html.AppendLine("</div>");
                 }
             }
             
@@ -1490,7 +1608,7 @@ namespace AIDevGallery.Pages.Evaluate
             {
                 html.AppendLine("<h3>Performance by Folder</h3>");
                 html.AppendLine("<table>");
-                html.AppendLine("<tr><th>Folder Path</th><th>Item Count</th><th>Average Score</th></tr>");
+                html.AppendLine("<tr><th>Folder Path</th><th>Item Count</th><th>Success Rate</th><th>Average Score</th><th>Score Range</th></tr>");
                 
                 var sortedFolders = _viewModel.FolderStatistics
                     .OrderByDescending(f => f.Value.AverageScores.Values.Any() ? f.Value.AverageScores.Values.Average() : 0);
@@ -1500,13 +1618,98 @@ namespace AIDevGallery.Pages.Evaluate
                     var avgScore = folder.Value.AverageScores.Values.Any() 
                         ? folder.Value.AverageScores.Values.Average() 
                         : 0.0;
+                    
+                    // Get score range for this folder
+                    var folderScores = folder.Value.AverageScores.Values.ToList();
+                    var minScore = folderScores.Any() ? folderScores.Min() : 0;
+                    var maxScore = folderScores.Any() ? folderScores.Max() : 0;
+                    
                     html.AppendLine("<tr>");
                     html.AppendLine($"<td>{folder.Key}</td>");
                     html.AppendLine($"<td>{folder.Value.ItemCount}</td>");
+                    html.AppendLine($"<td>{folder.Value.SuccessRate:F1}%</td>");
                     html.AppendLine($"<td class='score'>{avgScore:F1}/5.0</td>");
+                    html.AppendLine($"<td>{minScore:F1} - {maxScore:F1}</td>");
                     html.AppendLine("</tr>");
                 }
                 html.AppendLine("</table>");
+            }
+            
+            // Individual Results Summary
+            if (_viewModel.HasDetailedResults && _viewModel.ItemResults != null)
+            {
+                html.AppendLine("<div class='page-break'></div>");
+                html.AppendLine("<h3>Individual Results Summary</h3>");
+                
+                // Top performing items
+                var topItems = _viewModel.ItemResults
+                    .Where(r => r.IsSuccess)
+                    .OrderByDescending(r => r.AverageScore)
+                    .Take(10);
+                
+                html.AppendLine("<h4>Top 10 Performing Items</h4>");
+                html.AppendLine("<table>");
+                html.AppendLine("<tr><th>Image</th><th>Average Score</th><th>Processing Time</th></tr>");
+                
+                foreach (var item in topItems)
+                {
+                    html.AppendLine("<tr>");
+                    html.AppendLine($"<td>{item.FileName}</td>");
+                    html.AppendLine($"<td class='score'>{item.AverageScore:F1}/5.0</td>");
+                    html.AppendLine($"<td>{item.ProcessingTime.TotalSeconds:F1}s</td>");
+                    html.AppendLine("</tr>");
+                }
+                html.AppendLine("</table>");
+                
+                // Items needing improvement
+                var bottomItems = _viewModel.ItemResults
+                    .Where(r => r.IsSuccess)
+                    .OrderBy(r => r.AverageScore)
+                    .Take(10);
+                
+                html.AppendLine("<h4>Items Needing Improvement</h4>");
+                html.AppendLine("<table>");
+                html.AppendLine("<tr><th>Image</th><th>Average Score</th><th>Lowest Criterion</th></tr>");
+                
+                foreach (var item in bottomItems)
+                {
+                    var lowestCriterion = item.CriteriaScores.Any() 
+                        ? item.CriteriaScores.OrderBy(c => c.Value).First()
+                        : new KeyValuePair<string, double>("N/A", 0);
+                    
+                    html.AppendLine("<tr>");
+                    html.AppendLine($"<td>{item.FileName}</td>");
+                    html.AppendLine($"<td class='score'>{item.AverageScore:F1}/5.0</td>");
+                    html.AppendLine($"<td>{lowestCriterion.Key}: {lowestCriterion.Value:F1}</td>");
+                    html.AppendLine("</tr>");
+                }
+                html.AppendLine("</table>");
+                
+                // Error summary if any
+                var errorItems = _viewModel.ItemResults.Where(r => !r.IsSuccess).ToList();
+                if (errorItems.Any())
+                {
+                    html.AppendLine("<h4>Processing Errors</h4>");
+                    html.AppendLine($"<p><strong>Total Errors:</strong> {errorItems.Count}</p>");
+                    html.AppendLine("<table>");
+                    html.AppendLine("<tr><th>Image</th><th>Error Message</th></tr>");
+                    
+                    foreach (var item in errorItems.Take(5))
+                    {
+                        html.AppendLine("<tr>");
+                        html.AppendLine($"<td>{item.FileName}</td>");
+                        html.AppendLine($"<td>{item.Error ?? "Unknown error"}</td>");
+                        html.AppendLine("</tr>");
+                    }
+                    
+                    if (errorItems.Count > 5)
+                    {
+                        html.AppendLine("<tr>");
+                        html.AppendLine($"<td colspan='2'><em>... and {errorItems.Count - 5} more errors</em></td>");
+                        html.AppendLine("</tr>");
+                    }
+                    html.AppendLine("</table>");
+                }
             }
             
             // Summary metrics
@@ -1621,6 +1824,24 @@ namespace AIDevGallery.Pages.Evaluate
             var mean = values.Average();
             var sumOfSquares = values.Sum(v => Math.Pow(v - mean, 2));
             return Math.Sqrt(sumOfSquares / (values.Count - 1));
+        }
+        
+        private double GetPercentile(List<double> sortedValues, double percentile)
+        {
+            if (sortedValues.Count == 0) return 0;
+            if (sortedValues.Count == 1) return sortedValues[0];
+            
+            double index = (percentile / 100.0) * (sortedValues.Count - 1);
+            int lower = (int)Math.Floor(index);
+            int upper = (int)Math.Ceiling(index);
+            
+            if (lower == upper)
+            {
+                return sortedValues[lower];
+            }
+            
+            double weight = index - lower;
+            return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight;
         }
         
         private string GenerateJsonContent()

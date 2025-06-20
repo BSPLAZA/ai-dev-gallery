@@ -224,13 +224,13 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                         
                         if (hasScore)
                         {
-                            // Check if score is in 0-1 range and convert to 1-5
+                            // Check if score is in 0-1 range and convert to 0-5
                             if (scoreValue >= 0 && scoreValue <= 1)
                             {
-                                scoreValue = scoreValue * 4 + 1; // Convert 0-1 to 1-5
+                                scoreValue = scoreValue * 5; // Convert 0-1 to 0-5
                             }
-                            // Ensure score is in 1-5 range
-                            scoreValue = Math.Max(1, Math.Min(5, scoreValue));
+                            // Ensure score is in 0-5 range
+                            scoreValue = Math.Max(0, Math.Min(5, scoreValue));
                             criteriaScores[scoreProp.Name].Add(scoreValue);
                             itemResult.CriteriaScores[scoreProp.Name] = scoreValue;
                         }
