@@ -102,11 +102,14 @@
                                           FontSize="16"
                                           Foreground="{ThemeResource SystemFillColorSuccessBrush}"/>
                                 <TextBlock x:Name="StatusText"/>
-                                <Grid>
-                                    <InfoBadge x:Name="StatusInfoBadge"
-                                               Style="{StaticResource InformationalValueInfoBadgeStyle}"
-                                               Value="&#xE946;"/>
-                                </Grid>
+                                <Button x:Name="StatusInfoBadge"
+                                        Style="{StaticResource SubtleButtonStyle}"
+                                        Padding="4"
+                                        Margin="4,0,0,0"
+                                        VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE946;" 
+                                              FontSize="14"/>
+                                </Button>
                             </StackPanel>
                             <TextBlock Text="|" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                             <StackPanel Orientation="Horizontal" Spacing="4">

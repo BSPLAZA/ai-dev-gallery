@@ -113,32 +113,20 @@ namespace AIDevGallery.Pages.Evaluate
             if (_viewModel.Status == EvaluationStatus.Imported)
             {
                 StatusInfoBadge.Visibility = Visibility.Visible;
-                // Set tooltip on the parent Grid container
-                if (StatusInfoBadge.Parent is Grid parentGrid)
-                {
-                    ToolTipService.SetToolTip(parentGrid, 
-                        "This evaluation was imported from a JSONL file. Individual scores are aggregated from the import data.");
-                }
+                ToolTipService.SetToolTip(StatusInfoBadge, 
+                    "This evaluation was imported from a JSONL file. Individual scores are aggregated from the import data.");
             }
             else if (_viewModel.Status == EvaluationStatus.Completed)
             {
                 StatusInfoBadge.Visibility = Visibility.Visible;
-                // Set tooltip on the parent Grid container
-                if (StatusInfoBadge.Parent is Grid parentGrid)
-                {
-                    ToolTipService.SetToolTip(parentGrid, 
-                        $"Evaluation completed successfully on {_viewModel.Timestamp:MMM dd, yyyy}. All criteria have been evaluated.");
-                }
+                ToolTipService.SetToolTip(StatusInfoBadge, 
+                    $"Evaluation completed successfully on {_viewModel.Timestamp:MMM dd, yyyy}. All criteria have been evaluated.");
             }
             else if (_viewModel.Status == EvaluationStatus.Running)
             {
                 StatusInfoBadge.Visibility = Visibility.Visible;
-                // Set tooltip on the parent Grid container
-                if (StatusInfoBadge.Parent is Grid parentGrid)
-                {
-                    ToolTipService.SetToolTip(parentGrid, 
-                        "Evaluation is currently in progress. Results will update as items are processed.");
-                }
+                ToolTipService.SetToolTip(StatusInfoBadge, 
+                    "Evaluation is currently in progress. Results will update as items are processed.");
             }
             else
             {
