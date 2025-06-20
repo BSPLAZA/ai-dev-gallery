@@ -49,7 +49,7 @@ namespace AIDevGallery.Pages.Evaluate
             public string ModelName { get; set; } = "";
             public string OverallAverage { get; set; } = "";
             public int CriteriaCount { get; set; }
-            public string WinRate { get; set; } = "";
+            public string WinCount { get; set; } = "";
         }
 
         public CompareEvaluationsPage()
@@ -184,8 +184,8 @@ namespace AIDevGallery.Pages.Evaluate
             var chartWidth = actualWidth - ChartLeftMargin - ChartPadding;
             var chartHeight = actualHeight - ChartPadding - ChartBottomMargin;
 
-            // Apply sorting
-            var sortedCriteria = GetSortedCriteria();
+            // Use alphabetical order
+            var sortedCriteria = _commonCriteria.OrderBy(c => c).ToList();
 
             // Calculate bar dimensions
             var barGroupWidth = chartWidth / sortedCriteria.Count - BarGroupSpacing;
@@ -256,53 +256,8 @@ namespace AIDevGallery.Pages.Evaluate
 
             // Draw legend
             DrawLegend(chartWidth, chartHeight, colors);
-
-            // Draw average line if enabled
-            if (ShowAverageLineCheckBox.IsChecked == true)
-            {
-                DrawAverageLine(chartWidth, chartHeight);
-            }
         }
 
-        private List<string> GetSortedCriteria()
-        {
-            var sortIndex = SortByComboBox.SelectedIndex;
-            var filterIndex = FilterComboBox.SelectedIndex;
-
-            var criteria = _commonCriteria.ToList();
-
-            // Apply filter
-            if (filterIndex == 1) // Show Top Differences
-            {
-                criteria = criteria.OrderByDescending(c =>
-                {
-                    var scores = _criteriaScores[c];
-                    return scores.Max() - scores.Min();
-                }).Take(5).ToList();
-            }
-            else if (filterIndex == 2) // Show Similar Scores
-            {
-                criteria = criteria.OrderBy(c =>
-                {
-                    var scores = _criteriaScores[c];
-                    return scores.Max() - scores.Min();
-                }).Take(5).ToList();
-            }
-
-            // Apply sort
-            switch (sortIndex)
-            {
-                case 1: // Highest Average
-                    criteria = criteria.OrderByDescending(c => _criteriaScores[c].Average()).ToList();
-                    break;
-                case 2: // Lowest Average
-                    criteria = criteria.OrderBy(c => _criteriaScores[c].Average()).ToList();
-                    break;
-                // case 0: Alphabetical (default)
-            }
-
-            return criteria;
-        }
 
         private void DrawAxes(double chartWidth, double chartHeight)
         {
@@ -371,6 +326,18 @@ namespace AIDevGallery.Pages.Evaluate
             Canvas.SetLeft(yAxisTitle, 20);
             Canvas.SetTop(yAxisTitle, ChartPadding + chartHeight / 2);
             ComparisonChart.Children.Add(yAxisTitle);
+            
+            // Chart title
+            var chartTitle = new TextBlock
+            {
+                Text = "Average Scores by Evaluation Criteria",
+                FontSize = 16,
+                FontWeight = new Windows.UI.Text.FontWeight(600),
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+            Canvas.SetLeft(chartTitle, ChartLeftMargin + (chartWidth / 2) - 120);
+            Canvas.SetTop(chartTitle, 10);
+            ComparisonChart.Children.Add(chartTitle);
         }
 
         private void DrawLegend(double chartWidth, double chartHeight, Color[] colors)
@@ -413,34 +380,6 @@ namespace AIDevGallery.Pages.Evaluate
             ComparisonChart.Children.Add(legendPanel);
         }
 
-        private void DrawAverageLine(double chartWidth, double chartHeight)
-        {
-            var overallAverage = _criteriaScores.Values.SelectMany(s => s).Average();
-            var y = ChartPadding + chartHeight - (overallAverage / 5.0 * chartHeight);
-
-            var avgLine = new Line
-            {
-                X1 = ChartLeftMargin,
-                Y1 = y,
-                X2 = ChartLeftMargin + chartWidth,
-                Y2 = y,
-                Stroke = new SolidColorBrush(Colors.Red),
-                StrokeThickness = 2,
-                StrokeDashArray = new DoubleCollection { 5, 5 }
-            };
-            ComparisonChart.Children.Add(avgLine);
-
-            var avgLabel = new TextBlock
-            {
-                Text = $"Average: {overallAverage:F2}",
-                FontSize = 11,
-                Foreground = new SolidColorBrush(Colors.Red),
-                FontWeight = new Windows.UI.Text.FontWeight(600)
-            };
-            Canvas.SetLeft(avgLabel, ChartLeftMargin + chartWidth - 80);
-            Canvas.SetTop(avgLabel, y - 15);
-            ComparisonChart.Children.Add(avgLabel);
-        }
 
         private void UpdateModelRankings()
         {
@@ -493,7 +432,7 @@ namespace AIDevGallery.Pages.Evaluate
                     ModelName = modelName,
                     OverallAverage = average.ToString("F1"),
                     CriteriaCount = _commonCriteria.Count,
-                    WinRate = $"{winRate:F0}%"
+                    WinCount = wins.ToString()
                 });
             }
 
@@ -678,26 +617,6 @@ namespace AIDevGallery.Pages.Evaluate
             Frame.GoBack();
         }
 
-        private void ShowAverageLineCheckBox_Changed(object sender, RoutedEventArgs e)
-        {
-            UpdateChart();
-        }
-
-        private void SortByComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_evaluations.Count > 0)
-            {
-                UpdateChart();
-            }
-        }
-
-        private void FilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_evaluations.Count > 0)
-            {
-                UpdateChart();
-            }
-        }
 
         private async void CopyChart_Click(object sender, RoutedEventArgs e)
         {
