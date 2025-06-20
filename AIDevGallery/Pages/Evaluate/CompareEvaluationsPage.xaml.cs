@@ -806,7 +806,7 @@ namespace AIDevGallery.Pages.Evaluate
                 sb.AppendLine($"<h3>{ranking.RankEmoji} {ranking.ModelName}</h3>");
                 sb.AppendLine($"<p>Overall Average: {ranking.OverallAverage}/5.0</p>");
                 sb.AppendLine($"<p>Criteria Evaluated: {ranking.CriteriaCount}</p>");
-                sb.AppendLine($"<p>Win Rate: {ranking.WinRate}</p>");
+                sb.AppendLine($"<p>Best in: {ranking.WinCount} criteria</p>");
                 sb.AppendLine("</div>");
             }
 
