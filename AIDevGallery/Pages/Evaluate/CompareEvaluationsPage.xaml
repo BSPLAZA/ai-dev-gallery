@@ -100,7 +100,7 @@ Licensed under the MIT License.
         <!-- Content -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <Grid Padding="36,24,36,36">
-                <StackPanel MaxWidth="1000" Spacing="{StaticResource SettingsCardSpacing}">
+                <StackPanel MaxWidth="1000" Spacing="12">
                     
                     <!-- Loading indicator -->
                     <Grid x:Name="LoadingPanel" Visibility="Visible" MinHeight="400">
@@ -113,7 +113,7 @@ Licensed under the MIT License.
                     </Grid>
 
                     <!-- Content panel -->
-                    <StackPanel x:Name="ContentPanel" Visibility="Collapsed" Spacing="{StaticResource SettingsCardSpacing}">
+                    <StackPanel x:Name="ContentPanel" Visibility="Collapsed" Spacing="12">
 
                         <!-- Criteria Score Comparison Chart -->
                         <Grid Style="{StaticResource CardGridStyle}">
