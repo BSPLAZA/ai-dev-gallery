@@ -462,7 +462,7 @@ namespace AIDevGallery.Pages.Evaluate
                 savePicker.SuggestedFileName = $"{_viewModel.Name}_evaluation_results_{DateTime.Now:yyyyMMdd}";
                 
                 // Get the window handle
-                var window = (Application.Current as App)?.MainWindow;
+                var window = App.MainWindow;
                 if (window == null) return;
                 
                 var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
@@ -494,7 +494,7 @@ namespace AIDevGallery.Pages.Evaluate
                 savePicker.SuggestedFileName = $"{_viewModel.Name}_evaluation_results_{DateTime.Now:yyyyMMdd}";
                 
                 // Get the window handle
-                var window = (Application.Current as App)?.MainWindow;
+                var window = App.MainWindow;
                 if (window == null) return;
                 
                 var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
