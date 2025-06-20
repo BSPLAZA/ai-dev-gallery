@@ -571,7 +571,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
 
 
     // Action bar event handlers
-    private async void ActionBar_CompareClicked(object sender, EventArgs e)
+    private void ActionBar_CompareClicked(object sender, EventArgs e)
     {
         CompareButton_Click(sender, new RoutedEventArgs());
     }
