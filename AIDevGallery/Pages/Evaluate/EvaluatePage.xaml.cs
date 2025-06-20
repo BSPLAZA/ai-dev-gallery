@@ -630,9 +630,13 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             else
             {
                 // For other workflows, start with placeholder scores
-                if (wizardState.Metrics?.UseAIJudge == true)
+                if (wizardState.Metrics?.UseAIJudge == true && wizardState.Metrics.CustomCriteria != null)
                 {
-                    evaluation.CriteriaScores["AI Judge Score"] = 0.0;
+                    // Add each custom criterion
+                    foreach (var criterion in wizardState.Metrics.CustomCriteria)
+                    {
+                        evaluation.CriteriaScores[criterion.Name] = 0.0;
+                    }
                 }
                 if (wizardState.Metrics?.UseClipScore == true)
                 {
@@ -641,6 +645,14 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
                 if (wizardState.Metrics?.UseSpice == true)
                 {
                     evaluation.CriteriaScores["SPICE Score"] = 0.0;
+                }
+                if (wizardState.Metrics?.UseMeteor == true)
+                {
+                    evaluation.CriteriaScores["METEOR Score"] = 0.0;
+                }
+                if (wizardState.Metrics?.UseLengthStats == true)
+                {
+                    evaluation.CriteriaScores["Length Stats"] = 0.0;
                 }
                 
                 // Save the evaluation
