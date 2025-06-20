@@ -294,26 +294,22 @@ Licensed under the MIT License.
                                        Style="{StaticResource SubtitleTextBlockStyle}"
                                        Margin="0,0,0,12"/>
 
-                            <ItemsRepeater Grid.Row="1">
-                                <ItemsRepeater.ItemsSource>
-                                    <x:Array Type="x:String">
-                                        <x:String>📊 Advanced statistical analysis and significance testing</x:String>
-                                        <x:String>💰 Cost efficiency comparisons</x:String>
-                                        <x:String>⚡ Performance and latency metrics</x:String>
-                                        <x:String>🔄 Historical trend analysis</x:String>
-                                        <x:String>🤖 AI-generated recommendations</x:String>
-                                        <x:String>📈 Custom metric weighting</x:String>
-                                        <x:String>🎯 Subset analysis (compare specific folders/categories)</x:String>
-                                    </x:Array>
-                                </ItemsRepeater.ItemsSource>
-                                <ItemsRepeater.ItemTemplate>
-                                    <DataTemplate x:DataType="x:String">
-                                        <TextBlock Text="{x:Bind}" 
-                                                   Style="{StaticResource BodyTextBlockStyle}"
-                                                   Margin="0,4"/>
-                                    </DataTemplate>
-                                </ItemsRepeater.ItemTemplate>
-                            </ItemsRepeater>
+                            <StackPanel Grid.Row="1" Spacing="8">
+                                <TextBlock Text="📊 Advanced statistical analysis and significance testing" 
+                                           Style="{StaticResource BodyTextBlockStyle}"/>
+                                <TextBlock Text="💰 Cost efficiency comparisons" 
+                                           Style="{StaticResource BodyTextBlockStyle}"/>
+                                <TextBlock Text="⚡ Performance and latency metrics" 
+                                           Style="{StaticResource BodyTextBlockStyle}"/>
+                                <TextBlock Text="🔄 Historical trend analysis" 
+                                           Style="{StaticResource BodyTextBlockStyle}"/>
+                                <TextBlock Text="🤖 AI-generated recommendations" 
+                                           Style="{StaticResource BodyTextBlockStyle}"/>
+                                <TextBlock Text="📈 Custom metric weighting" 
+                                           Style="{StaticResource BodyTextBlockStyle}"/>
+                                <TextBlock Text="🎯 Subset analysis (compare specific folders/categories)" 
+                                           Style="{StaticResource BodyTextBlockStyle}"/>
+                            </StackPanel>
                         </Grid>
 
                     </StackPanel>
