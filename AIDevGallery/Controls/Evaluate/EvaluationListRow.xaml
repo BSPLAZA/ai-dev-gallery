@@ -55,10 +55,10 @@
             <TextBlock TextTrimming="CharacterEllipsis"
                        FontSize="14">
                 <Run Text="{x:Bind EvaluationName}"/>
-                <Run Text=" • " Opacity="0.6"/>
-                <Run Text="{x:Bind ItemCount}" Opacity="0.6"/>
-                <Run Text=" items • " Opacity="0.6"/>
-                <Run Text="{x:Bind GetFormattedDate(Timestamp), Mode=OneWay}" Opacity="0.6"/>
+                <Run Text=" • " Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                <Run Text="{x:Bind ItemCount}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                <Run Text=" items • " Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                <Run Text="{x:Bind GetFormattedDate(Timestamp), Mode=OneWay}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
             </TextBlock>
             
             <!-- Second Line: Model and Criteria -->
@@ -68,7 +68,7 @@
                 <Run Text="Model" FontWeight="Bold"/>
                 <Run Text=": "/>
                 <Run Text="{x:Bind ModelName}"/>
-                <Run Text=" • " Opacity="0.6"/>
+                <Run Text=" • " Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                 <Run Text="Criteria" FontWeight="Bold"/>
                 <Run Text=": "/>
                 <Run Text="{x:Bind GetCriteriaDisplay(), Mode=OneWay}"/>
