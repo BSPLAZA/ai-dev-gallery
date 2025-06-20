@@ -61,6 +61,28 @@ public class EvaluationResult
     /// Path to the imported JSONL file (for Import Results workflow)
     /// </summary>
     public string? SourceFilePath { get; set; }
+    
+    /// <summary>
+    /// Individual results for each evaluated item (e.g., images).
+    /// This is populated when detailed results are available.
+    /// </summary>
+    public List<EvaluationItemResult>? ItemResults { get; set; }
+    
+    /// <summary>
+    /// Statistics grouped by folder.
+    /// Key: folder path, Value: folder statistics.
+    /// </summary>
+    public Dictionary<string, FolderStats>? FolderStatistics { get; set; }
+    
+    /// <summary>
+    /// Gets a value indicating whether individual item results are available.
+    /// </summary>
+    public bool HasDetailedResults => ItemResults?.Count > 0;
+    
+    /// <summary>
+    /// Gets a value indicating whether folder statistics are available.
+    /// </summary>
+    public bool HasFolderStatistics => FolderStatistics?.Count > 0;
 }
 
 /// <summary>

@@ -231,11 +231,8 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
 
     private void NavigateToEvaluationDetails(EvaluationListItemViewModel evaluation)
     {
-        // TODO: Navigate to evaluation insights page when implemented
-        // Frame.Navigate(typeof(EvaluationInsightsPage), evaluation.Id);
-        
-        // For now, show a placeholder dialog
-        _ = ShowPlaceholderDialog($"Evaluation insights for '{evaluation.Name}' will be shown here.");
+        // Navigate to evaluation insights page
+        Frame.Navigate(typeof(EvaluationInsightsPage), evaluation.Id);
     }
 
     // Empty State Event Handlers

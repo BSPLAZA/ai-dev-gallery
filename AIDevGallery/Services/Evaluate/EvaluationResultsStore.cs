@@ -48,8 +48,15 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
     
     public async Task<EvaluationResult?> GetEvaluationByIdAsync(string id)
     {
-        await Task.CompletedTask;
-        return _evaluations.FirstOrDefault(e => e.Id == id);
+        var evaluation = _evaluations.FirstOrDefault(e => e.Id == id);
+        
+        if (evaluation != null)
+        {
+            // Try to load detailed results if available
+            await LoadDetailedResultsAsync(evaluation);
+        }
+        
+        return evaluation;
     }
     
     public async Task SaveEvaluationAsync(EvaluationResult evaluation)
@@ -94,7 +101,9 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
             Status = EvaluationStatus.Imported,
             WorkflowType = EvaluationWorkflow.ImportResults,
             Timestamp = DateTime.Now,
-            SourceFilePath = jsonlPath
+            SourceFilePath = jsonlPath,
+            ItemResults = new List<EvaluationItemResult>(),
+            FolderStatistics = new Dictionary<string, FolderStats>()
         };
         
         // Parse JSONL to extract model, dataset, and scores
@@ -102,6 +111,10 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
         var criteriaScores = new Dictionary<string, List<double>>();
         string? modelName = null;
         var imagePaths = new HashSet<string>();
+        var standardFields = new HashSet<string> { 
+            "image_path", "image", "prompt", "response", "criteria_scores", "scores",
+            "processing_time", "error", "model", "dataset" 
+        };
         
         foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
         {
@@ -110,6 +123,14 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                 using var doc = JsonDocument.Parse(line);
                 var root = doc.RootElement;
                 
+                // Create item result for this line
+                var itemResult = new EvaluationItemResult
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    CriteriaScores = new Dictionary<string, double>(),
+                    CustomMetadata = new Dictionary<string, object>()
+                };
+                
                 // Extract model name (first occurrence)
                 if (modelName == null && root.TryGetProperty("model", out var modelElement))
                 {
@@ -117,9 +138,48 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                 }
                 
                 // Extract image path
-                if (root.TryGetProperty("image", out var imageElement))
+                string? imagePath = null;
+                if (root.TryGetProperty("image_path", out var imagePathElement))
                 {
-                    imagePaths.Add(imageElement.GetString() ?? "");
+                    imagePath = imagePathElement.GetString();
+                }
+                else if (root.TryGetProperty("image", out var imageElement))
+                {
+                    imagePath = imageElement.GetString();
+                }
+                
+                if (!string.IsNullOrEmpty(imagePath))
+                {
+                    imagePaths.Add(imagePath);
+                    itemResult.ImagePath = imagePath;
+                    itemResult.RelativePath = imagePath; // Can be refined if base path is known
+                }
+                
+                // Extract prompt
+                if (root.TryGetProperty("prompt", out var promptElement))
+                {
+                    itemResult.Prompt = promptElement.GetString() ?? "";
+                }
+                
+                // Extract response
+                if (root.TryGetProperty("response", out var responseElement))
+                {
+                    itemResult.ModelResponse = responseElement.GetString() ?? "";
+                }
+                
+                // Extract error if present
+                if (root.TryGetProperty("error", out var errorElement))
+                {
+                    itemResult.Error = errorElement.GetString();
+                }
+                
+                // Extract processing time
+                if (root.TryGetProperty("processing_time", out var timeElement))
+                {
+                    if (timeElement.TryGetDouble(out var seconds))
+                    {
+                        itemResult.ProcessingTime = TimeSpan.FromSeconds(seconds);
+                    }
                 }
                 
                 // Extract scores - check both "scores" and "criteria_scores" fields
@@ -136,19 +196,46 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                             criteriaScores[scoreProp.Name] = new List<double>();
                         }
                         
-                        if (scoreProp.Value.TryGetDouble(out var score))
+                        // Handle score objects with "score" property
+                        double scoreValue = 0;
+                        bool hasScore = false;
+                        
+                        if (scoreProp.Value.ValueKind == JsonValueKind.Object && 
+                            scoreProp.Value.TryGetProperty("score", out var scoreElement))
+                        {
+                            hasScore = scoreElement.TryGetDouble(out scoreValue);
+                        }
+                        else if (scoreProp.Value.TryGetDouble(out scoreValue))
+                        {
+                            hasScore = true;
+                        }
+                        
+                        if (hasScore)
                         {
                             // Check if score is in 0-1 range and convert to 1-5
-                            if (score >= 0 && score <= 1)
+                            if (scoreValue >= 0 && scoreValue <= 1)
                             {
-                                score = score * 4 + 1; // Convert 0-1 to 1-5
+                                scoreValue = scoreValue * 4 + 1; // Convert 0-1 to 1-5
                             }
                             // Ensure score is in 1-5 range
-                            score = Math.Max(1, Math.Min(5, score));
-                            criteriaScores[scoreProp.Name].Add(score);
+                            scoreValue = Math.Max(1, Math.Min(5, scoreValue));
+                            criteriaScores[scoreProp.Name].Add(scoreValue);
+                            itemResult.CriteriaScores[scoreProp.Name] = scoreValue;
                         }
                     }
                 }
+                
+                // Extract custom metadata (any fields not in standardFields)
+                foreach (var property in root.EnumerateObject())
+                {
+                    if (!standardFields.Contains(property.Name))
+                    {
+                        itemResult.CustomMetadata[property.Name] = JsonValueToObject(property.Value);
+                    }
+                }
+                
+                // Add item result to evaluation
+                evaluation.ItemResults.Add(itemResult);
             }
             catch
             {
@@ -170,11 +257,47 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
             }
         }
         
+        // Calculate folder statistics
+        var folderGroups = evaluation.ItemResults
+            .Where(item => item.IsSuccess)
+            .GroupBy(item => item.FolderPath);
+            
+        foreach (var folderGroup in folderGroups)
+        {
+            var folderStats = new FolderStats
+            {
+                FolderPath = folderGroup.Key,
+                ItemCount = folderGroup.Count(),
+                AverageScores = new Dictionary<string, double>()
+            };
+            
+            // Calculate average scores per criterion for this folder
+            var criteriaGroups = folderGroup
+                .SelectMany(item => item.CriteriaScores)
+                .GroupBy(kvp => kvp.Key);
+                
+            foreach (var criteriaGroup in criteriaGroups)
+            {
+                folderStats.AverageScores[criteriaGroup.Key] = 
+                    Math.Round(criteriaGroup.Average(kvp => kvp.Value), 1);
+            }
+            
+            // Calculate success rate
+            var totalInFolder = evaluation.ItemResults.Count(item => item.FolderPath == folderGroup.Key);
+            folderStats.SuccessRate = totalInFolder > 0 
+                ? Math.Round((double)folderGroup.Count() / totalInFolder * 100, 1)
+                : 0;
+                
+            evaluation.FolderStatistics[folderGroup.Key] = folderStats;
+        }
+        
         // Debug logging
         System.Diagnostics.Debug.WriteLine($"Import Summary:");
         System.Diagnostics.Debug.WriteLine($"  Model: {evaluation.ModelName}");
         System.Diagnostics.Debug.WriteLine($"  Dataset: {evaluation.DatasetName}");
         System.Diagnostics.Debug.WriteLine($"  Item Count: {evaluation.DatasetItemCount}");
+        System.Diagnostics.Debug.WriteLine($"  Individual Results: {evaluation.ItemResults.Count}");
+        System.Diagnostics.Debug.WriteLine($"  Folder Count: {evaluation.FolderStatistics.Count}");
         System.Diagnostics.Debug.WriteLine($"  Criteria Count: {evaluation.CriteriaScores.Count}");
         foreach (var (criterion, score) in evaluation.CriteriaScores)
         {
@@ -184,6 +307,12 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
         
         // Save the evaluation
         await SaveEvaluationAsync(evaluation);
+        
+        // Save detailed results to separate file
+        if (evaluation.HasDetailedResults)
+        {
+            await SaveDetailedResultsAsync(evaluation);
+        }
         
         return evaluation;
     }
@@ -310,10 +439,115 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
     private async Task SaveToDiskAsync(EvaluationResult evaluation)
     {
         var filePath = Path.Combine(_storagePath, $"{evaluation.Id}.json");
-        var json = JsonSerializer.Serialize(evaluation, new JsonSerializerOptions 
+        
+        // Create a copy without ItemResults for the main file (to keep file size manageable)
+        var evaluationForStorage = new EvaluationResult
+        {
+            Id = evaluation.Id,
+            Name = evaluation.Name,
+            ModelName = evaluation.ModelName,
+            DatasetName = evaluation.DatasetName,
+            DatasetItemCount = evaluation.DatasetItemCount,
+            WorkflowType = evaluation.WorkflowType,
+            Status = evaluation.Status,
+            Timestamp = evaluation.Timestamp,
+            Duration = evaluation.Duration,
+            CriteriaScores = evaluation.CriteriaScores,
+            ProgressPercentage = evaluation.ProgressPercentage,
+            CurrentOperation = evaluation.CurrentOperation,
+            SourceFilePath = evaluation.SourceFilePath,
+            // Don't include ItemResults or FolderStatistics in main file
+        };
+        
+        var json = JsonSerializer.Serialize(evaluationForStorage, new JsonSerializerOptions 
         { 
             WriteIndented = true 
         });
         await File.WriteAllTextAsync(filePath, json);
+    }
+    
+    private async Task SaveDetailedResultsAsync(EvaluationResult evaluation)
+    {
+        // Create subdirectory for evaluation details
+        var detailsDir = Path.Combine(_storagePath, evaluation.Id);
+        Directory.CreateDirectory(detailsDir);
+        
+        // Save item results
+        if (evaluation.ItemResults != null && evaluation.ItemResults.Count > 0)
+        {
+            var itemsPath = Path.Combine(detailsDir, "items.json");
+            var itemsJson = JsonSerializer.Serialize(evaluation.ItemResults, new JsonSerializerOptions 
+            { 
+                WriteIndented = true 
+            });
+            await File.WriteAllTextAsync(itemsPath, itemsJson);
+        }
+        
+        // Save folder statistics
+        if (evaluation.FolderStatistics != null && evaluation.FolderStatistics.Count > 0)
+        {
+            var statsPath = Path.Combine(detailsDir, "folder_stats.json");
+            var statsJson = JsonSerializer.Serialize(evaluation.FolderStatistics, new JsonSerializerOptions 
+            { 
+                WriteIndented = true 
+            });
+            await File.WriteAllTextAsync(statsPath, statsJson);
+        }
+    }
+    
+    private object JsonValueToObject(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString() ?? "",
+            JsonValueKind.Number => element.TryGetInt32(out var intValue) ? intValue : element.GetDouble(),
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => null!,
+            JsonValueKind.Array => element.EnumerateArray().Select(e => JsonValueToObject(e)).ToList(),
+            JsonValueKind.Object => element.EnumerateObject()
+                .ToDictionary(p => p.Name, p => JsonValueToObject(p.Value)),
+            _ => element.ToString()
+        };
+    }
+    
+    private async Task LoadDetailedResultsAsync(EvaluationResult evaluation)
+    {
+        var detailsDir = Path.Combine(_storagePath, evaluation.Id);
+        
+        if (!Directory.Exists(detailsDir))
+        {
+            return;
+        }
+        
+        // Load item results
+        var itemsPath = Path.Combine(detailsDir, "items.json");
+        if (File.Exists(itemsPath))
+        {
+            try
+            {
+                var itemsJson = await File.ReadAllTextAsync(itemsPath);
+                evaluation.ItemResults = JsonSerializer.Deserialize<List<EvaluationItemResult>>(itemsJson);
+            }
+            catch
+            {
+                // Ignore errors loading detailed results
+            }
+        }
+        
+        // Load folder statistics
+        var statsPath = Path.Combine(detailsDir, "folder_stats.json");
+        if (File.Exists(statsPath))
+        {
+            try
+            {
+                var statsJson = await File.ReadAllTextAsync(statsPath);
+                evaluation.FolderStatistics = JsonSerializer.Deserialize<Dictionary<string, FolderStats>>(statsJson);
+            }
+            catch
+            {
+                // Ignore errors loading folder stats
+            }
+        }
     }
 }
