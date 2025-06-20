@@ -36,8 +36,8 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
         _storagePath = Path.Combine(localFolder, "Evaluations");
         Directory.CreateDirectory(_storagePath);
         
-        // Load existing evaluations
-        _ = LoadEvaluationsAsync();
+        // Load existing evaluations synchronously to avoid race conditions
+        Task.Run(async () => await LoadEvaluationsAsync()).GetAwaiter().GetResult();
     }
     
     public async Task<List<EvaluationResult>> GetAllEvaluationsAsync()
@@ -48,12 +48,24 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
     
     public async Task<EvaluationResult?> GetEvaluationByIdAsync(string id)
     {
+        System.Diagnostics.Debug.WriteLine($"GetEvaluationByIdAsync called with ID: {id}");
+        System.Diagnostics.Debug.WriteLine($"Total evaluations in memory: {_evaluations.Count}");
+        
         var evaluation = _evaluations.FirstOrDefault(e => e.Id == id);
         
         if (evaluation != null)
         {
+            System.Diagnostics.Debug.WriteLine($"Found evaluation: {evaluation.Name}");
             // Try to load detailed results if available
             await LoadDetailedResultsAsync(evaluation);
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"Evaluation not found. Available IDs:");
+            foreach (var e in _evaluations)
+            {
+                System.Diagnostics.Debug.WriteLine($"  - {e.Id}: {e.Name}");
+            }
         }
         
         return evaluation;
@@ -336,7 +348,10 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"Loading evaluations from: {_storagePath}");
             var files = Directory.GetFiles(_storagePath, "*.json");
+            System.Diagnostics.Debug.WriteLine($"Found {files.Length} evaluation files");
+            
             foreach (var file in files)
             {
                 try
@@ -346,6 +361,7 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                     if (evaluation != null)
                     {
                         _evaluations.Add(evaluation);
+                        System.Diagnostics.Debug.WriteLine($"Loaded evaluation: {evaluation.Id} - {evaluation.Name}");
                     }
                 }
                 catch
