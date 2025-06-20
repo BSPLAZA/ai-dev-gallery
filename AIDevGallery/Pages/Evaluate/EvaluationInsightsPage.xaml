@@ -97,10 +97,6 @@
                         <StackPanel Orientation="Horizontal" Spacing="16">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <TextBlock Text="Status:" FontWeight="SemiBold"/>
-                                <FontIcon x:Name="StatusIcon" 
-                                          Glyph="&#xE73E;" 
-                                          FontSize="16"
-                                          Foreground="{ThemeResource SystemFillColorSuccessBrush}"/>
                                 <TextBlock x:Name="StatusText"/>
                                 <Button x:Name="StatusInfoBadge"
                                         Style="{StaticResource SubtleButtonStyle}"
@@ -272,17 +268,38 @@
                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                     BorderThickness="0,1,0,0"
                                     Padding="16,8">
-                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}">
-                                    <Run Text="Scale:"/>
-                                    <Run Text="1-2.4 Needs Improvement" Foreground="#FF5722"/>
-                                    <Run Text="|"/>
-                                    <Run Text="2.5-3.4 Fair" Foreground="#FFC107"/>
-                                    <Run Text="|"/>
-                                    <Run Text="3.5-4.4 Good" Foreground="#2196F3"/>
-                                    <Run Text="|"/>
-                                    <Run Text="4.5-5.0 Excellent" Foreground="#4CAF50"/>
-                                </TextBlock>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <TextBlock Grid.Column="0"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                        <Run Text="Scale:"/>
+                                        <Run Text="0-1.9 Needs Improvement" Foreground="#FF5722"/>
+                                        <Run Text="|"/>
+                                        <Run Text="2.0-2.9 Fair" Foreground="#FFC107"/>
+                                        <Run Text="|"/>
+                                        <Run Text="3.0-3.9 Good" Foreground="#2196F3"/>
+                                        <Run Text="|"/>
+                                        <Run Text="4.0-5.0 Excellent" Foreground="#4CAF50"/>
+                                    </TextBlock>
+                                    
+                                    <TextBlock Grid.Column="1"
+                                               x:Name="BoxPlotLegend"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               Visibility="Collapsed"
+                                               Margin="24,0,0,0">
+                                        <Run Text="Box Plot:"/>
+                                        <Run Text="—" FontWeight="Bold"/> <Run Text="Min/Max"/>
+                                        <Run Text="□" Foreground="#2196F3"/> <Run Text="Q1-Q3"/>
+                                        <Run Text="|" FontWeight="Bold"/> <Run Text="Median"/>
+                                        <Run Text="◆" Foreground="#FF9800"/> <Run Text="Mean"/>
+                                    </TextBlock>
+                                </Grid>
                             </Border>
                         </Grid>
                         
@@ -430,12 +447,12 @@
                                                       Padding="16"
                                                       Background="{ThemeResource LayerFillColorDefaultBrush}"
                                                       CornerRadius="4">
-                                                    <StackPanel Spacing="8">
+                                                    <StackPanel Spacing="12">
                                                         <TextBlock Text="Criteria Scores for this Folder"
-                                                                   Style="{StaticResource CaptionTextBlockStyle}"
-                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                   Style="{StaticResource BodyStrongTextBlockStyle}"
                                                                    Margin="0,0,0,4"/>
                                                         
+                                                        <!-- Criteria Scores -->
                                                         <ItemsRepeater ItemsSource="{Binding CriteriaScores}">
                                                             <ItemsRepeater.Layout>
                                                                 <StackLayout Spacing="4"/>
@@ -466,6 +483,64 @@
                                                                 </DataTemplate>
                                                             </ItemsRepeater.ItemTemplate>
                                                         </ItemsRepeater>
+                                                        
+                                                        <!-- Statistical Summary -->
+                                                        <Border BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                                                BorderThickness="0,1,0,0"
+                                                                Padding="0,8,0,0"
+                                                                Visibility="{Binding HasStatistics}">
+                                                            <StackPanel Spacing="4">
+                                                                <TextBlock Text="Statistical Summary"
+                                                                           Style="{StaticResource BodyStrongTextBlockStyle}"
+                                                                           Margin="0,0,0,4"/>
+                                                                
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    
+                                                                    <!-- Summary Stats -->
+                                                                    <StackPanel Grid.Column="0" Spacing="2">
+                                                                        <TextBlock Text="Items" 
+                                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                                        <TextBlock Text="{Binding ItemCount}"
+                                                                                   Style="{StaticResource BodyTextBlockStyle}"
+                                                                                   FontWeight="SemiBold"/>
+                                                                    </StackPanel>
+                                                                    
+                                                                    <StackPanel Grid.Column="1" Spacing="2">
+                                                                        <TextBlock Text="Mean" 
+                                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                                        <TextBlock Text="{Binding MeanScoreText}"
+                                                                                   Style="{StaticResource BodyTextBlockStyle}"
+                                                                                   FontWeight="SemiBold"/>
+                                                                    </StackPanel>
+                                                                    
+                                                                    <StackPanel Grid.Column="2" Spacing="2">
+                                                                        <TextBlock Text="Std Dev" 
+                                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                                        <TextBlock Text="{Binding StdDevText}"
+                                                                                   Style="{StaticResource BodyTextBlockStyle}"
+                                                                                   FontWeight="SemiBold"/>
+                                                                    </StackPanel>
+                                                                    
+                                                                    <StackPanel Grid.Column="3" Spacing="2">
+                                                                        <TextBlock Text="Range" 
+                                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                                        <TextBlock Text="{Binding RangeText}"
+                                                                                   Style="{StaticResource BodyTextBlockStyle}"
+                                                                                   FontWeight="SemiBold"/>
+                                                                    </StackPanel>
+                                                                </Grid>
+                                                            </StackPanel>
+                                                        </Border>
                                                     </StackPanel>
                                                 </Grid>
                                             </StackPanel>
@@ -544,9 +619,10 @@
                                 
                                 <!-- Search Box -->
                                 <TextBox Grid.Row="0" 
+                                         x:Name="ImageSearchBox"
                                          PlaceholderText="Search images..."
                                          Margin="16,16,16,8"
-                                         IsEnabled="False"/>
+                                         TextChanged="ImageSearchBox_TextChanged"/>
                                 
                                 <!-- Results Summary -->
                                 <TextBlock Grid.Row="1" 
@@ -555,18 +631,45 @@
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                            Margin="16,0,16,8"/>
                                 
-                                <!-- File List Placeholder -->
-                                <Grid Grid.Row="2" Margin="16">
-                                    <StackPanel VerticalAlignment="Center" 
+                                <!-- File List -->
+                                <Grid Grid.Row="2">
+                                    <!-- File Navigation TreeView -->
+                                    <TreeView x:Name="ImageFileTreeView" 
+                                              SelectionMode="Single"
+                                              ItemInvoked="ImageFileTreeView_ItemInvoked"
+                                              Visibility="Collapsed">
+                                        <TreeView.ItemTemplate>
+                                            <DataTemplate>
+                                                <TreeViewItem ItemsSource="{Binding Children}">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <FontIcon Glyph="{Binding IconGlyph}" 
+                                                                  FontSize="16"/>
+                                                        <TextBlock Text="{Binding Name}" 
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding ScoreText}" 
+                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                   VerticalAlignment="Center"
+                                                                   Margin="8,0,0,0"/>
+                                                    </StackPanel>
+                                                </TreeViewItem>
+                                            </DataTemplate>
+                                        </TreeView.ItemTemplate>
+                                    </TreeView>
+                                    
+                                    <!-- Empty State -->
+                                    <StackPanel x:Name="ImageFileEmptyState"
+                                                VerticalAlignment="Center" 
                                                 HorizontalAlignment="Center"
-                                                Spacing="12">
+                                                Spacing="12"
+                                                Margin="16">
                                         <FontIcon Glyph="&#xE91B;" 
                                                   FontSize="48"
                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                        <TextBlock Text="Individual image results"
+                                        <TextBlock Text="No dataset folder found"
                                                    Style="{StaticResource BodyTextBlockStyle}"
                                                    HorizontalAlignment="Center"/>
-                                        <TextBlock Text="When available, images will be listed here with their individual scores"
+                                        <TextBlock Text="Dataset folder information is not available for this evaluation"
                                                    Style="{StaticResource CaptionTextBlockStyle}"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                    TextWrapping="Wrap"

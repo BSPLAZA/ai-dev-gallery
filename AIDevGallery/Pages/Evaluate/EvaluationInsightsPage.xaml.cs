@@ -107,7 +107,6 @@ namespace AIDevGallery.Pages.Evaluate
             
             // Update status
             StatusText.Text = _viewModel.Status.ToString();
-            UpdateStatusIcon();
             
             // Show/hide status info badge with appropriate tooltip
             if (_viewModel.Status == EvaluationStatus.Imported)
@@ -206,28 +205,6 @@ namespace AIDevGallery.Pages.Evaluate
             }
         }
         
-        private void UpdateStatusIcon()
-        {
-            switch (_viewModel.Status)
-            {
-                case EvaluationStatus.Completed:
-                    StatusIcon.Glyph = "\uE73E"; // Checkmark
-                    StatusIcon.Foreground = (Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
-                    break;
-                case EvaluationStatus.Running:
-                    StatusIcon.Glyph = "\uE768"; // Clock
-                    StatusIcon.Foreground = (Brush)Application.Current.Resources["SystemFillColorCautionBrush"];
-                    break;
-                case EvaluationStatus.Failed:
-                    StatusIcon.Glyph = "\uE783"; // Error
-                    StatusIcon.Foreground = (Brush)Application.Current.Resources["SystemFillColorCriticalBrush"];
-                    break;
-                default:
-                    StatusIcon.Glyph = "\uE946"; // Info
-                    StatusIcon.Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
-                    break;
-            }
-        }
         
         private void CreateChartVisualization()
         {
@@ -273,10 +250,10 @@ namespace AIDevGallery.Pages.Evaluate
             var chartStartY = 20;
             var chartHeight = canvasHeight - 60; // Leave space for axis labels
             
-            // Add grid lines and labels for X-axis (1-5 scale)
-            for (int i = 1; i <= 5; i++)
+            // Add grid lines and labels for X-axis (0-5 scale)
+            for (int i = 0; i <= 5; i++)
             {
-                var x = leftMargin + (i - 1) * (chartWidth / 4);
+                var x = leftMargin + i * (chartWidth / 5);
                 
                 // Vertical grid line
                 var gridLine = new Line
@@ -313,7 +290,17 @@ namespace AIDevGallery.Pages.Evaluate
                 canvas.Children.Add(label);
             }
             
-            // Draw criteria bars
+            // Show box plot legend if we have detailed results
+            if (_viewModel.HasDetailedResults && _viewModel.ItemResults != null && _viewModel.ItemResults.Count > 0)
+            {
+                BoxPlotLegend.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                BoxPlotLegend.Visibility = Visibility.Collapsed;
+            }
+            
+            // Draw criteria bars/box plots
             int index = 0;
             foreach (var criterion in _viewModel.CriteriaScores)
             {
@@ -332,30 +319,53 @@ namespace AIDevGallery.Pages.Evaluate
                 Canvas.SetTop(label, y + (barHeight - 20) / 2);
                 canvas.Children.Add(label);
                 
-                // Bar
-                var barWidth = (criterion.Value / maxScore) * chartWidth;
-                var bar = new Rectangle
+                // Check if we have detailed results for box plot
+                if (_viewModel.HasDetailedResults && _viewModel.ItemResults != null && _viewModel.ItemResults.Count > 0)
                 {
-                    Width = barWidth,
-                    Height = barHeight,
-                    Fill = new SolidColorBrush(GetScoreColor(criterion.Value)),
-                    RadiusX = 4,
-                    RadiusY = 4
-                };
-                Canvas.SetLeft(bar, leftMargin);
-                Canvas.SetTop(bar, y);
-                canvas.Children.Add(bar);
-                
-                // Score label
-                var scoreLabel = new TextBlock
+                    // Get individual scores for this criterion
+                    var scores = _viewModel.ItemResults
+                        .Where(item => item.CriteriaScores.ContainsKey(criterion.Key))
+                        .Select(item => item.CriteriaScores[criterion.Key])
+                        .OrderBy(s => s)
+                        .ToList();
+                    
+                    if (scores.Count > 0)
+                    {
+                        // Calculate box plot statistics
+                        var min = scores.Min();
+                        var max = scores.Max();
+                        var median = GetMedian(scores);
+                        var q1 = GetQuartile(scores, 0.25);
+                        var q3 = GetQuartile(scores, 0.75);
+                        var mean = scores.Average();
+                        
+                        // Draw box and whisker plot
+                        DrawBoxPlot(canvas, leftMargin, y, chartWidth, barHeight, min, q1, median, q3, max, mean, maxScore);
+                        
+                        // Stats label
+                        var statsText = $"μ={mean:F1} σ={CalculateStandardDeviation(scores):F1}";
+                        var statsLabel = new TextBlock
+                        {
+                            Text = statsText,
+                            Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                            FontSize = 11
+                        };
+                        Canvas.SetLeft(statsLabel, leftMargin + chartWidth + 8);
+                        Canvas.SetTop(statsLabel, y + barHeight / 2 - 8);
+                        canvas.Children.Add(statsLabel);
+                    }
+                    else
+                    {
+                        // Fallback to regular bar
+                        DrawRegularBar(canvas, leftMargin, y, chartWidth, barHeight, criterion.Value, maxScore);
+                    }
+                }
+                else
                 {
-                    Text = criterion.Value.ToString("F1"),
-                    Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
-                    FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
-                };
-                Canvas.SetLeft(scoreLabel, leftMargin + barWidth + 8);
-                Canvas.SetTop(scoreLabel, y + (barHeight - 20) / 2);
-                canvas.Children.Add(scoreLabel);
+                    // Draw regular bar when no detailed results
+                    DrawRegularBar(canvas, leftMargin, y, chartWidth, barHeight, criterion.Value, maxScore);
+                }
                 
                 // Performance badge
                 var badge = new Border
@@ -382,13 +392,164 @@ namespace AIDevGallery.Pages.Evaluate
             }
         }
         
+        private void DrawBoxPlot(Canvas canvas, double x, double y, double width, double height, 
+                                  double min, double q1, double median, double q3, double max, double mean, double maxScore)
+        {
+            var scale = width / maxScore;
+            var boxY = y + height * 0.25;
+            var boxHeight = height * 0.5;
+            
+            // Whiskers (min to q1, q3 to max)
+            var minX = x + min * scale;
+            var q1X = x + q1 * scale;
+            var medianX = x + median * scale;
+            var q3X = x + q3 * scale;
+            var maxX = x + max * scale;
+            var meanX = x + mean * scale;
+            
+            // Left whisker
+            var leftWhisker = new Line
+            {
+                X1 = minX, Y1 = y + height / 2,
+                X2 = q1X, Y2 = y + height / 2,
+                Stroke = new SolidColorBrush(Color.FromArgb(255, 100, 100, 100)),
+                StrokeThickness = 2
+            };
+            canvas.Children.Add(leftWhisker);
+            
+            // Right whisker
+            var rightWhisker = new Line
+            {
+                X1 = q3X, Y1 = y + height / 2,
+                X2 = maxX, Y2 = y + height / 2,
+                Stroke = new SolidColorBrush(Color.FromArgb(255, 100, 100, 100)),
+                StrokeThickness = 2
+            };
+            canvas.Children.Add(rightWhisker);
+            
+            // Min/Max caps
+            DrawWhiskerCap(canvas, minX, y + height * 0.35, height * 0.3);
+            DrawWhiskerCap(canvas, maxX, y + height * 0.35, height * 0.3);
+            
+            // Box (Q1 to Q3)
+            var box = new Rectangle
+            {
+                Width = q3X - q1X,
+                Height = boxHeight,
+                Fill = new SolidColorBrush(Color.FromArgb(100, 33, 150, 243)),
+                Stroke = new SolidColorBrush(Color.FromArgb(255, 33, 150, 243)),
+                StrokeThickness = 2
+            };
+            Canvas.SetLeft(box, q1X);
+            Canvas.SetTop(box, boxY);
+            canvas.Children.Add(box);
+            
+            // Median line
+            var medianLine = new Line
+            {
+                X1 = medianX, Y1 = boxY,
+                X2 = medianX, Y2 = boxY + boxHeight,
+                Stroke = new SolidColorBrush(Color.FromArgb(255, 50, 50, 50)),
+                StrokeThickness = 3
+            };
+            canvas.Children.Add(medianLine);
+            
+            // Mean marker (diamond)
+            var meanMarker = new Polygon
+            {
+                Points = new Microsoft.UI.Xaml.Media.PointCollection
+                {
+                    new Windows.Foundation.Point(meanX - 4, y + height / 2),
+                    new Windows.Foundation.Point(meanX, y + height / 2 - 4),
+                    new Windows.Foundation.Point(meanX + 4, y + height / 2),
+                    new Windows.Foundation.Point(meanX, y + height / 2 + 4)
+                },
+                Fill = new SolidColorBrush(Color.FromArgb(255, 255, 152, 0)),
+                Stroke = new SolidColorBrush(Color.FromArgb(255, 255, 111, 0)),
+                StrokeThickness = 1
+            };
+            canvas.Children.Add(meanMarker);
+        }
+        
+        private void DrawWhiskerCap(Canvas canvas, double x, double y, double height)
+        {
+            var cap = new Line
+            {
+                X1 = x, Y1 = y,
+                X2 = x, Y2 = y + height,
+                Stroke = new SolidColorBrush(Color.FromArgb(255, 100, 100, 100)),
+                StrokeThickness = 2
+            };
+            canvas.Children.Add(cap);
+        }
+        
+        private void DrawRegularBar(Canvas canvas, double x, double y, double width, double height, double value, double maxScore)
+        {
+            // Regular bar
+            var barWidth = (value / maxScore) * width;
+            var bar = new Rectangle
+            {
+                Width = barWidth,
+                Height = height,
+                Fill = new SolidColorBrush(GetScoreColor(value)),
+                RadiusX = 4,
+                RadiusY = 4
+            };
+            Canvas.SetLeft(bar, x);
+            Canvas.SetTop(bar, y);
+            canvas.Children.Add(bar);
+            
+            // Score label
+            var scoreLabel = new TextBlock
+            {
+                Text = value.ToString("F1"),
+                Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+            };
+            Canvas.SetLeft(scoreLabel, x + barWidth + 8);
+            Canvas.SetTop(scoreLabel, y + (height - 20) / 2);
+            canvas.Children.Add(scoreLabel);
+        }
+        
+        private double GetMedian(List<double> sortedValues)
+        {
+            int count = sortedValues.Count;
+            if (count == 0) return 0;
+            
+            if (count % 2 == 0)
+            {
+                return (sortedValues[count / 2 - 1] + sortedValues[count / 2]) / 2.0;
+            }
+            else
+            {
+                return sortedValues[count / 2];
+            }
+        }
+        
+        private double GetQuartile(List<double> sortedValues, double quartile)
+        {
+            if (sortedValues.Count == 0) return 0;
+            
+            double position = (sortedValues.Count - 1) * quartile;
+            int lower = (int)Math.Floor(position);
+            int upper = (int)Math.Ceiling(position);
+            
+            if (lower == upper)
+            {
+                return sortedValues[lower];
+            }
+            
+            double weight = position - lower;
+            return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight;
+        }
+        
         private Color GetScoreColor(double score)
         {
             return score switch
             {
-                >= 4.5 => Color.FromArgb(255, 76, 175, 80),    // Green
-                >= 3.5 => Color.FromArgb(255, 33, 150, 243),   // Blue
-                >= 2.5 => Color.FromArgb(255, 255, 193, 7),    // Yellow
+                >= 4.0 => Color.FromArgb(255, 76, 175, 80),    // Green
+                >= 3.0 => Color.FromArgb(255, 33, 150, 243),   // Blue
+                >= 2.0 => Color.FromArgb(255, 255, 193, 7),    // Yellow
                 _ => Color.FromArgb(255, 255, 87, 34)          // Orange
             };
         }
@@ -397,9 +558,9 @@ namespace AIDevGallery.Pages.Evaluate
         {
             return score switch
             {
-                >= 4.5 => "Excellent",
-                >= 3.5 => "Good",
-                >= 2.5 => "Fair",
+                >= 4.0 => "Excellent",
+                >= 3.0 => "Good",
+                >= 2.0 => "Fair",
                 _ => "Needs Improvement"
             };
         }
@@ -460,6 +621,20 @@ namespace AIDevGallery.Pages.Evaluate
                 
                 // Sort criteria scores by score descending
                 folderItem.CriteriaScores = folderItem.CriteriaScores.OrderByDescending(c => c.Score).ToList();
+                
+                // Calculate statistics
+                if (folderItem.CriteriaScores.Any())
+                {
+                    var scores = folderItem.CriteriaScores.Select(c => c.Score).ToList();
+                    var mean = scores.Average();
+                    var min = scores.Min();
+                    var max = scores.Max();
+                    var stdDev = CalculateStandardDeviation(scores);
+                    
+                    folderItem.MeanScoreText = mean.ToString("F2");
+                    folderItem.StdDevText = stdDev.ToString("F2");
+                    folderItem.RangeText = $"{min:F1}-{max:F1}";
+                }
                 
                 folderItems.Add(folderItem);
             }
@@ -894,7 +1069,6 @@ namespace AIDevGallery.Pages.Evaluate
         private void UpdateImagePreviewArea()
         {
             // This method prepares the image preview area when individual results are available
-            // Currently, individual results are not persisted, but the UI is ready for when they are
             if (_viewModel.ItemResults != null && _viewModel.ItemResults.Count > 0)
             {
                 var resultCount = _viewModel.ItemResults.Count;
@@ -907,15 +1081,171 @@ namespace AIDevGallery.Pages.Evaluate
             {
                 ImageResultsSummary.Text = "No individual results available";
             }
+            
+            // Load dataset folder structure if available
+            if (!string.IsNullOrEmpty(_viewModel.DatasetPath))
+            {
+                LoadDatasetFolderStructure(_viewModel.DatasetPath);
+            }
+            else
+            {
+                // Show empty state
+                ImageFileTreeView.Visibility = Visibility.Collapsed;
+                ImageFileEmptyState.Visibility = Visibility.Visible;
+            }
+        }
+        
+        private async void LoadDatasetFolderStructure(string datasetPath)
+        {
+            try
+            {
+                if (!System.IO.Directory.Exists(datasetPath))
+                {
+                    System.Diagnostics.Debug.WriteLine($"Dataset folder not found: {datasetPath}");
+                    ImageFileTreeView.Visibility = Visibility.Collapsed;
+                    ImageFileEmptyState.Visibility = Visibility.Visible;
+                    return;
+                }
+                
+                // Build tree structure
+                var rootItems = new List<FileTreeItem>();
+                await Task.Run(() => BuildFolderTree(datasetPath, rootItems));
+                
+                // Update UI
+                ImageFileTreeView.ItemsSource = rootItems;
+                ImageFileTreeView.Visibility = Visibility.Visible;
+                ImageFileEmptyState.Visibility = Visibility.Collapsed;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading dataset folder: {ex.Message}");
+                ImageFileTreeView.Visibility = Visibility.Collapsed;
+                ImageFileEmptyState.Visibility = Visibility.Visible;
+            }
+        }
+        
+        private void BuildFolderTree(string path, List<FileTreeItem> items)
+        {
+            try
+            {
+                // Add folders first
+                var folders = System.IO.Directory.GetDirectories(path);
+                foreach (var folder in folders.OrderBy(f => f))
+                {
+                    var folderItem = new FileTreeItem
+                    {
+                        Name = System.IO.Path.GetFileName(folder),
+                        FullPath = folder,
+                        IsFolder = true,
+                        IconGlyph = "\uE8B7", // Folder icon
+                        Children = new List<FileTreeItem>()
+                    };
+                    
+                    // Recursively build children
+                    BuildFolderTree(folder, folderItem.Children);
+                    
+                    // Add score if available from folder statistics
+                    if (_viewModel.FolderStatistics?.ContainsKey(folder) == true)
+                    {
+                        var stats = _viewModel.FolderStatistics[folder];
+                        var avgScore = stats.AverageScores.Values.Any() ? stats.AverageScores.Values.Average() : 0;
+                        folderItem.ScoreText = $"{avgScore:F1}/5";
+                    }
+                    
+                    items.Add(folderItem);
+                }
+                
+                // Add image files
+                var imageExtensions = new[] { ".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".webp" };
+                var files = System.IO.Directory.GetFiles(path)
+                    .Where(f => imageExtensions.Contains(System.IO.Path.GetExtension(f).ToLower()))
+                    .OrderBy(f => f);
+                
+                foreach (var file in files)
+                {
+                    var fileItem = new FileTreeItem
+                    {
+                        Name = System.IO.Path.GetFileName(file),
+                        FullPath = file,
+                        IsFolder = false,
+                        IconGlyph = "\uEB9F", // Image icon
+                        Children = new List<FileTreeItem>()
+                    };
+                    
+                    // Add score if available from item results
+                    var itemResult = _viewModel.ItemResults?.FirstOrDefault(r => r.ImagePath == file);
+                    if (itemResult != null)
+                    {
+                        fileItem.ScoreText = $"{itemResult.AverageScore:F1}/5";
+                    }
+                    
+                    items.Add(fileItem);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error building folder tree: {ex.Message}");
+            }
+        }
+        
+        private void ImageSearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // TODO: Implement search filtering
+            var searchText = ImageSearchBox.Text?.Trim() ?? "";
+            System.Diagnostics.Debug.WriteLine($"Search text: {searchText}");
+        }
+        
+        private void ImageFileTreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
+        {
+            if (args.InvokedItem is FileTreeItem fileItem && !fileItem.IsFolder)
+            {
+                // TODO: Show image preview and details
+                System.Diagnostics.Debug.WriteLine($"Selected image: {fileItem.FullPath}");
+            }
         }
         
         private async void PrintReport_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // For now, export to HTML and let the user print from browser
-                // WinUI 3 printing is complex and requires significant setup
+                // Show a dialog explaining the print process
+                var dialog = new ContentDialog
+                {
+                    Title = "Print Evaluation Report",
+                    Content = new StackPanel
+                    {
+                        Spacing = 12,
+                        Children =
+                        {
+                            new TextBlock 
+                            { 
+                                Text = "To print your evaluation report:",
+                                Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"]
+                            },
+                            new TextBlock 
+                            { 
+                                Text = "1. Save the report as an HTML file\n2. The file will open in your browser\n3. Use your browser's print function (Ctrl+P or Cmd+P)",
+                                TextWrapping = TextWrapping.Wrap
+                            },
+                            new TextBlock 
+                            { 
+                                Text = "The report includes all evaluation data, charts, and statistics in a print-friendly format.",
+                                Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                                TextWrapping = TextWrapping.Wrap
+                            }
+                        }
+                    },
+                    PrimaryButtonText = "Continue",
+                    CloseButtonText = "Cancel",
+                    XamlRoot = this.XamlRoot,
+                    DefaultButton = ContentDialogButton.Primary
+                };
                 
+                var result = await dialog.ShowAsync();
+                if (result != ContentDialogResult.Primary) return;
+                
+                // Proceed with saving HTML file
                 var savePicker = new FileSavePicker();
                 savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
                 savePicker.FileTypeChoices.Add("HTML Report", new List<string>() { ".html" });
@@ -934,13 +1264,32 @@ namespace AIDevGallery.Pages.Evaluate
                     var htmlContent = GenerateHtmlReport();
                     await Windows.Storage.FileIO.WriteTextAsync(file, htmlContent);
                     
-                    // Optionally open the file
+                    // Open the file in the default browser
                     await Windows.System.Launcher.LaunchFileAsync(file);
+                    
+                    // Show success message
+                    var successDialog = new ContentDialog
+                    {
+                        Title = "Report Saved Successfully",
+                        Content = "Your report has been saved and opened in your browser. Use your browser's print function (Ctrl+P or Cmd+P) to print the report.",
+                        CloseButtonText = "OK",
+                        XamlRoot = this.XamlRoot
+                    };
+                    await successDialog.ShowAsync();
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error generating print report: {ex.Message}");
+                
+                var errorDialog = new ContentDialog
+                {
+                    Title = "Error",
+                    Content = "An error occurred while generating the report. Please try again.",
+                    CloseButtonText = "OK",
+                    XamlRoot = this.XamlRoot
+                };
+                await errorDialog.ShowAsync();
             }
         }
         
@@ -1076,10 +1425,10 @@ namespace AIDevGallery.Pages.Evaluate
             html.AppendLine("</div>");
             html.AppendLine("<p style='margin-top: 15px; font-size: 0.85em; color: #666;'>");
             html.AppendLine("<strong>Scale:</strong> ");
-            html.AppendLine("<span class='badge needs-improvement'>1-2.4 Needs Improvement</span> ");
-            html.AppendLine("<span class='badge fair'>2.5-3.4 Fair</span> ");
-            html.AppendLine("<span class='badge good'>3.5-4.4 Good</span> ");
-            html.AppendLine("<span class='badge excellent'>4.5-5.0 Excellent</span>");
+            html.AppendLine("<span class='badge needs-improvement'>0-1.9 Needs Improvement</span> ");
+            html.AppendLine("<span class='badge fair'>2.0-2.9 Fair</span> ");
+            html.AppendLine("<span class='badge good'>3.0-3.9 Good</span> ");
+            html.AppendLine("<span class='badge excellent'>4.0-5.0 Excellent</span>");
             html.AppendLine("</p>");
             html.AppendLine("</div>");
             
@@ -1365,6 +1714,12 @@ namespace AIDevGallery.Pages.Evaluate
         public string AverageScoreText { get; set; } = "";
         public Brush ScoreBrush { get; set; } = new SolidColorBrush(Color.FromArgb(255, 128, 128, 128));
         public List<FolderCriteriaScore> CriteriaScores { get; set; } = new List<FolderCriteriaScore>();
+        
+        // Statistical properties
+        public Visibility HasStatistics => ItemCount > 0 ? Visibility.Visible : Visibility.Collapsed;
+        public string MeanScoreText { get; set; } = "0.0";
+        public string StdDevText { get; set; } = "0.0";
+        public string RangeText { get; set; } = "0.0-0.0";
 
         public bool IsExpanded
         {
@@ -1413,5 +1768,16 @@ namespace AIDevGallery.Pages.Evaluate
         public double Score { get; set; }
         public string ScoreText { get; set; } = "";
         public Brush StatusBrush { get; set; } = new SolidColorBrush(Color.FromArgb(255, 128, 128, 128));
+    }
+    
+    // Helper class for file tree items
+    public class FileTreeItem
+    {
+        public string Name { get; set; } = "";
+        public string FullPath { get; set; } = "";
+        public bool IsFolder { get; set; }
+        public string IconGlyph { get; set; } = "";
+        public string ScoreText { get; set; } = "";
+        public List<FileTreeItem> Children { get; set; } = new List<FileTreeItem>();
     }
 }
