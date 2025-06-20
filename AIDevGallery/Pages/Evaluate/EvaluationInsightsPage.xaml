@@ -248,7 +248,7 @@
                                             Click="SaveChartAsImage_Click"
                                             ToolTipService.ToolTip="Save chart as image"
                                             Style="{StaticResource SubtleButtonStyle}">
-                                        <FontIcon Glyph="&#xEB9F;" FontSize="14"/>
+                                        <FontIcon Glyph="&#xE74E;" FontSize="14"/>
                                     </Button>
                                 </StackPanel>
                             </Grid>
@@ -405,7 +405,12 @@
                     <!-- Statistical Summary (shown when detailed data available) -->
                     <Grid x:Name="StatisticalSummaryCard" 
                           Style="{StaticResource CardGridStyle}"
-                          Visibility="Collapsed">
+                          Visibility="Collapsed"
+                          Padding="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/> <!-- Header -->
+                            <RowDefinition Height="Auto"/> <!-- Stats -->
+                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
@@ -415,6 +420,55 @@
                         </Grid.ColumnDefinitions>
                         
                         <!-- Stats will be added programmatically -->
+                    </Grid>
+                    
+                    <!-- Image Preview Area (Future Enhancement) -->
+                    <Grid x:Name="ImagePreviewArea" 
+                          Style="{StaticResource CardGridStyle}"
+                          Visibility="Collapsed"
+                          MinHeight="400">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"/> <!-- File navigation -->
+                            <ColumnDefinition Width="*"/>   <!-- Preview and details -->
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Left: File Navigation -->
+                        <Grid Grid.Column="0" 
+                              Background="{ThemeResource LayerFillColorDefaultBrush}"
+                              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                              BorderThickness="0,0,1,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" 
+                                       Text="Image Results" 
+                                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                                       Margin="16"/>
+                            
+                            <!-- File list will be added when individual results are available -->
+                            <TextBlock Grid.Row="1" 
+                                       Text="Individual image results will be displayed here when available"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="16"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center"/>
+                        </Grid>
+                        
+                        <!-- Right: Image Preview and Metadata -->
+                        <Grid Grid.Column="1" Padding="24">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="Select an image from the left to view details"
+                                           Style="{StaticResource BodyTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                     
                 </StackPanel>

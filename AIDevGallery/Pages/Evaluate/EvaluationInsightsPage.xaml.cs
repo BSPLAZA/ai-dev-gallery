@@ -137,8 +137,8 @@ namespace AIDevGallery.Pages.Evaluate
                 FolderViewToggle.Visibility = Visibility.Collapsed;
             }
             
-            // Show statistical summary if detailed results available
-            if (_viewModel.HasDetailedResults)
+            // Show statistical summary - always show if we have criteria scores
+            if (_viewModel.CriteriaScores != null && _viewModel.CriteriaScores.Count > 0)
             {
                 UpdateStatisticalSummary();
                 StatisticalSummaryCard.Visibility = Visibility.Visible;
@@ -189,34 +189,6 @@ namespace AIDevGallery.Pages.Evaluate
             Grid.SetRow(chartCanvas, 0);
             chartGrid.Children.Add(chartCanvas);
             
-            // Add axis labels
-            var axisGrid = new Grid
-            {
-                Margin = new Thickness(0, 8, 0, 0)
-            };
-            Grid.SetRow(axisGrid, 1);
-            
-            // X-axis labels (1-5 scale)
-            var xLabels = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                Spacing = 50
-            };
-            
-            for (int i = 1; i <= 5; i++)
-            {
-                xLabels.Children.Add(new TextBlock
-                {
-                    Text = i.ToString(),
-                    Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
-                    Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
-                });
-            }
-            
-            axisGrid.Children.Add(xLabels);
-            chartGrid.Children.Add(axisGrid);
-            
             // Draw bars after layout is updated
             chartCanvas.Loaded += (s, e) => DrawBars(chartCanvas);
             
@@ -232,42 +204,75 @@ namespace AIDevGallery.Pages.Evaluate
             
             var canvasWidth = canvas.ActualWidth;
             var canvasHeight = canvas.ActualHeight;
-            var barHeight = Math.Min(40, (canvasHeight - 40) / _viewModel.CriteriaScores.Count);
+            var barHeight = Math.Min(40, (canvasHeight - 60) / _viewModel.CriteriaScores.Count); // More space for axis
             var maxScore = 5.0;
-            var chartWidth = canvasWidth - 200; // Leave more space for labels and badges
+            var leftMargin = 130; // Space for criterion labels
+            var rightMargin = 150; // Space for badges
+            var chartWidth = canvasWidth - leftMargin - rightMargin;
+            var chartStartY = 20;
+            var chartHeight = canvasHeight - 60; // Leave space for axis labels
             
-            // Add vertical line at max score (5.0)
-            var maxScoreLine = new Line
+            // Add grid lines and labels for X-axis (1-5 scale)
+            for (int i = 1; i <= 5; i++)
             {
-                X1 = 130 + chartWidth,
-                Y1 = 10,
-                X2 = 130 + chartWidth,
-                Y2 = canvasHeight - 10,
-                Stroke = new SolidColorBrush(Color.FromArgb(128, 128, 128, 128)), // Semi-transparent gray
-                StrokeThickness = 1,
-                StrokeDashArray = new DoubleCollection { 2, 2 } // Dotted line
-            };
-            canvas.Children.Add(maxScoreLine);
+                var x = leftMargin + (i - 1) * (chartWidth / 4);
+                
+                // Vertical grid line
+                var gridLine = new Line
+                {
+                    X1 = x,
+                    Y1 = chartStartY,
+                    X2 = x,
+                    Y2 = chartStartY + chartHeight,
+                    Stroke = (Brush)Application.Current.Resources["DividerStrokeColorDefaultBrush"],
+                    StrokeThickness = 1,
+                    Opacity = 0.2
+                };
+                
+                // Make the max score line more prominent
+                if (i == 5)
+                {
+                    gridLine.Stroke = new SolidColorBrush(Color.FromArgb(128, 128, 128, 128));
+                    gridLine.StrokeDashArray = new DoubleCollection { 2, 2 };
+                    gridLine.Opacity = 1;
+                }
+                
+                canvas.Children.Add(gridLine);
+                
+                // X-axis label
+                var label = new TextBlock
+                {
+                    Text = i.ToString(),
+                    Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                    Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                    HorizontalAlignment = HorizontalAlignment.Center
+                };
+                Canvas.SetLeft(label, x - 5);
+                Canvas.SetTop(label, chartStartY + chartHeight + 5);
+                canvas.Children.Add(label);
+            }
             
+            // Draw criteria bars
             int index = 0;
             foreach (var criterion in _viewModel.CriteriaScores)
             {
-                var y = index * (barHeight + 10) + 20;
+                var y = chartStartY + index * (barHeight + 10);
                 
                 // Criterion label
                 var label = new TextBlock
                 {
                     Text = criterion.Key,
                     Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
-                    Width = 120,
-                    TextTrimming = TextTrimming.CharacterEllipsis
+                    Width = leftMargin - 20,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    TextAlignment = TextAlignment.Right
                 };
                 Canvas.SetLeft(label, 10);
                 Canvas.SetTop(label, y + (barHeight - 20) / 2);
                 canvas.Children.Add(label);
                 
-                // Bar (reduced to 80% of maximum width to prevent overlap)
-                var barWidth = (criterion.Value / maxScore) * chartWidth * 0.8;
+                // Bar
+                var barWidth = (criterion.Value / maxScore) * chartWidth;
                 var bar = new Rectangle
                 {
                     Width = barWidth,
@@ -276,7 +281,7 @@ namespace AIDevGallery.Pages.Evaluate
                     RadiusX = 4,
                     RadiusY = 4
                 };
-                Canvas.SetLeft(bar, 130);
+                Canvas.SetLeft(bar, leftMargin);
                 Canvas.SetTop(bar, y);
                 canvas.Children.Add(bar);
                 
@@ -287,7 +292,7 @@ namespace AIDevGallery.Pages.Evaluate
                     Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
                     FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
                 };
-                Canvas.SetLeft(scoreLabel, 130 + barWidth + 8);
+                Canvas.SetLeft(scoreLabel, leftMargin + barWidth + 8);
                 Canvas.SetTop(scoreLabel, y + (barHeight - 20) / 2);
                 canvas.Children.Add(scoreLabel);
                 
@@ -308,8 +313,7 @@ namespace AIDevGallery.Pages.Evaluate
                 };
                 
                 badge.Child = badgeText;
-                // Position badge with more space from the right edge to prevent overlap
-                Canvas.SetLeft(badge, canvasWidth - 120);
+                Canvas.SetLeft(badge, leftMargin + chartWidth + 20);
                 Canvas.SetTop(badge, y + (barHeight - 24) / 2);
                 canvas.Children.Add(badge);
                 
@@ -388,8 +392,94 @@ namespace AIDevGallery.Pages.Evaluate
         
         private void UpdateStatisticalSummary()
         {
-            // This will be implemented when individual results are available
-            // For now, just show aggregate stats
+            // Clear existing content
+            StatisticalSummaryCard.Children.Clear();
+            
+            // Calculate statistics based on criteria scores if individual results not available
+            if (!_viewModel.HasDetailedResults || _viewModel.ItemResults == null || _viewModel.ItemResults.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine("No detailed results available, using criteria averages for statistics");
+                
+                // Use criteria scores for basic statistics
+                var scores = _viewModel.CriteriaScores.Values.ToList();
+                if (scores.Count == 0) return;
+                
+                var mean = scores.Average();
+                var min = scores.Min();
+                var max = scores.Max();
+                var stdDev = CalculateStandardDeviation(scores);
+                
+                // Add summary header
+                var headerText = new TextBlock
+                {
+                    Text = "Statistical Summary (Criteria Averages)",
+                    Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
+                    Margin = new Thickness(16, 16, 16, 12)
+                };
+                Grid.SetColumnSpan(headerText, 5);
+                StatisticalSummaryCard.Children.Add(headerText);
+                
+                // Create stats panels
+                AddStatPanel(0, "Mean", mean.ToString("F2"), 1);
+                AddStatPanel(1, "Std Dev", stdDev.ToString("F2"), 1);
+                AddStatPanel(2, "Min", min.ToString("F2"), 1);
+                AddStatPanel(3, "Max", max.ToString("F2"), 1);
+                AddStatPanel(4, "Criteria", scores.Count.ToString(), 1);
+                
+                return;
+            }
+            
+            // Use detailed results if available
+            System.Diagnostics.Debug.WriteLine($"Using detailed results for statistics ({_viewModel.ItemResults.Count} items)");
+            
+            var summary = _viewModel.GetStatisticalSummary();
+            if (summary == null) return;
+            
+            // Add summary header
+            var detailedHeaderText = new TextBlock
+            {
+                Text = "Statistical Summary (All Items)",
+                Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
+                Margin = new Thickness(16, 16, 16, 12)
+            };
+            Grid.SetColumnSpan(detailedHeaderText, 5);
+            StatisticalSummaryCard.Children.Add(detailedHeaderText);
+            
+            // Create stats panels
+            AddStatPanel(0, "Mean", summary.Mean.ToString("F2"), 1);
+            AddStatPanel(1, "Std Dev", summary.StandardDeviation.ToString("F2"), 1);
+            AddStatPanel(2, "Min", summary.Min.ToString("F2"), 1);
+            AddStatPanel(3, "Max", summary.Max.ToString("F2"), 1);
+            AddStatPanel(4, "Median", summary.Median.ToString("F2"), 1);
+        }
+        
+        private void AddStatPanel(int column, string label, string value, int row)
+        {
+            var panel = new StackPanel 
+            { 
+                Spacing = 4,
+                Margin = new Thickness(16, 8, 16, 16)
+            };
+            
+            var labelText = new TextBlock
+            {
+                Text = label,
+                Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+            };
+            
+            var valueText = new TextBlock
+            {
+                Text = value,
+                Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"]
+            };
+            
+            panel.Children.Add(labelText);
+            panel.Children.Add(valueText);
+            
+            Grid.SetColumn(panel, column);
+            Grid.SetRow(panel, row);
+            StatisticalSummaryCard.Children.Add(panel);
         }
         
         private void ShowEmptyState()
@@ -437,14 +527,139 @@ namespace AIDevGallery.Pages.Evaluate
         
         private async void CopyChart_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement chart copy to clipboard
-            await Task.CompletedTask;
+            try
+            {
+                // Find the chart canvas
+                var chartCanvas = FindChartCanvas();
+                if (chartCanvas == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("Chart canvas not found");
+                    return;
+                }
+                
+                // Create a render target bitmap
+                var renderTargetBitmap = new Microsoft.UI.Xaml.Media.Imaging.RenderTargetBitmap();
+                await renderTargetBitmap.RenderAsync(ChartView);
+                
+                // Get pixels from the rendered bitmap
+                var pixelBuffer = await renderTargetBitmap.GetPixelsAsync();
+                var pixels = pixelBuffer.ToArray();
+                
+                // Create a software bitmap
+                var softwareBitmap = SoftwareBitmap.CreateCopyFromBuffer(
+                    pixelBuffer,
+                    BitmapPixelFormat.Bgra8,
+                    renderTargetBitmap.PixelWidth,
+                    renderTargetBitmap.PixelHeight,
+                    BitmapAlphaMode.Premultiplied);
+                
+                // Create a bitmap encoder
+                var stream = new InMemoryRandomAccessStream();
+                var encoder = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, stream);
+                encoder.SetSoftwareBitmap(softwareBitmap);
+                await encoder.FlushAsync();
+                
+                // Create data package
+                var dataPackage = new DataPackage();
+                dataPackage.SetBitmap(RandomAccessStreamReference.CreateFromStream(stream));
+                dataPackage.Properties.Title = $"{_viewModel.Name} - Evaluation Chart";
+                
+                // Copy to clipboard
+                Clipboard.SetContent(dataPackage);
+                
+                // Show a subtle confirmation (could add a TeachingTip here)
+                System.Diagnostics.Debug.WriteLine("Chart copied to clipboard");
+                
+                // Optional: Show confirmation in UI
+                CopyChartButton.Content = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 4,
+                    Children =
+                    {
+                        new FontIcon { Glyph = "\uE73E", FontSize = 14 }, // Checkmark
+                        new TextBlock { Text = "Copied!" }
+                    }
+                };
+                
+                // Reset button after 2 seconds
+                await Task.Delay(2000);
+                CopyChartButton.Content = new FontIcon { Glyph = "\uE8C8", FontSize = 14 };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error copying chart: {ex.Message}");
+            }
+        }
+        
+        private Canvas? FindChartCanvas()
+        {
+            // Helper method to find the chart canvas in the visual tree
+            return ChartContentGrid.Children.OfType<Grid>().FirstOrDefault()?.Children.OfType<Canvas>().FirstOrDefault();
         }
         
         private async void SaveChartAsImage_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement save chart as image
-            await Task.CompletedTask;
+            try
+            {
+                var savePicker = new FileSavePicker();
+                savePicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+                savePicker.FileTypeChoices.Add("PNG Image", new List<string>() { ".png" });
+                savePicker.FileTypeChoices.Add("JPEG Image", new List<string>() { ".jpg", ".jpeg" });
+                savePicker.SuggestedFileName = $"{_viewModel.Name}_evaluation_chart_{DateTime.Now:yyyyMMdd}";
+                
+                // Get the window handle
+                var window = App.MainWindow;
+                if (window == null) return;
+                
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+                
+                var file = await savePicker.PickSaveFileAsync();
+                if (file != null)
+                {
+                    // Create a render target bitmap
+                    var renderTargetBitmap = new Microsoft.UI.Xaml.Media.Imaging.RenderTargetBitmap();
+                    await renderTargetBitmap.RenderAsync(ChartView);
+                    
+                    // Get pixels from the rendered bitmap
+                    var pixelBuffer = await renderTargetBitmap.GetPixelsAsync();
+                    
+                    // Create a software bitmap
+                    var softwareBitmap = SoftwareBitmap.CreateCopyFromBuffer(
+                        pixelBuffer,
+                        BitmapPixelFormat.Bgra8,
+                        renderTargetBitmap.PixelWidth,
+                        renderTargetBitmap.PixelHeight,
+                        BitmapAlphaMode.Premultiplied);
+                    
+                    // Save to file
+                    using (var stream = await file.OpenAsync(FileAccessMode.ReadWrite))
+                    {
+                        var encoderId = file.FileType.ToLower() == ".png" 
+                            ? BitmapEncoder.PngEncoderId 
+                            : BitmapEncoder.JpegEncoderId;
+                            
+                        var encoder = await BitmapEncoder.CreateAsync(encoderId, stream);
+                        encoder.SetSoftwareBitmap(softwareBitmap);
+                        
+                        // Set image metadata
+                        var properties = new BitmapPropertySet();
+                        properties.Add("System.Comment", new BitmapTypedValue(
+                            $"Evaluation Chart for {_viewModel.Name} - Generated on {DateTime.Now:yyyy-MM-dd HH:mm:ss}", 
+                            PropertyType.String));
+                        
+                        await encoder.BitmapProperties.SetPropertiesAsync(properties);
+                        await encoder.FlushAsync();
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"Chart saved to: {file.Path}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving chart: {ex.Message}");
+            }
         }
         
         private void ExportData_Click(object sender, RoutedEventArgs e)
@@ -523,8 +738,194 @@ namespace AIDevGallery.Pages.Evaluate
         
         private async void PrintReport_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: Implement print report
-            await Task.CompletedTask;
+            try
+            {
+                // Create print document
+                var printDoc = new Windows.UI.Xaml.Printing.PrintDocument();
+                var printDocSource = printDoc.DocumentSource;
+                
+                // Create print task
+                var printTask = Windows.Graphics.Printing.PrintManager.GetForCurrentView().PrintTaskRequested;
+                Windows.Foundation.TypedEventHandler<Windows.Graphics.Printing.PrintManager, Windows.Graphics.Printing.PrintTaskRequestedEventArgs> printTaskHandler = (s, args) =>
+                {
+                    var task = args.Request.CreatePrintTask($"Evaluation Report - {_viewModel.Name}", sourceRequested =>
+                    {
+                        sourceRequested.SetSource(printDocSource);
+                    });
+                    
+                    task.Options.DocumentName = $"Evaluation_Report_{_viewModel.Name}_{DateTime.Now:yyyyMMdd}";
+                };
+                
+                Windows.Graphics.Printing.PrintManager.GetForCurrentView().PrintTaskRequested += printTaskHandler;
+                
+                // Prepare pages when requested
+                printDoc.Paginate += (s, args) =>
+                {
+                    // Create print content
+                    var printContent = CreatePrintContent();
+                    printDoc.SetPreviewPageCount(1, Windows.UI.Xaml.Printing.PreviewPageCountType.Final);
+                };
+                
+                printDoc.GetPreviewPage += (s, args) =>
+                {
+                    printDoc.SetPreviewPage(args.PageNumber, CreatePrintContent());
+                };
+                
+                printDoc.AddPages += (s, args) =>
+                {
+                    printDoc.AddPage(CreatePrintContent());
+                    printDoc.AddPagesComplete();
+                };
+                
+                // Show print UI
+                await Windows.Graphics.Printing.PrintManager.ShowPrintUIAsync();
+                
+                // Clean up event handler
+                Windows.Graphics.Printing.PrintManager.GetForCurrentView().PrintTaskRequested -= printTaskHandler;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error printing report: {ex.Message}");
+            }
+        }
+        
+        private FrameworkElement CreatePrintContent()
+        {
+            // Create a printable version of the report
+            var printGrid = new Grid
+            {
+                Background = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255)),
+                Padding = new Thickness(40),
+                Width = 800
+            };
+            
+            var content = new StackPanel { Spacing = 20 };
+            
+            // Header
+            content.Children.Add(new TextBlock
+            {
+                Text = "Evaluation Insights Report",
+                Style = (Style)Application.Current.Resources["TitleTextBlockStyle"],
+                HorizontalAlignment = HorizontalAlignment.Center
+            });
+            
+            // Evaluation details
+            var detailsPanel = new StackPanel { Spacing = 8 };
+            detailsPanel.Children.Add(new TextBlock
+            {
+                Text = _viewModel.Name,
+                Style = (Style)Application.Current.Resources["SubtitleTextBlockStyle"]
+            });
+            
+            detailsPanel.Children.Add(new TextBlock
+            {
+                Text = $"Model: {_viewModel.ModelName} | Dataset: {_viewModel.DatasetName}",
+                Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
+            });
+            
+            detailsPanel.Children.Add(new TextBlock
+            {
+                Text = $"Date: {_viewModel.Timestamp:MMMM dd, yyyy h:mm tt}",
+                Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
+            });
+            
+            detailsPanel.Children.Add(new TextBlock
+            {
+                Text = $"Overall Score: {_viewModel.AverageScore:F1}/5.0",
+                Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"]
+            });
+            
+            content.Children.Add(detailsPanel);
+            
+            // Add separator
+            content.Children.Add(new Rectangle
+            {
+                Height = 1,
+                Fill = (Brush)Application.Current.Resources["DividerStrokeColorDefaultBrush"],
+                Margin = new Thickness(0, 10, 0, 10)
+            });
+            
+            // Criteria scores
+            content.Children.Add(new TextBlock
+            {
+                Text = "Evaluation Criteria Scores",
+                Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"]
+            });
+            
+            var criteriaGrid = new Grid();
+            criteriaGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
+            criteriaGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            criteriaGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            
+            int row = 0;
+            foreach (var criterion in _viewModel.CriteriaScores)
+            {
+                criteriaGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                
+                var nameText = new TextBlock
+                {
+                    Text = criterion.Key,
+                    Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
+                    Margin = new Thickness(0, 4, 0, 4)
+                };
+                Grid.SetRow(nameText, row);
+                Grid.SetColumn(nameText, 0);
+                criteriaGrid.Children.Add(nameText);
+                
+                var scoreText = new TextBlock
+                {
+                    Text = criterion.Value.ToString("F1"),
+                    Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(0, 4, 0, 4)
+                };
+                Grid.SetRow(scoreText, row);
+                Grid.SetColumn(scoreText, 1);
+                criteriaGrid.Children.Add(scoreText);
+                
+                var ratingText = new TextBlock
+                {
+                    Text = GetPerformanceText(criterion.Value),
+                    Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(0, 4, 0, 4)
+                };
+                Grid.SetRow(ratingText, row);
+                Grid.SetColumn(ratingText, 2);
+                criteriaGrid.Children.Add(ratingText);
+                
+                row++;
+            }
+            
+            content.Children.Add(criteriaGrid);
+            
+            // Statistical summary if available
+            if (StatisticalSummaryCard.Visibility == Visibility.Visible)
+            {
+                content.Children.Add(new Rectangle
+                {
+                    Height = 1,
+                    Fill = (Brush)Application.Current.Resources["DividerStrokeColorDefaultBrush"],
+                    Margin = new Thickness(0, 10, 0, 10)
+                });
+                
+                content.Children.Add(new TextBlock
+                {
+                    Text = "Statistical Summary",
+                    Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"]
+                });
+                
+                // Add stats text
+                var scores = _viewModel.CriteriaScores.Values.ToList();
+                content.Children.Add(new TextBlock
+                {
+                    Text = $"Mean: {scores.Average():F2} | Std Dev: {CalculateStandardDeviation(scores):F2} | Min: {scores.Min():F2} | Max: {scores.Max():F2}",
+                    Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
+                });
+            }
+            
+            printGrid.Children.Add(content);
+            return printGrid;
         }
         
         private string GenerateCsvContent()
