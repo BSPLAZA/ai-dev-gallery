@@ -303,7 +303,39 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
 
     private async void CompareButton_Click(object sender, RoutedEventArgs e)
     {
-        await ShowEnhancedCompareDialog();
+        // Get selected evaluation IDs
+        var selectedEvaluations = AllEvaluations.Where(e => e.IsSelected).ToList();
+        
+        if (selectedEvaluations.Count >= 2 && selectedEvaluations.Count <= 5)
+        {
+            // Navigate to comparison page with selected evaluation IDs
+            var evaluationIds = selectedEvaluations.Select(e => e.Id).ToList();
+            Frame.Navigate(typeof(CompareEvaluationsPage), evaluationIds);
+        }
+        else if (selectedEvaluations.Count < 2)
+        {
+            // Show error dialog
+            var dialog = new ContentDialog
+            {
+                Title = "Selection Required",
+                Content = "Please select at least 2 evaluations to compare.",
+                CloseButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            };
+            await dialog.ShowAsync();
+        }
+        else
+        {
+            // Show error dialog for too many selections
+            var dialog = new ContentDialog
+            {
+                Title = "Too Many Selections",
+                Content = "You can compare up to 5 evaluations at a time. Please deselect some evaluations.",
+                CloseButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            };
+            await dialog.ShowAsync();
+        }
     }
 
     private void ExportButton_Click(object sender, RoutedEventArgs e)
@@ -541,7 +573,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
     // Action bar event handlers
     private async void ActionBar_CompareClicked(object sender, EventArgs e)
     {
-        await ShowEnhancedCompareDialog();
+        await CompareButton_Click(sender, new RoutedEventArgs());
     }
 
     private async void ActionBar_DeleteClicked(object sender, EventArgs e)
