@@ -570,11 +570,10 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             return wizardState.ModelConfig.EvaluationName;
         }
 
-        // For Import Results, create a name based on the dataset
-        if (wizardState.Workflow == EvaluationWorkflow.ImportResults && wizardState.Dataset != null)
+        // For Import Results, use the evaluation name from the dataset upload page
+        if (wizardState.Workflow == EvaluationWorkflow.ImportResults && !string.IsNullOrEmpty(wizardState.EvaluationName))
         {
-            var datasetName = GetDatasetFolderName(wizardState.Dataset);
-            return $"{datasetName} Evaluation";
+            return wizardState.EvaluationName;
         }
 
         // Default fallback

@@ -6,6 +6,7 @@ using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Linq;
 
 namespace AIDevGallery.Pages.Evaluate
 {
@@ -41,7 +42,13 @@ namespace AIDevGallery.Pages.Evaluate
                 bool hasApiKey = !string.IsNullOrWhiteSpace(ApiKeyPasswordBox.Password);
                 bool hasBaselinePrompt = !string.IsNullOrWhiteSpace(BaselinePromptTextBox.Text);
 
-                // If model is selected, API configuration becomes required
+                // Image Description API doesn't need API configuration
+                if (selectedModelId == "image-description-api")
+                {
+                    return hasEvaluationName && hasModelSelected && hasBaselinePrompt;
+                }
+
+                // Other models require API configuration
                 bool modelConfigValid = !hasModelSelected || (hasApiEndpoint && hasApiKey);
 
                 return hasEvaluationName && hasModelSelected && modelConfigValid && hasBaselinePrompt;
@@ -54,25 +61,47 @@ namespace AIDevGallery.Pages.Evaluate
             if (ModelSelectionComboBox.SelectedItem is ComboBoxItem selectedItem)
             {
                 selectedModelId = selectedItem.Tag?.ToString();
-                selectedModelName = selectedItem.Content?.ToString();
+                
+                // For Image Description API, extract the text from the StackPanel
+                if (selectedModelId == "image-description-api" && selectedItem.Content is StackPanel stackPanel)
+                {
+                    var textBlock = stackPanel.Children.OfType<TextBlock>().FirstOrDefault();
+                    selectedModelName = textBlock?.Text ?? "Image Description API";
+                }
+                else
+                {
+                    selectedModelName = selectedItem.Content?.ToString();
+                }
 
-                // Show model configuration panel
-                ModelConfigurationPanel.Visibility = Visibility.Visible;
-
-                // Pre-populate API endpoint based on model
-                PopulateDefaultApiEndpoint();
+                // Show/hide panels based on selection
+                if (selectedModelId == "image-description-api")
+                {
+                    // Show teaching UI, hide configuration
+                    ImageDescriptionApiInfoPanel.Visibility = Visibility.Visible;
+                    ModelConfigurationPanel.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    // Hide teaching UI, show configuration
+                    ImageDescriptionApiInfoPanel.Visibility = Visibility.Collapsed;
+                    ModelConfigurationPanel.Visibility = Visibility.Visible;
+                    
+                    // Pre-populate API endpoint based on model
+                    PopulateDefaultApiEndpoint();
+                    
+                    // Try to load existing API key for this model
+                    LoadExistingApiKey();
+                }
 
                 // Update evaluation name preview
                 UpdateEvaluationNamePreview();
-
-                // Try to load existing API key for this model
-                LoadExistingApiKey();
             }
             else
             {
                 selectedModelId = null;
                 selectedModelName = null;
                 ModelConfigurationPanel.Visibility = Visibility.Collapsed;
+                ImageDescriptionApiInfoPanel.Visibility = Visibility.Collapsed;
                 UpdateEvaluationNamePreview();
             }
 
@@ -265,7 +294,7 @@ namespace AIDevGallery.Pages.Evaluate
                 EvaluationGoal = EvaluationGoalTextBox.Text.Trim(),
                 SelectedModelId = selectedModelId ?? string.Empty,
                 SelectedModelName = selectedModelName ?? string.Empty,
-                ApiEndpoint = ApiEndpointTextBox.Text.Trim(),
+                ApiEndpoint = selectedModelId == "image-description-api" ? "local" : ApiEndpointTextBox.Text.Trim(),
                 BaselinePrompt = BaselinePromptTextBox.Text.Trim()
             };
         }

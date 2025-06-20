@@ -29,6 +29,7 @@ namespace AIDevGallery.Models
         // Two-part upload fields (workflows 2 & 3)
         public string? ModelName { get; set; }
         public string? DefaultPrompt { get; set; }
+        public string? EvaluationName { get; set; } // For ImportResults workflow
         
         // Navigation state
         public int CurrentStep { get; set; } = 1;
@@ -81,6 +82,7 @@ namespace AIDevGallery.Models
             Metrics = null;
             ModelName = null;
             DefaultPrompt = null;
+            EvaluationName = null;
             CurrentStep = 1;
             NavigationHistory.Clear();
         }
@@ -99,6 +101,7 @@ namespace AIDevGallery.Models
                 Metrics = this.Metrics,
                 ModelName = this.ModelName,
                 DefaultPrompt = this.DefaultPrompt,
+                EvaluationName = this.EvaluationName,
                 CurrentStep = this.CurrentStep,
                 NavigationHistory = new Stack<int>(new Stack<int>(this.NavigationHistory))
             };

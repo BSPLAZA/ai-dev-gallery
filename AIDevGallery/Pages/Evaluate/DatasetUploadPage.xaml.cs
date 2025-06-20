@@ -136,6 +136,12 @@ namespace AIDevGallery.Pages.Evaluate
                 UpdateUIForWorkflow();
             }
             
+            // Restore evaluation name for ImportResults workflow
+            if (_currentWorkflow == EvaluationWorkflow.ImportResults && !string.IsNullOrEmpty(_wizardState.EvaluationName))
+            {
+                EvaluationNameTextBox.Text = _wizardState.EvaluationName;
+            }
+            
             // Restore model name and default prompt
             if (!string.IsNullOrEmpty(_wizardState.ModelName))
             {
@@ -156,6 +162,12 @@ namespace AIDevGallery.Pages.Evaluate
 
             // Save current dataset configuration to state
             _wizardState.Dataset = _datasetConfig;
+            
+            // Save evaluation name for ImportResults workflow
+            if (_currentWorkflow == EvaluationWorkflow.ImportResults && !string.IsNullOrWhiteSpace(EvaluationNameTextBox?.Text))
+            {
+                _wizardState.EvaluationName = EvaluationNameTextBox.Text.Trim();
+            }
             
             // Save model name if entered
             if (!string.IsNullOrEmpty(ModelNameInput.Text))
@@ -218,6 +230,8 @@ namespace AIDevGallery.Pages.Evaluate
                     // Show two-part upload for workflow 3
                     SingleUploadArea.Visibility = Visibility.Collapsed;
                     TwoPartUploadArea.Visibility = Visibility.Visible;
+                    // Show evaluation name panel for ImportResults
+                    EvaluationNamePanel.Visibility = Visibility.Visible;
                     // Model/prompt panels will show after successful validation
                     ModelNamePanel.Visibility = Visibility.Collapsed;
                     DefaultPromptPanel.Visibility = Visibility.Collapsed;
@@ -238,7 +252,23 @@ namespace AIDevGallery.Pages.Evaluate
         /// <summary>
         /// Gets a value indicating whether this step has valid input.
         /// </summary>
-        public bool IsValid => _datasetConfig?.ValidationResult?.IsValid ?? false;
+        public bool IsValid
+        {
+            get
+            {
+                // Check basic dataset validity
+                bool hasValidDataset = _datasetConfig?.ValidationResult?.IsValid ?? false;
+                
+                // For ImportResults workflow, also require evaluation name
+                if (_currentWorkflow == EvaluationWorkflow.ImportResults)
+                {
+                    bool hasEvaluationName = !string.IsNullOrWhiteSpace(EvaluationNameTextBox?.Text);
+                    return hasValidDataset && hasEvaluationName;
+                }
+                
+                return hasValidDataset;
+            }
+        }
 
         /// <summary>
         /// Gets the dataset configuration for this step.
@@ -1926,6 +1956,24 @@ namespace AIDevGallery.Pages.Evaluate
                     }
                 }
             }
+        }
+        
+        private void EvaluationNameTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            UpdateValidationState();
+        }
+        
+        private void UpdateValidationState()
+        {
+            // For ImportResults workflow, validate evaluation name
+            if (_currentWorkflow == EvaluationWorkflow.ImportResults && EvaluationNameValidation != null)
+            {
+                bool hasName = !string.IsNullOrWhiteSpace(EvaluationNameTextBox?.Text);
+                EvaluationNameValidation.Visibility = hasName ? Visibility.Collapsed : Visibility.Visible;
+            }
+            
+            // Notify parent of validation change
+            ValidationChanged?.Invoke(IsValid);
         }
         
     }

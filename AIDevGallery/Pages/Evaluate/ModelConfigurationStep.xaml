@@ -96,12 +96,67 @@
                         <ComboBoxItem Content="GPT-4o" Tag="gpt-4o" AutomationProperties.Name="GPT-4o model" />
                         <ComboBoxItem Content="Phi-4 Multimodal" Tag="phi-4-multimodal" AutomationProperties.Name="Phi-4 Multimodal model" />
                         <ComboBoxItem Content="Azure AI Vision (Image Analysis 4.0)" Tag="azure-ai-vision" AutomationProperties.Name="Azure AI Vision Image Analysis 4.0" />
+                        <ComboBoxItem Tag="image-description-api" AutomationProperties.Name="Image Description API">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Image Description API" />
+                                <Border Background="{ThemeResource SystemFillColorSuccessBrush}" 
+                                        CornerRadius="4" 
+                                        Padding="4,2">
+                                    <TextBlock Text="New" 
+                                               FontSize="11" 
+                                               FontWeight="SemiBold"
+                                               Foreground="White" />
+                                </Border>
+                            </StackPanel>
+                        </ComboBoxItem>
                     </ComboBox>
                     <TextBlock 
                         Style="{StaticResource CaptionTextBlockStyle}"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Text="This is the AI model that will be tested in your evaluation" />
                 </StackPanel>
+
+                <!-- Image Description API Teaching UI -->
+                <Border x:Name="ImageDescriptionApiInfoPanel" 
+                        Visibility="Collapsed"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16"
+                        Margin="0,8,0,0">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE946;" 
+                                      FontSize="20"
+                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            <TextBlock Text="Perfect for your scenario!" 
+                                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                        
+                        <TextBlock TextWrapping="Wrap"
+                                   Style="{StaticResource BodyTextBlockStyle}">
+                            <Run Text="The Image Description API uses local AI models optimized for Copilot+ PC hardware. It provides fast, efficient image analysis without requiring external API calls or internet connectivity." />
+                        </TextBlock>
+                        
+                        <TextBlock TextWrapping="Wrap"
+                                   Style="{StaticResource BodyTextBlockStyle}"
+                                   Margin="0,-8,0,0">
+                            <Run Text="Key benefits:" FontWeight="SemiBold" />
+                            <LineBreak />
+                            <Run Text="• Runs locally on your device" />
+                            <LineBreak />
+                            <Run Text="• No API keys or configuration needed" />
+                            <LineBreak />
+                            <Run Text="• Optimized for Windows AI Platform" />
+                        </TextBlock>
+                        
+                        <HyperlinkButton Content="Learn more about Image Description API"
+                                         NavigateUri="https://learn.microsoft.com/windows/ai/apis/image-description"
+                                         HorizontalAlignment="Left" />
+                    </StackPanel>
+                </Border>
 
                 <!-- Model Configuration (shows when model selected) -->
                 <StackPanel x:Name="ModelConfigurationPanel" Spacing="12" Visibility="Collapsed">

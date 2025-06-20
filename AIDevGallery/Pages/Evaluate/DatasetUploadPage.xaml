@@ -172,6 +172,24 @@
                 Visibility="Collapsed"
                 Spacing="24">
                 
+                <!-- Evaluation Name for Import Results workflow -->
+                <StackPanel x:Name="EvaluationNamePanel" Spacing="8" Visibility="Collapsed">
+                    <TextBlock 
+                        Text="Evaluation Name"
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBox 
+                        x:Name="EvaluationNameTextBox"
+                        PlaceholderText="Enter a name for this evaluation"
+                        AutomationProperties.Name="Evaluation name"
+                        TextChanged="EvaluationNameTextBox_TextChanged" />
+                    <TextBlock 
+                        x:Name="EvaluationNameValidation"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                        Visibility="Collapsed"
+                        Text="Please enter an evaluation name" />
+                </StackPanel>
+                
                 <!-- Part 1: Image Dataset Upload -->
                 <StackPanel Spacing="8">
                     <TextBlock 
