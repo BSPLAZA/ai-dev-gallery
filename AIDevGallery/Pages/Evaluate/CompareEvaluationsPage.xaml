@@ -296,13 +296,15 @@ Licensed under the MIT License.
 
                             <ItemsRepeater Grid.Row="1">
                                 <ItemsRepeater.ItemsSource>
-                                    <x:String>📊 Advanced statistical analysis and significance testing</x:String>
-                                    <x:String>💰 Cost efficiency comparisons</x:String>
-                                    <x:String>⚡ Performance and latency metrics</x:String>
-                                    <x:String>🔄 Historical trend analysis</x:String>
-                                    <x:String>🤖 AI-generated recommendations</x:String>
-                                    <x:String>📈 Custom metric weighting</x:String>
-                                    <x:String>🎯 Subset analysis (compare specific folders/categories)</x:String>
+                                    <x:Array Type="x:String">
+                                        <x:String>📊 Advanced statistical analysis and significance testing</x:String>
+                                        <x:String>💰 Cost efficiency comparisons</x:String>
+                                        <x:String>⚡ Performance and latency metrics</x:String>
+                                        <x:String>🔄 Historical trend analysis</x:String>
+                                        <x:String>🤖 AI-generated recommendations</x:String>
+                                        <x:String>📈 Custom metric weighting</x:String>
+                                        <x:String>🎯 Subset analysis (compare specific folders/categories)</x:String>
+                                    </x:Array>
                                 </ItemsRepeater.ItemsSource>
                                 <ItemsRepeater.ItemTemplate>
                                     <DataTemplate x:DataType="x:String">
