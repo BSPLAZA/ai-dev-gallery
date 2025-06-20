@@ -21,7 +21,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Media;
 using Windows.UI;
-using Windows.UI.Text;
+using Microsoft.UI.Text;
 
 namespace AIDevGallery.Pages;
 
@@ -437,7 +437,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             { 
                 Text = title,
                 Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
-                FontWeight = Windows.UI.Text.FontWeights.SemiBold
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
             });
             textPanel.Children.Add(new TextBlock 
             { 
