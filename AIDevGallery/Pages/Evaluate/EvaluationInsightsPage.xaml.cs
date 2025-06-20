@@ -920,6 +920,42 @@ namespace AIDevGallery.Pages.Evaluate
             return ChartContentGrid.Children.OfType<Grid>().FirstOrDefault()?.Children.OfType<Canvas>().FirstOrDefault();
         }
         
+        private async void CopyFileName_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Get the filename from the text block
+                var fileName = ImageFileNameText.Text;
+                if (string.IsNullOrEmpty(fileName))
+                    return;
+                    
+                // Copy to clipboard
+                var dataPackage = new DataPackage();
+                dataPackage.SetText(fileName);
+                Clipboard.SetContent(dataPackage);
+                
+                // Show feedback
+                CopyFileNameButton.Content = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 4,
+                    Children =
+                    {
+                        new FontIcon { Glyph = "\uE73E", FontSize = 14 }, // Checkmark
+                        new TextBlock { Text = "Copied!" }
+                    }
+                };
+                
+                // Reset button after 2 seconds
+                await Task.Delay(2000);
+                CopyFileNameButton.Content = new FontIcon { Glyph = "\uE8C8", FontSize = 14 };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error copying filename: {ex.Message}");
+            }
+        }
+        
         private async void SaveChartAsImage_Click(object sender, RoutedEventArgs e)
         {
             try

@@ -802,8 +802,25 @@
                                                     <TextBlock Text="File Information"
                                                                Style="{StaticResource CaptionTextBlockStyle}"
                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
-                                                    <TextBlock x:Name="ImageFileNameText"
-                                                               Style="{StaticResource BodyTextBlockStyle}"/>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0"
+                                                                   x:Name="ImageFileNameText"
+                                                                   Style="{StaticResource BodyTextBlockStyle}"
+                                                                   VerticalAlignment="Center"/>
+                                                        <Button Grid.Column="1"
+                                                                x:Name="CopyFileNameButton"
+                                                                Click="CopyFileName_Click"
+                                                                ToolTipService.ToolTip="Copy filename"
+                                                                Style="{StaticResource SubtleButtonStyle}"
+                                                                Margin="8,0,0,0"
+                                                                Padding="8">
+                                                            <FontIcon Glyph="&#xE8C8;" FontSize="14"/>
+                                                        </Button>
+                                                    </Grid>
                                                     <TextBlock x:Name="ImagePathText"
                                                                Style="{StaticResource CaptionTextBlockStyle}"
                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
