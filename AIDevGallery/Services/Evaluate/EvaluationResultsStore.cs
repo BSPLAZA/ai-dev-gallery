@@ -22,6 +22,7 @@ internal interface IEvaluationResultsStore
     Task SaveEvaluationAsync(EvaluationResult evaluation);
     Task DeleteEvaluationAsync(string id);
     Task<EvaluationResult> ImportFromJsonlAsync(string jsonlPath, string evaluationName);
+    Task SimulateProgressAsync();
 }
 
 internal class EvaluationResultsStore : IEvaluationResultsStore
@@ -394,7 +395,7 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                 Name = "Product Description Quality Assessment",
                 ModelName = "GPT-4 Vision",
                 DatasetName = "ecommerce_product_images.jsonl",
-                DatasetItemCount = 2500,
+                DatasetItemCount = 998,
                 Timestamp = DateTime.Now.AddDays(-14),
                 WorkflowType = EvaluationWorkflow.ImportResults,
                 Status = EvaluationStatus.Completed,
@@ -438,12 +439,12 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                 Name = "Real-time Code Review Assistant",
                 ModelName = "CodeLlama-34B-Instruct",
                 DatasetName = "github_pull_requests.jsonl",
-                DatasetItemCount = 1200,
+                DatasetItemCount = 850,
                 Timestamp = DateTime.Now.AddHours(-3),
                 WorkflowType = EvaluationWorkflow.EvaluateResponses,
                 Status = EvaluationStatus.Running,
-                ProgressPercentage = 78,
-                CurrentOperation = "Analyzing code quality metrics...",
+                ProgressPercentage = 15,
+                CurrentOperation = "Initializing evaluation pipeline...",
                 CriteriaScores = new Dictionary<string, double>
                 {
                     { "Bug Detection", 4.1 },
@@ -461,7 +462,7 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                 Name = "Multi-Language Customer Support",
                 ModelName = "Mixtral-8x7B-Instruct",
                 DatasetName = "support_tickets_multilingual.jsonl",
-                DatasetItemCount = 3200,
+                DatasetItemCount = 1000,
                 Timestamp = DateTime.Now.AddDays(-5),
                 WorkflowType = EvaluationWorkflow.ImportResults,
                 Status = EvaluationStatus.Completed,
@@ -504,7 +505,7 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                 Name = "Educational Content Generator",
                 ModelName = "GPT-4 Turbo",
                 DatasetName = "k12_curriculum_prompts.jsonl",
-                DatasetItemCount = 1800,
+                DatasetItemCount = 945,
                 Timestamp = DateTime.Now.AddHours(-18),
                 WorkflowType = EvaluationWorkflow.ImportResults,
                 Status = EvaluationStatus.Completed,
@@ -526,7 +527,7 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
                 Name = "Educational Content Generator - Baseline",
                 ModelName = "Claude 3 Haiku",
                 DatasetName = "k12_curriculum_prompts.jsonl",
-                DatasetItemCount = 1800,
+                DatasetItemCount = 945,
                 Timestamp = DateTime.Now.AddDays(-1),
                 WorkflowType = EvaluationWorkflow.ImportResults,
                 Status = EvaluationStatus.Completed,
@@ -709,6 +710,63 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
             {
                 System.Diagnostics.Debug.WriteLine($"  Error loading folder stats: {ex.Message}");
             }
+        }
+    }
+    
+    public async Task SimulateProgressAsync()
+    {
+        // Find running evaluations and update their progress
+        var runningEvaluations = _evaluations.Where(e => e.Status == EvaluationStatus.Running).ToList();
+        
+        foreach (var eval in runningEvaluations)
+        {
+            // Increment progress by 2-5%
+            var increment = Random.Shared.Next(2, 6);
+            eval.ProgressPercentage = Math.Min(100, (eval.ProgressPercentage ?? 0) + increment);
+            
+            // Update operation message based on progress
+            if (eval.ProgressPercentage < 30)
+            {
+                eval.CurrentOperation = "Initializing evaluation pipeline...";
+            }
+            else if (eval.ProgressPercentage < 50)
+            {
+                eval.CurrentOperation = "Processing dataset items...";
+            }
+            else if (eval.ProgressPercentage < 70)
+            {
+                eval.CurrentOperation = "Analyzing model responses...";
+            }
+            else if (eval.ProgressPercentage < 90)
+            {
+                eval.CurrentOperation = "Calculating evaluation metrics...";
+            }
+            else if (eval.ProgressPercentage < 100)
+            {
+                eval.CurrentOperation = "Finalizing results...";
+            }
+            else
+            {
+                // Complete the evaluation
+                eval.Status = EvaluationStatus.Completed;
+                eval.ProgressPercentage = 100;
+                eval.CurrentOperation = null;
+                eval.Duration = TimeSpan.FromHours(2.3);
+                
+                // Slightly improve scores to show completion
+                if (eval.CriteriaScores != null)
+                {
+                    var improvedScores = new Dictionary<string, double>();
+                    foreach (var kvp in eval.CriteriaScores)
+                    {
+                        improvedScores[kvp.Key] = Math.Min(5.0, kvp.Value + 0.1);
+                    }
+                    eval.CriteriaScores = improvedScores;
+                }
+            }
+            
+            // Save the updated evaluation
+            await SaveEvaluationAsync(eval);
         }
     }
 }

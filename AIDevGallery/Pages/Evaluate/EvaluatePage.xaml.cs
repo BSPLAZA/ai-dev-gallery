@@ -215,6 +215,10 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
 
     private async void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
+        // Simulate progress for running evaluations
+        await _evaluationStore.SimulateProgressAsync();
+        
+        // Reload the list
         await LoadEvaluationsAsync();
     }
 
