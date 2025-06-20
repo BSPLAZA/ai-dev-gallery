@@ -621,12 +621,40 @@
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 
-                                <!-- Search Box -->
-                                <TextBox Grid.Row="0" 
-                                         x:Name="ImageSearchBox"
-                                         PlaceholderText="Search images..."
-                                         Margin="16,16,16,8"
-                                         TextChanged="ImageSearchBox_TextChanged"/>
+                                <!-- Search and Filter -->
+                                <StackPanel Grid.Row="0" Margin="16,16,16,8" Spacing="8">
+                                    <TextBox x:Name="ImageSearchBox"
+                                             PlaceholderText="Search images..."
+                                             TextChanged="ImageSearchBox_TextChanged"/>
+                                    
+                                    <!-- Filter Options -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <ToggleButton x:Name="ErrorFilterToggle"
+                                                      Click="ErrorFilterToggle_Click">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE783;" FontSize="14"/>
+                                                <TextBlock Text="Errors" FontSize="12"/>
+                                            </StackPanel>
+                                        </ToggleButton>
+                                        
+                                        <ToggleButton x:Name="HighScoreFilterToggle"
+                                                      Click="HighScoreFilterToggle_Click">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE734;" FontSize="14"/>
+                                                <TextBlock Text="Highest Scores" FontSize="12"/>
+                                            </StackPanel>
+                                        </ToggleButton>
+                                        
+                                        <Button x:Name="ClearFiltersButton"
+                                                Click="ClearFilters_Click"
+                                                Visibility="Collapsed">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE894;" FontSize="14"/>
+                                                <TextBlock Text="Clear" FontSize="12"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
                                 
                                 <!-- Results Summary -->
                                 <TextBlock Grid.Row="1" 

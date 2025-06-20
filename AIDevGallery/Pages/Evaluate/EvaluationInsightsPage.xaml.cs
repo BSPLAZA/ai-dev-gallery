@@ -28,6 +28,9 @@ namespace AIDevGallery.Pages.Evaluate
     {
         private IEvaluationResultsStore _evaluationStore = default!;
         private EvaluationInsightsViewModel _viewModel = default!;
+        private List<FileTreeItem> _allTreeItems = new List<FileTreeItem>();
+        private bool _filterByErrors = false;
+        private bool _filterByHighScores = false;
         
         public EvaluationInsightsPage()
         {
@@ -1162,7 +1165,8 @@ namespace AIDevGallery.Pages.Evaluate
                     // If we have items, show the tree view
                     if (rootItems.Count > 0)
                     {
-                        ImageFileTreeView.ItemsSource = rootItems;
+                        _allTreeItems = rootItems; // Store original items for filtering
+                        ApplyFilters(); // This will update ImageFileTreeView.ItemsSource
                         ImageFileTreeView.Visibility = Visibility.Visible;
                         ImageFileEmptyState.Visibility = Visibility.Collapsed;
                         System.Diagnostics.Debug.WriteLine($"Showing tree view with {rootItems.Count} root items");
@@ -1309,9 +1313,172 @@ namespace AIDevGallery.Pages.Evaluate
         
         private void ImageSearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // TODO: Implement search filtering
-            var searchText = ImageSearchBox.Text?.Trim() ?? "";
-            System.Diagnostics.Debug.WriteLine($"Search text: {searchText}");
+            ApplyFilters();
+        }
+        
+        private void ErrorFilterToggle_Click(object sender, RoutedEventArgs e)
+        {
+            _filterByErrors = ErrorFilterToggle.IsChecked ?? false;
+            if (_filterByErrors)
+            {
+                // Turn off high score filter when error filter is on
+                _filterByHighScores = false;
+                HighScoreFilterToggle.IsChecked = false;
+            }
+            UpdateFilterButtons();
+            ApplyFilters();
+        }
+        
+        private void HighScoreFilterToggle_Click(object sender, RoutedEventArgs e)
+        {
+            _filterByHighScores = HighScoreFilterToggle.IsChecked ?? false;
+            if (_filterByHighScores)
+            {
+                // Turn off error filter when high score filter is on
+                _filterByErrors = false;
+                ErrorFilterToggle.IsChecked = false;
+            }
+            UpdateFilterButtons();
+            ApplyFilters();
+        }
+        
+        private void ClearFilters_Click(object sender, RoutedEventArgs e)
+        {
+            _filterByErrors = false;
+            _filterByHighScores = false;
+            ErrorFilterToggle.IsChecked = false;
+            HighScoreFilterToggle.IsChecked = false;
+            ImageSearchBox.Text = "";
+            UpdateFilterButtons();
+            ApplyFilters();
+        }
+        
+        private void UpdateFilterButtons()
+        {
+            ClearFiltersButton.Visibility = (_filterByErrors || _filterByHighScores || !string.IsNullOrEmpty(ImageSearchBox.Text)) 
+                ? Visibility.Visible : Visibility.Collapsed;
+        }
+        
+        private void ApplyFilters()
+        {
+            if (_allTreeItems == null || _allTreeItems.Count == 0)
+                return;
+                
+            var searchText = ImageSearchBox.Text?.Trim().ToLower() ?? "";
+            var filteredItems = new List<FileTreeItem>();
+            
+            // Find the highest score if needed
+            double highestScore = 0;
+            if (_filterByHighScores && _viewModel.ItemResults != null)
+            {
+                highestScore = _viewModel.ItemResults.Max(r => r.AverageScore);
+            }
+            
+            foreach (var folderItem in _allTreeItems)
+            {
+                var filteredFolder = new FileTreeItem
+                {
+                    Name = folderItem.Name,
+                    FullPath = folderItem.FullPath,
+                    IsFolder = true,
+                    IconGlyph = folderItem.IconGlyph,
+                    ScoreText = folderItem.ScoreText,
+                    Children = new List<FileTreeItem>(),
+                    Tag = folderItem.Tag
+                };
+                
+                // Get the folder's items for filtering
+                var folderResults = folderItem.Tag as List<EvaluationItemResult>;
+                if (folderResults != null)
+                {
+                    foreach (var itemResult in folderResults)
+                    {
+                        bool includeItem = true;
+                        
+                        // Apply search filter
+                        if (!string.IsNullOrEmpty(searchText))
+                        {
+                            includeItem = itemResult.FileName.ToLower().Contains(searchText);
+                        }
+                        
+                        // Apply error filter
+                        if (includeItem && _filterByErrors)
+                        {
+                            includeItem = HasErrorInMetadata(itemResult);
+                        }
+                        
+                        // Apply high score filter
+                        if (includeItem && _filterByHighScores)
+                        {
+                            includeItem = Math.Abs(itemResult.AverageScore - highestScore) < 0.01;
+                        }
+                        
+                        if (includeItem)
+                        {
+                            var fileItem = new FileTreeItem
+                            {
+                                Name = itemResult.FileName,
+                                FullPath = itemResult.ImagePath,
+                                IsFolder = false,
+                                IconGlyph = "\uEB9F",
+                                ScoreText = $"{itemResult.AverageScore:F1}/5",
+                                Children = new List<FileTreeItem>(),
+                                Tag = itemResult
+                            };
+                            filteredFolder.Children.Add(fileItem);
+                        }
+                    }
+                }
+                
+                // Only add folder if it has children after filtering
+                if (filteredFolder.Children.Count > 0)
+                {
+                    // Update folder score text with filtered count
+                    var parts = filteredFolder.ScoreText.Split('(');
+                    filteredFolder.ScoreText = $"{parts[0].Trim()} ({filteredFolder.Children.Count} items)";
+                    filteredItems.Add(filteredFolder);
+                }
+            }
+            
+            // Update tree view
+            ImageFileTreeView.ItemsSource = filteredItems;
+            
+            // Update summary
+            var totalFilteredItems = filteredItems.Sum(f => f.Children.Count);
+            var filterStatus = "";
+            if (_filterByErrors) filterStatus = " • Showing errors";
+            else if (_filterByHighScores) filterStatus = $" • Showing highest scores ({highestScore:F1})";
+            if (!string.IsNullOrEmpty(searchText)) filterStatus += $" • Searching: \"{searchText}\"";
+            
+            ImageResultsSummary.Text = $"{totalFilteredItems} images{filterStatus}";
+        }
+        
+        private bool HasErrorInMetadata(EvaluationItemResult item)
+        {
+            // Check if item has custom metadata
+            if (item.CustomMetadata != null)
+            {
+                foreach (var metadata in item.CustomMetadata)
+                {
+                    // Check if any metadata contains "error" (case-insensitive)
+                    // excluding the fields mentioned by the user
+                    var key = metadata.Key.ToLower();
+                    var value = metadata.Value?.ToString()?.ToLower() ?? "";
+                    
+                    if ((key.Contains("error") || value.Contains("error")))
+                    {
+                        return true;
+                    }
+                }
+            }
+            
+            // Also check the Error property
+            if (!string.IsNullOrEmpty(item.Error))
+            {
+                return true;
+            }
+            
+            return false;
         }
         
         private async void ImageFileTreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
