@@ -1082,17 +1082,10 @@ namespace AIDevGallery.Pages.Evaluate
                 ImageResultsSummary.Text = "No individual results available";
             }
             
-            // Load dataset folder structure if available
-            if (!string.IsNullOrEmpty(_viewModel.DatasetPath))
-            {
-                LoadDatasetFolderStructure(_viewModel.DatasetPath);
-            }
-            else
-            {
-                // Show empty state
-                ImageFileTreeView.Visibility = Visibility.Collapsed;
-                ImageFileEmptyState.Visibility = Visibility.Visible;
-            }
+            // For now, dataset folder structure is not available in the view model
+            // Show empty state until dataset path is added to the data model
+            ImageFileTreeView.Visibility = Visibility.Collapsed;
+            ImageFileEmptyState.Visibility = Visibility.Visible;
         }
         
         private async void LoadDatasetFolderStructure(string datasetPath)
