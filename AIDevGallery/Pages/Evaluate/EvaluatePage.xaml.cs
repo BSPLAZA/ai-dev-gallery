@@ -437,7 +437,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             { 
                 Text = title,
                 Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
-                FontWeight = FontWeights.SemiBold
+                FontWeight = Windows.UI.Text.FontWeights.SemiBold
             });
             textPanel.Children.Add(new TextBlock 
             { 
