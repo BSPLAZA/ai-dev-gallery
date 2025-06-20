@@ -20,6 +20,7 @@ using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.UI;
 using Microsoft.UI.Xaml.Media.Imaging;
+using System.IO;
 
 namespace AIDevGallery.Pages.Evaluate
 {
@@ -1047,9 +1048,45 @@ namespace AIDevGallery.Pages.Evaluate
             }
         }
         
-        private void Share_Click(object sender, RoutedEventArgs e)
+        private async void ImageFileTreeView_Expanding(TreeView sender, TreeViewExpandingEventArgs args)
         {
-            // TODO: Implement share functionality (future)
+            if (args.Node.Content is FileTreeItem folderItem && folderItem.IsFolder)
+            {
+                // Check if we need to load children
+                if (folderItem.Children.Count == 0 && folderItem.Tag is List<EvaluationItemResult> folderResults)
+                {
+                    folderItem.IsLoading = true;
+                    
+                    try
+                    {
+                        // Load children on background thread
+                        await Task.Run(() =>
+                        {
+                            foreach (var item in folderResults.OrderBy(i => i.FileName))
+                            {
+                                var fileItem = new FileTreeItem
+                                {
+                                    Name = item.FileName,
+                                    FullPath = item.ImagePath,
+                                    IsFolder = false,
+                                    IconGlyph = "\uEB9F", // Image icon
+                                    ScoreText = $"{item.AverageScore:F1}/5",
+                                    Children = new List<FileTreeItem>(),
+                                    Tag = item
+                                };
+                                folderItem.Children.Add(fileItem);
+                            }
+                        });
+                        
+                        // Small delay to show loading animation
+                        await Task.Delay(100);
+                    }
+                    finally
+                    {
+                        folderItem.IsLoading = false;
+                    }
+                }
+            }
         }
         
         private void FolderItem_Click(object sender, RoutedEventArgs e)
@@ -1103,30 +1140,16 @@ namespace AIDevGallery.Pages.Evaluate
                                 IsFolder = true,
                                 IconGlyph = "\uE8B7", // Folder icon
                                 Children = new List<FileTreeItem>(),
-                                IsExpanded = false // Start collapsed for better performance
+                                IsExpanded = false, // Start collapsed for better performance
+                                // Store folder group for lazy loading
+                                Tag = folderGroup.ToList()
                             };
                             
                             // Calculate folder average score
                             var folderAvgScore = folderGroup.Average(i => i.AverageScore);
-                            folderItem.ScoreText = $"{folderAvgScore:F1}/5";
+                            folderItem.ScoreText = $"{folderAvgScore:F1}/5 ({folderGroup.Count()} items)";
                             
-                            // Add files in this folder
-                            foreach (var item in folderGroup.OrderBy(i => i.FileName))
-                            {
-                                var fileItem = new FileTreeItem
-                                {
-                                    Name = item.FileName,
-                                    FullPath = item.ImagePath,
-                                    IsFolder = false,
-                                    IconGlyph = "\uEB9F", // Image icon
-                                    ScoreText = $"{item.AverageScore:F1}/5",
-                                    Children = new List<FileTreeItem>(),
-                                    // Store the item result for later use
-                                    Tag = item
-                                };
-                                folderItem.Children.Add(fileItem);
-                            }
-                            
+                            // Don't add children yet - we'll load them on demand
                             items.Add(folderItem);
                         }
                         
@@ -1324,6 +1347,51 @@ namespace AIDevGallery.Pages.Evaluate
             }
         }
         
+        private void ShowImageError(string message)
+        {
+            PreviewImage.Visibility = Visibility.Collapsed;
+            
+            var previewGrid = PreviewImage.Parent as Grid;
+            if (previewGrid != null)
+            {
+                // Remove any existing error messages
+                for (int i = previewGrid.Children.Count - 1; i >= 0; i--)
+                {
+                    if (previewGrid.Children[i] is StackPanel)
+                    {
+                        previewGrid.Children.RemoveAt(i);
+                    }
+                }
+                
+                // Add error message
+                var errorPanel = new StackPanel
+                {
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Spacing = 8
+                };
+                
+                var errorIcon = new FontIcon
+                {
+                    Glyph = "\uE783", // Error icon
+                    FontSize = 48,
+                    Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+                };
+                errorPanel.Children.Add(errorIcon);
+                
+                var errorText = new TextBlock
+                {
+                    Text = message,
+                    Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                    Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                    TextAlignment = TextAlignment.Center
+                };
+                errorPanel.Children.Add(errorText);
+                
+                previewGrid.Children.Add(errorPanel);
+            }
+        }
+        
         private async Task ShowImagePreview(FileTreeItem fileItem, EvaluationItemResult itemResult)
         {
             try
@@ -1378,42 +1446,111 @@ namespace AIDevGallery.Pages.Evaluate
                     PromptResponseContainer.Visibility = Visibility.Collapsed;
                 }
                 
-                // Update processing info
-                ProcessingTimeText.Text = $"Processing time: {itemResult.ProcessingTime.TotalSeconds:F1} seconds";
+                // Update processing info and metadata
+                ProcessingTimeText.Visibility = Visibility.Collapsed; // Hide processing time
                 AverageScoreText2.Text = $"Average score: {itemResult.AverageScore:F1}/5";
+                
+                // Display custom metadata if available
+                if (itemResult.HasCustomMetadata && itemResult.CustomMetadata != null)
+                {
+                    var metadataSection = ProcessingTimeText.Parent as StackPanel;
+                    if (metadataSection != null)
+                    {
+                        // Clear existing metadata entries (keep the header and average score)
+                        while (metadataSection.Children.Count > 2)
+                        {
+                            metadataSection.Children.RemoveAt(2);
+                        }
+                        
+                        // Add each metadata entry
+                        foreach (var metadata in itemResult.CustomMetadata.OrderBy(m => m.Key))
+                        {
+                            var metadataPanel = new Grid { Margin = new Thickness(0, 4, 0, 0) };
+                            metadataPanel.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                            metadataPanel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                            
+                            var keyText = new TextBlock
+                            {
+                                Text = $"{metadata.Key}:",
+                                Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                                Margin = new Thickness(0, 0, 8, 0)
+                            };
+                            Grid.SetColumn(keyText, 0);
+                            metadataPanel.Children.Add(keyText);
+                            
+                            var valueText = new TextBlock
+                            {
+                                Text = metadata.Value?.ToString() ?? "null",
+                                Style = (Style)Application.Current.Resources["BodyTextBlockStyle"],
+                                TextWrapping = TextWrapping.Wrap
+                            };
+                            Grid.SetColumn(valueText, 1);
+                            metadataPanel.Children.Add(valueText);
+                            
+                            metadataSection.Children.Add(metadataPanel);
+                        }
+                    }
+                }
                 
                 // Show metadata panel
                 ImageMetadataPanel.Visibility = Visibility.Visible;
                 
-                // Try to load the image
-                // Note: In a real app, you'd load from the actual file path
-                // For demo purposes, we'll just show a placeholder since we don't have access to the actual images
-                await Task.Delay(500); // Simulate loading
-                
-                // Since we can't load the actual image file, show a placeholder
-                // In production, you would use:
-                // var file = await StorageFile.GetFileFromPathAsync(fileItem.FullPath);
-                // var stream = await file.OpenAsync(FileAccessMode.Read);
-                // var bitmapImage = new BitmapImage();
-                // await bitmapImage.SetSourceAsync(stream);
-                // PreviewImage.Source = bitmapImage;
-                
-                ImageLoadingRing.IsActive = false;
-                
-                // Show error message instead of image
-                var noImageText = new TextBlock
+                // Try to load the actual image
+                try
                 {
-                    Text = "Image preview not available in demo mode",
-                    Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
-                    Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center
-                };
-                
-                var previewGrid = PreviewImage.Parent as Grid;
-                if (previewGrid != null && !previewGrid.Children.Contains(noImageText))
+                    string imagePath = fileItem.FullPath;
+                    
+                    // If we have a dataset base path and the image path is relative, combine them
+                    if (!string.IsNullOrEmpty(_viewModel.DatasetBasePath) && !Path.IsPathRooted(imagePath))
+                    {
+                        imagePath = Path.Combine(_viewModel.DatasetBasePath, imagePath);
+                        System.Diagnostics.Debug.WriteLine($"Resolved image path: {imagePath}");
+                    }
+                    
+                    // Check if file exists first
+                    if (!File.Exists(imagePath))
+                    {
+                        // Try with just the filename in the dataset base path
+                        if (!string.IsNullOrEmpty(_viewModel.DatasetBasePath))
+                        {
+                            var fileName = Path.GetFileName(fileItem.FullPath);
+                            var altPath = Path.Combine(_viewModel.DatasetBasePath, fileName);
+                            if (File.Exists(altPath))
+                            {
+                                imagePath = altPath;
+                                System.Diagnostics.Debug.WriteLine($"Found image at alternate path: {imagePath}");
+                            }
+                        }
+                    }
+                    
+                    // Attempt to load the image file
+                    var file = await StorageFile.GetFileFromPathAsync(imagePath);
+                    var stream = await file.OpenAsync(FileAccessMode.Read);
+                    var bitmapImage = new BitmapImage();
+                    await bitmapImage.SetSourceAsync(stream);
+                    PreviewImage.Source = bitmapImage;
+                    PreviewImage.Visibility = Visibility.Visible;
+                }
+                catch (UnauthorizedAccessException)
                 {
-                    previewGrid.Children.Add(noImageText);
+                    // Show error message for access denied
+                    ShowImageError("Access denied to image file");
+                }
+                catch (FileNotFoundException)
+                {
+                    // Show error message for file not found
+                    ShowImageError($"Image file not found: {fileItem.Name}");
+                }
+                catch (Exception ex)
+                {
+                    // Show generic error message
+                    System.Diagnostics.Debug.WriteLine($"Error loading image: {ex}");
+                    ShowImageError($"Cannot load image: {ex.Message}");
+                }
+                finally
+                {
+                    ImageLoadingRing.IsActive = false;
                 }
             }
             catch (Exception ex)
@@ -1831,6 +1968,66 @@ namespace AIDevGallery.Pages.Evaluate
                 }
                 html.AppendLine("</table>");
                 
+                // Perfect score items (5.0)
+                var perfectScoreItems = _viewModel.ItemResults
+                    .Where(r => r.IsSuccess && Math.Abs(r.AverageScore - 5.0) < 0.01)
+                    .ToList();
+                
+                if (perfectScoreItems.Any())
+                {
+                    html.AppendLine("<h4>Perfect Score Items (5.0/5.0)</h4>");
+                    html.AppendLine($"<p><strong>Total:</strong> {perfectScoreItems.Count} items achieved perfect scores</p>");
+                    html.AppendLine("<table>");
+                    html.AppendLine("<tr><th>Image</th><th>All Criteria</th></tr>");
+                    
+                    foreach (var item in perfectScoreItems.Take(20))
+                    {
+                        var criteriaList = string.Join(", ", item.CriteriaScores.Keys);
+                        html.AppendLine("<tr>");
+                        html.AppendLine($"<td>{item.FileName}</td>");
+                        html.AppendLine($"<td>{criteriaList}</td>");
+                        html.AppendLine("</tr>");
+                    }
+                    
+                    if (perfectScoreItems.Count > 20)
+                    {
+                        html.AppendLine("<tr>");
+                        html.AppendLine($"<td colspan='2'><em>... and {perfectScoreItems.Count - 20} more items with perfect scores</em></td>");
+                        html.AppendLine("</tr>");
+                    }
+                    html.AppendLine("</table>");
+                }
+                
+                // Zero score items (0.0)
+                var zeroScoreItems = _viewModel.ItemResults
+                    .Where(r => r.IsSuccess && r.AverageScore < 0.01)
+                    .ToList();
+                
+                if (zeroScoreItems.Any())
+                {
+                    html.AppendLine("<h4>Zero Score Items (0.0/5.0)</h4>");
+                    html.AppendLine($"<p><strong>Total:</strong> {zeroScoreItems.Count} items scored 0.0</p>");
+                    html.AppendLine("<table>");
+                    html.AppendLine("<tr><th>Image</th><th>Failed Criteria</th></tr>");
+                    
+                    foreach (var item in zeroScoreItems.Take(20))
+                    {
+                        var criteriaList = string.Join(", ", item.CriteriaScores.Where(c => c.Value < 0.01).Select(c => c.Key));
+                        html.AppendLine("<tr>");
+                        html.AppendLine($"<td>{item.FileName}</td>");
+                        html.AppendLine($"<td>{criteriaList}</td>");
+                        html.AppendLine("</tr>");
+                    }
+                    
+                    if (zeroScoreItems.Count > 20)
+                    {
+                        html.AppendLine("<tr>");
+                        html.AppendLine($"<td colspan='2'><em>... and {zeroScoreItems.Count - 20} more items with zero scores</em></td>");
+                        html.AppendLine("</tr>");
+                    }
+                    html.AppendLine("</table>");
+                }
+                
                 // Error summary if any
                 var errorItems = _viewModel.ItemResults.Where(r => !r.IsSuccess).ToList();
                 if (errorItems.Any())
@@ -2131,7 +2328,7 @@ namespace AIDevGallery.Pages.Evaluate
     }
     
     // Helper class for file tree items
-    public class FileTreeItem
+    public class FileTreeItem : INotifyPropertyChanged
     {
         public string Name { get; set; } = "";
         public string FullPath { get; set; } = "";
@@ -2139,7 +2336,35 @@ namespace AIDevGallery.Pages.Evaluate
         public string IconGlyph { get; set; } = "";
         public string ScoreText { get; set; } = "";
         public List<FileTreeItem> Children { get; set; } = new List<FileTreeItem>();
-        public bool IsExpanded { get; set; }
+        
+        private bool _isExpanded;
+        public bool IsExpanded 
+        { 
+            get => _isExpanded;
+            set
+            {
+                _isExpanded = value;
+                OnPropertyChanged();
+            }
+        }
+        
+        private bool _isLoading;
+        public bool IsLoading 
+        { 
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged();
+            }
+        }
+        
         public object? Tag { get; set; } // For storing associated data like EvaluationItemResult
+        
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

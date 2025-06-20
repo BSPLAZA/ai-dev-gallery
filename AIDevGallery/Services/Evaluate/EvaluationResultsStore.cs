@@ -479,6 +479,7 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
             ModelName = evaluation.ModelName,
             DatasetName = evaluation.DatasetName,
             DatasetItemCount = evaluation.DatasetItemCount,
+            DatasetBasePath = evaluation.DatasetBasePath,
             WorkflowType = evaluation.WorkflowType,
             Status = evaluation.Status,
             Timestamp = evaluation.Timestamp,

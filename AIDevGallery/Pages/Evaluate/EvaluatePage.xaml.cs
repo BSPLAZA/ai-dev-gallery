@@ -604,6 +604,7 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
                 ModelName = wizardState.ModelName ?? wizardState.ModelConfig?.SelectedModelName ?? "Unknown Model",
                 DatasetName = wizardState.Dataset != null ? GetDatasetFolderName(wizardState.Dataset) : "Unknown Dataset",
                 DatasetItemCount = wizardState.Dataset?.ValidEntries ?? 0,
+                DatasetBasePath = wizardState.Dataset?.BaseDirectory, // Store the base directory for image path resolution
                 Timestamp = DateTime.Now,
                 WorkflowType = wizardState.Workflow ?? EvaluationWorkflow.ImportResults,
                 Status = wizardState.Workflow == EvaluationWorkflow.ImportResults ? EvaluationStatus.Imported : EvaluationStatus.Running,
@@ -615,6 +616,8 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             {
                 // ImportFromJsonlAsync returns a new evaluation with all data populated
                 evaluation = await _evaluationStore.ImportFromJsonlAsync(wizardState.Dataset.FilePath, evaluation.Name);
+                // Preserve the dataset base path from the wizard
+                evaluation.DatasetBasePath = wizardState.Dataset?.BaseDirectory;
                 // Only update dataset name if it would be more meaningful
                 var folderName = GetDatasetFolderName(wizardState.Dataset);
                 if (folderName != "Dataset" && !string.IsNullOrEmpty(folderName))

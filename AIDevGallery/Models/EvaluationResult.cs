@@ -63,6 +63,11 @@ public class EvaluationResult
     public string? SourceFilePath { get; set; }
     
     /// <summary>
+    /// Base directory path for the dataset (used to resolve relative image paths)
+    /// </summary>
+    public string? DatasetBasePath { get; set; }
+    
+    /// <summary>
     /// Individual results for each evaluated item (e.g., images).
     /// This is populated when detailed results are available.
     /// </summary>

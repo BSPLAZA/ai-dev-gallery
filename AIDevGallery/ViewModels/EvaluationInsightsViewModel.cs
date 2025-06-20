@@ -121,6 +121,11 @@ namespace AIDevGallery.ViewModels
         public string? SourceFilePath => _evaluation.SourceFilePath;
         
         /// <summary>
+        /// Gets the dataset base path for resolving image paths.
+        /// </summary>
+        public string? DatasetBasePath => _evaluation.DatasetBasePath;
+        
+        /// <summary>
         /// Gets the formatted duration string.
         /// </summary>
         public string DurationText

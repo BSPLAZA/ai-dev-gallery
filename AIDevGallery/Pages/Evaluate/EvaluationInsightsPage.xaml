@@ -644,6 +644,7 @@
                                         <TreeView x:Name="ImageFileTreeView" 
                                                   SelectionMode="Single"
                                                   ItemInvoked="ImageFileTreeView_ItemInvoked"
+                                                  Expanding="ImageFileTreeView_Expanding"
                                                   Visibility="Collapsed">
                                             <TreeView.ItemTemplate>
                                                 <DataTemplate>
@@ -659,6 +660,13 @@
                                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                                        VerticalAlignment="Center"
                                                                        Margin="8,0,0,0"/>
+                                                            <!-- Loading indicator for folders -->
+                                                            <ProgressRing x:Name="FolderLoadingRing"
+                                                                          Width="16"
+                                                                          Height="16"
+                                                                          IsActive="{Binding IsLoading}"
+                                                                          Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                                          VerticalAlignment="Center"/>
                                                         </StackPanel>
                                                     </TreeViewItem>
                                                 </DataTemplate>
@@ -815,20 +823,22 @@
                                                 </StackPanel>
                                             </Border>
                                             
-                                            <!-- Processing Info -->
+                                            <!-- Processing Info and Metadata -->
                                             <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="4"
                                                     Padding="12">
                                                 <StackPanel Spacing="8">
-                                                    <TextBlock Text="Processing Information"
+                                                    <TextBlock Text="Additional Information"
                                                                Style="{StaticResource CaptionTextBlockStyle}"
                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                                                     <TextBlock x:Name="ProcessingTimeText"
-                                                               Style="{StaticResource BodyTextBlockStyle}"/>
+                                                               Style="{StaticResource BodyTextBlockStyle}"
+                                                               Visibility="Collapsed"/>
                                                     <TextBlock x:Name="AverageScoreText2"
                                                                Style="{StaticResource BodyTextBlockStyle}"/>
+                                                    <!-- Custom metadata entries will be added here dynamically -->
                                                 </StackPanel>
                                             </Border>
                                         </StackPanel>
@@ -896,16 +906,6 @@
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE896;" FontSize="16"/>
                         <TextBlock Text="Export Data"/>
-                    </StackPanel>
-                </Button>
-                
-                <Button x:Name="ShareButton" 
-                        Click="Share_Click"
-                        IsEnabled="False"
-                        ToolTipService.ToolTip="Coming soon">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE72D;" FontSize="16"/>
-                        <TextBlock Text="Share"/>
                     </StackPanel>
                 </Button>
                 
