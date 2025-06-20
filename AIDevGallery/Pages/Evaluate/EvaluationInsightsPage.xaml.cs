@@ -1072,12 +1072,13 @@ namespace AIDevGallery.Pages.Evaluate
                                 var fileItem = new FileTreeItem
                                 {
                                     Name = item.FileName,
-                                    FullPath = item.ImagePath,
+                                    // Store the simple filename, not the full path that might be too long
+                                    FullPath = item.FileName,
                                     IsFolder = false,
                                     IconGlyph = "\uEB9F", // Image icon
                                     ScoreText = $"{item.AverageScore:F1}/5",
                                     Children = new List<FileTreeItem>(),
-                                    Tag = item
+                                    Tag = item // Store the full item result for later use
                                 };
                                 folderItem.Children.Add(fileItem);
                             }
@@ -1129,8 +1130,18 @@ namespace AIDevGallery.Pages.Evaluate
                         var groupedByFolder = _viewModel.ItemResults
                             .Where(r => !string.IsNullOrEmpty(r.ImagePath))
                             .GroupBy(r => {
+                                // Extract folder from the stored image path
                                 var dir = System.IO.Path.GetDirectoryName(r.ImagePath) ?? "";
-                                return string.IsNullOrEmpty(dir) ? "Images" : dir;
+                                // For paths like "unable_to_mask/image.jpg", just use the folder name
+                                if (!System.IO.Path.IsPathRooted(dir) && dir.Contains("/"))
+                                {
+                                    dir = dir.Split('/')[0];
+                                }
+                                else if (string.IsNullOrEmpty(dir) || dir == ".")
+                                {
+                                    dir = "Images";
+                                }
+                                return dir;
                             })
                             .OrderBy(g => g.Key);
                         
@@ -1573,7 +1584,8 @@ namespace AIDevGallery.Pages.Evaluate
                 
                 // Update file info
                 ImageFileNameText.Text = fileItem.Name;
-                ImagePathText.Text = fileItem.FullPath;
+                // Show the stored image path from the result, not the tree item path
+                ImagePathText.Text = itemResult.ImagePath ?? fileItem.FullPath;
                 
                 // Update scores
                 ImageScoresPanel.Children.Clear();
@@ -1670,27 +1682,54 @@ namespace AIDevGallery.Pages.Evaluate
                 {
                     string imagePath = fileItem.FullPath;
                     
-                    // If we have a dataset base path and the image path is relative, combine them
-                    if (!string.IsNullOrEmpty(_viewModel.DatasetBasePath) && !System.IO.Path.IsPathRooted(imagePath))
-                    {
-                        imagePath = System.IO.Path.Combine(_viewModel.DatasetBasePath, imagePath);
-                        System.Diagnostics.Debug.WriteLine($"Resolved image path: {imagePath}");
-                    }
+                    // Log the original path for debugging
+                    System.Diagnostics.Debug.WriteLine($"Original image path: {imagePath}");
+                    System.Diagnostics.Debug.WriteLine($"Dataset base path: {_viewModel.DatasetBasePath}");
                     
-                    // Check if file exists first
-                    if (!File.Exists(imagePath))
+                    // If the path from the TreeView is already a full path and exists, use it
+                    if (System.IO.Path.IsPathRooted(imagePath) && File.Exists(imagePath))
                     {
-                        // Try with just the filename in the dataset base path
-                        if (!string.IsNullOrEmpty(_viewModel.DatasetBasePath))
+                        System.Diagnostics.Debug.WriteLine($"Using existing full path: {imagePath}");
+                    }
+                    // Otherwise, try to resolve the path using the item result's stored path
+                    else if (itemResult != null && !string.IsNullOrEmpty(itemResult.ImagePath))
+                    {
+                        // Try multiple resolution strategies
+                        string[] pathsToTry = new string[]
                         {
-                            var fileName = System.IO.Path.GetFileName(fileItem.FullPath);
-                            var altPath = System.IO.Path.Combine(_viewModel.DatasetBasePath, fileName);
-                            if (File.Exists(altPath))
+                            // Try the stored image path directly
+                            itemResult.ImagePath,
+                            // Try combining base path with stored image path
+                            !string.IsNullOrEmpty(_viewModel.DatasetBasePath) ? 
+                                System.IO.Path.Combine(_viewModel.DatasetBasePath, itemResult.ImagePath) : "",
+                            // Try just the filename from stored path with base path
+                            !string.IsNullOrEmpty(_viewModel.DatasetBasePath) && !string.IsNullOrEmpty(itemResult.ImagePath) ? 
+                                System.IO.Path.Combine(_viewModel.DatasetBasePath, System.IO.Path.GetFileName(itemResult.ImagePath)) : ""
+                        };
+                        
+                        foreach (var pathToTry in pathsToTry.Where(p => !string.IsNullOrEmpty(p)))
+                        {
+                            try
                             {
-                                imagePath = altPath;
-                                System.Diagnostics.Debug.WriteLine($"Found image at alternate path: {imagePath}");
+                                var testPath = System.IO.Path.GetFullPath(pathToTry);
+                                if (File.Exists(testPath) && testPath.Length <= 260)
+                                {
+                                    imagePath = testPath;
+                                    System.Diagnostics.Debug.WriteLine($"Resolved to: {imagePath}");
+                                    break;
+                                }
+                            }
+                            catch
+                            {
+                                // Skip invalid paths
                             }
                         }
+                    }
+                    
+                    // Final validation
+                    if (!File.Exists(imagePath))
+                    {
+                        throw new FileNotFoundException($"Image file not found: {imagePath}");
                     }
                     
                     // Attempt to load the image file
@@ -1710,6 +1749,11 @@ namespace AIDevGallery.Pages.Evaluate
                 {
                     // Show error message for file not found
                     ShowImageError($"Image file not found: {fileItem.Name}");
+                }
+                catch (PathTooLongException)
+                {
+                    // Show error message for path too long
+                    ShowImageError("Path is too long. Try moving the dataset to a shorter path.");
                 }
                 catch (Exception ex)
                 {

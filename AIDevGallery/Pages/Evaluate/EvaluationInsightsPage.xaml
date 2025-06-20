@@ -668,7 +668,8 @@
                                     <!-- File Navigation TreeView with constrained height -->
                                     <ScrollViewer VerticalScrollBarVisibility="Auto"
                                                   HorizontalScrollBarVisibility="Disabled"
-                                                  MaxHeight="600">
+                                                  MaxHeight="600"
+                                                  VerticalAlignment="Top">
                                         <TreeView x:Name="ImageFileTreeView" 
                                                   SelectionMode="Single"
                                                   ItemInvoked="ImageFileTreeView_ItemInvoked"
