@@ -3,6 +3,7 @@
 
 using AIDevGallery.Models;
 using AIDevGallery.Services.Evaluate;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -11,7 +12,6 @@ using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
@@ -24,7 +24,6 @@ using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.System;
 using Windows.UI;
-using Microsoft.UI;
 
 namespace AIDevGallery.Pages.Evaluate
 {
@@ -143,7 +142,8 @@ namespace AIDevGallery.Pages.Evaluate
                 }
             }
 
-            _commonCriteria = commonCriteria.OrderBy(c => c).ToList();
+            _commonCriteria.Clear();
+            _commonCriteria.AddRange(commonCriteria.OrderBy(c => c));
         }
 
         private void BuildCriteriaScores()
