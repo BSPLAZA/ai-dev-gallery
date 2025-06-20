@@ -387,77 +387,179 @@ internal class EvaluationResultsStore : IEvaluationResultsStore
     {
         var sampleEvaluations = new[]
         {
+            // High-performing model with excellent scores
             new EvaluationResult
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = "GPT-4 Customer Support Evaluation",
-                ModelName = "GPT-4",
-                DatasetName = "customer_support_qa.jsonl",
-                DatasetItemCount = 1000,
-                Timestamp = DateTime.Now.AddDays(-7),
+                Name = "Product Description Quality Assessment",
+                ModelName = "GPT-4 Vision",
+                DatasetName = "ecommerce_product_images.jsonl",
+                DatasetItemCount = 2500,
+                Timestamp = DateTime.Now.AddDays(-14),
                 WorkflowType = EvaluationWorkflow.ImportResults,
                 Status = EvaluationStatus.Completed,
-                Duration = TimeSpan.FromMinutes(45),
+                Duration = TimeSpan.FromHours(2.5),
                 CriteriaScores = new Dictionary<string, double>
                 {
-                    { "Accuracy", 4.2 },
-                    { "Helpfulness", 4.5 },
-                    { "Clarity", 4.3 }
+                    { "Accuracy", 4.8 },
+                    { "Completeness", 4.6 },
+                    { "Relevance", 4.9 },
+                    { "Clarity", 4.7 },
+                    { "Detail Level", 4.5 }
                 }
             },
+            
+            // Medical domain evaluation with safety focus
             new EvaluationResult
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = "Claude 3 Medical Q&A Test",
-                ModelName = "Claude 3",
-                DatasetName = "medical_qa_dataset.jsonl",
-                DatasetItemCount = 500,
-                Timestamp = DateTime.Now.AddDays(-3),
+                Name = "Medical Diagnosis Assistant Evaluation",
+                ModelName = "Claude 3 Opus",
+                DatasetName = "medical_case_studies.jsonl",
+                DatasetItemCount = 750,
+                Timestamp = DateTime.Now.AddDays(-10),
                 WorkflowType = EvaluationWorkflow.TestModel,
                 Status = EvaluationStatus.Completed,
-                Duration = TimeSpan.FromMinutes(120),
+                Duration = TimeSpan.FromHours(3.2),
                 CriteriaScores = new Dictionary<string, double>
                 {
-                    { "Medical Accuracy", 4.7 },
-                    { "Safety", 4.9 },
-                    { "Completeness", 4.1 }
+                    { "Diagnostic Accuracy", 4.3 },
+                    { "Safety Compliance", 4.9 },
+                    { "Clinical Reasoning", 4.4 },
+                    { "Patient Communication", 4.6 },
+                    { "Documentation Quality", 4.2 }
                 }
             },
+            
+            // Currently running evaluation
             new EvaluationResult
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = "Llama 2 Code Generation",
-                ModelName = "Llama 2 70B",
-                DatasetName = "code_generation_tasks.jsonl",
-                DatasetItemCount = 250,
-                Timestamp = DateTime.Now.AddDays(-1),
+                Name = "Real-time Code Review Assistant",
+                ModelName = "CodeLlama-34B-Instruct",
+                DatasetName = "github_pull_requests.jsonl",
+                DatasetItemCount = 1200,
+                Timestamp = DateTime.Now.AddHours(-3),
                 WorkflowType = EvaluationWorkflow.EvaluateResponses,
                 Status = EvaluationStatus.Running,
-                ProgressPercentage = 65,
-                CurrentOperation = "Evaluating responses...",
+                ProgressPercentage = 78,
+                CurrentOperation = "Analyzing code quality metrics...",
                 CriteriaScores = new Dictionary<string, double>
                 {
-                    { "Code Correctness", 3.9 },
-                    { "Code Quality", 3.5 },
-                    { "Performance", 3.2 }
+                    { "Bug Detection", 4.1 },
+                    { "Code Style", 3.8 },
+                    { "Security Issues", 4.4 },
+                    { "Performance Tips", 3.6 },
+                    { "Best Practices", 3.9 }
                 }
             },
+            
+            // Multi-language translation evaluation
             new EvaluationResult
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = "Mistral Translation Quality",
-                ModelName = "Mistral 7B",
-                DatasetName = "multilingual_translations.jsonl",
-                DatasetItemCount = 1500,
-                Timestamp = DateTime.Now.AddHours(-12),
+                Name = "Multi-Language Customer Support",
+                ModelName = "Mixtral-8x7B-Instruct",
+                DatasetName = "support_tickets_multilingual.jsonl",
+                DatasetItemCount = 3200,
+                Timestamp = DateTime.Now.AddDays(-5),
                 WorkflowType = EvaluationWorkflow.ImportResults,
                 Status = EvaluationStatus.Completed,
-                Duration = TimeSpan.FromMinutes(30),
+                Duration = TimeSpan.FromHours(1.8),
                 CriteriaScores = new Dictionary<string, double>
                 {
-                    { "Accuracy", 4.0 },
-                    { "Fluency", 4.2 },
-                    { "Grammar", 4.1 }
+                    { "Translation Accuracy", 4.2 },
+                    { "Cultural Appropriateness", 4.5 },
+                    { "Response Helpfulness", 4.3 },
+                    { "Grammar & Fluency", 4.4 },
+                    { "Tone Consistency", 4.1 }
+                }
+            },
+            
+            // Failed evaluation example
+            new EvaluationResult
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Legal Document Analysis",
+                ModelName = "Llama-2-13B-Chat",
+                DatasetName = "legal_contracts_dataset.jsonl",
+                DatasetItemCount = 500,
+                Timestamp = DateTime.Now.AddDays(-2),
+                WorkflowType = EvaluationWorkflow.TestModel,
+                Status = EvaluationStatus.Failed,
+                Duration = TimeSpan.FromMinutes(45),
+                ErrorMessage = "Model timeout: Response generation exceeded 30 second limit on 127 documents",
+                CriteriaScores = new Dictionary<string, double>
+                {
+                    { "Legal Accuracy", 2.8 },
+                    { "Citation Quality", 2.3 },
+                    { "Completeness", 2.1 }
+                }
+            },
+            
+            // Recent high-quality evaluation
+            new EvaluationResult
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Educational Content Generator",
+                ModelName = "GPT-4 Turbo",
+                DatasetName = "k12_curriculum_prompts.jsonl",
+                DatasetItemCount = 1800,
+                Timestamp = DateTime.Now.AddHours(-18),
+                WorkflowType = EvaluationWorkflow.ImportResults,
+                Status = EvaluationStatus.Completed,
+                Duration = TimeSpan.FromHours(2.1),
+                CriteriaScores = new Dictionary<string, double>
+                {
+                    { "Educational Value", 4.7 },
+                    { "Age Appropriateness", 4.8 },
+                    { "Engagement Level", 4.5 },
+                    { "Factual Accuracy", 4.9 },
+                    { "Learning Objectives", 4.6 }
+                }
+            },
+            
+            // Comparative evaluation for same dataset
+            new EvaluationResult
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Educational Content Generator - Baseline",
+                ModelName = "Claude 3 Haiku",
+                DatasetName = "k12_curriculum_prompts.jsonl",
+                DatasetItemCount = 1800,
+                Timestamp = DateTime.Now.AddDays(-1),
+                WorkflowType = EvaluationWorkflow.ImportResults,
+                Status = EvaluationStatus.Completed,
+                Duration = TimeSpan.FromMinutes(55),
+                CriteriaScores = new Dictionary<string, double>
+                {
+                    { "Educational Value", 4.3 },
+                    { "Age Appropriateness", 4.5 },
+                    { "Engagement Level", 4.2 },
+                    { "Factual Accuracy", 4.6 },
+                    { "Learning Objectives", 4.4 }
+                }
+            },
+            
+            // Specialized domain evaluation
+            new EvaluationResult
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Financial Report Summarization",
+                ModelName = "Gemini Pro 1.5",
+                DatasetName = "quarterly_earnings_reports.jsonl",
+                DatasetItemCount = 450,
+                Timestamp = DateTime.Now.AddDays(-8),
+                WorkflowType = EvaluationWorkflow.EvaluateResponses,
+                Status = EvaluationStatus.Completed,
+                Duration = TimeSpan.FromHours(1.3),
+                CriteriaScores = new Dictionary<string, double>
+                {
+                    { "Numerical Accuracy", 4.6 },
+                    { "Key Points Coverage", 4.4 },
+                    { "Clarity", 4.3 },
+                    { "Conciseness", 4.7 },
+                    { "Financial Terminology", 4.5 }
                 }
             }
         };

@@ -1,6 +1,6 @@
 # Documentation Status
 
-*Last Updated: June 19, 2025*
+*Last Updated: June 20, 2025*
 
 ## Current Documentation Structure
 
@@ -9,6 +9,7 @@
 - **current-state.md** - Accurate implementation status
 - **TODO.md** - Consolidated task list with clear phases
 - **architecture/data-model.md** - Core data structures
+- **evaluation-insights.md** - Comprehensive guide to insights feature ✨ NEW
 
 ### 📁 Archive Organization
 - **planning-archive/** - Historical docs organized by phase
@@ -32,6 +33,8 @@ Create these when backend is functional:
 - **importing-results.md** - JSONL format specification
 - **understanding-metrics.md** - Score interpretation guide
 - **troubleshooting.md** - Common issues and solutions
+- ✅ **viewing-insights.md** - How to use insights page (Ready to write)
+- ✅ **comparing-evaluations.md** - How to compare results (Ready to write)
 
 ### Developer Guide  
 Create when ready for contributions:
@@ -78,8 +81,19 @@ Create when ready for contributions:
 
 The documentation is now clean and accurately reflects the current state:
 - UI/UX is complete with V3 compact list design
+- **Evaluation Insights feature is fully implemented** ✨
+- **Comparison view is complete and functional** ✨
 - Backend execution is not implemented
 - Import Results workflow is the only one that produces real data
 - All other workflows create mock evaluation records
 
 This structure will grow organically as features are implemented.
+
+## Recent Updates (June 2025)
+
+- Completed Phase 2: Visualization & Insights
+- Added comprehensive insights page with charts and tables
+- Implemented individual results browser
+- Added multi-evaluation comparison functionality
+- Full export support (CSV, JSON, HTML)
+- Archived planning documents in phase-3-current

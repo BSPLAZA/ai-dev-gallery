@@ -72,6 +72,10 @@ namespace AIDevGallery.Pages.Evaluate
         {
             this.InitializeComponent();
             PreviewListView.ItemsSource = _previewItems;
+            
+            // Ensure Next button starts disabled
+            _datasetConfig = null;
+            this.Loaded += (s, e) => DispatcherQueue.TryEnqueue(() => UpdateParentDialogState());
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -1424,9 +1428,12 @@ namespace AIDevGallery.Pages.Evaluate
                 _wizardState.Dataset.PathTypes = TwoPartGroupByFolderToggle.IsOn ? PathType.Relative : PathType.Absolute;
             }
             
-            // Notify parent
-            ValidationChanged?.Invoke(IsValid);
-            UpdateParentDialogState();
+            // Notify parent - delay slightly to ensure state is fully updated
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+            {
+                ValidationChanged?.Invoke(IsValid);
+                UpdateParentDialogState();
+            });
             
             return Task.CompletedTask;
         }
@@ -1621,7 +1628,13 @@ namespace AIDevGallery.Pages.Evaluate
             {
                 if (current is ContentDialog dialog)
                 {
-                    dialog.IsPrimaryButtonEnabled = IsValid;
+                    bool isValid = IsValid;
+                    System.Diagnostics.Debug.WriteLine($"[DatasetUploadPage.UpdateParentDialogState] Setting Next button enabled={isValid}. Dataset valid={_datasetConfig?.ValidationResult?.IsValid}, Workflow={_currentWorkflow}");
+                    if (_currentWorkflow == EvaluationWorkflow.ImportResults)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[DatasetUploadPage.UpdateParentDialogState] Evaluation name check: HasText={!string.IsNullOrWhiteSpace(EvaluationNameTextBox?.Text)}, Text='{EvaluationNameTextBox?.Text}'" );
+                    }
+                    dialog.IsPrimaryButtonEnabled = isValid;
                     break;
                 }
                 current = (current as FrameworkElement)?.Parent;

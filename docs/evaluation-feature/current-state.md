@@ -1,6 +1,6 @@
 # Current State of Evaluation Feature
 
-*Last Updated: June 19, 2025*
+*Last Updated: June 20, 2025*
 
 ## ✅ Implemented Features
 
@@ -63,10 +63,21 @@
 - **No background processing** - evaluations show "Running" but don't execute
 - **No cancellation support** - no way to stop a "running" evaluation
 
-### Missing Features
-- **Evaluation Insights Page** - double-click does nothing
-- **Comparison functionality** - shows "Coming Soon" dialog
-- **Export capabilities** - no CSV/JSON export
+### Recently Completed Features ✅
+- **Evaluation Insights Page** - Fully implemented with:
+  - Data visualizations (bar charts, table view)
+  - Individual results browser with file tree
+  - Export capabilities (CSV, JSON, HTML report)
+  - Statistical summaries and folder analysis
+  - Custom metadata support
+- **Comparison functionality** - Complete implementation:
+  - Side-by-side comparison of 2-5 evaluations
+  - Interactive grouped bar charts
+  - Model rankings with medal emojis
+  - Key statistics and detailed scores table
+  - Full export support
+
+### Still Missing Features
 - **Search/Filter** - UI exists but not functional
 - **Real-time updates** - no progress updates during execution
 
@@ -80,11 +91,13 @@
 
 ## 🎯 Next Development Phases
 
-### Phase 2: Visualization (In Progress)
-- [ ] Evaluation Insights Page with charts
-- [ ] Individual image results viewer
-- [ ] Score distribution visualizations
-- [ ] Criteria breakdown displays
+### Phase 2: Visualization ✅ COMPLETE
+- [x] Evaluation Insights Page with charts
+- [x] Individual image results viewer
+- [x] Score distribution visualizations
+- [x] Criteria breakdown displays
+- [x] Comparison view for multiple evaluations
+- [x] Export functionality (CSV, JSON, HTML)
 
 ### Phase 3: Backend Implementation
 - [ ] EvaluationExecutor service
@@ -111,11 +124,15 @@ See [TODO.md](TODO.md) for detailed task breakdown.
 ### Key Components
 - `EvaluatePage.xaml/.cs` - Main list view
 - `EvaluationWizard/*` - Wizard pages
-- `EvaluationResultsStore.cs` - Persistence
+- `EvaluationResultsStore.cs` - Persistence with individual results
 - `EvaluationListRow.xaml/.cs` - List item
+- `EvaluationInsightsPage.xaml/.cs` - Detailed results view
+- `CompareEvaluationsPage.xaml/.cs` - Multi-evaluation comparison
 
 ### Data Model
-- `EvaluationResult` - Core evaluation data
+- `EvaluationResult` - Core evaluation data with individual results
+- `EvaluationItemResult` - Per-item evaluation data
+- `FolderStats` - Folder-level statistics
 - `EvaluationWizardState` - Wizard state
 - `DatasetConfiguration` - Dataset info
 - `EvaluationMetrics` - Metric config

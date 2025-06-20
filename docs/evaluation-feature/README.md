@@ -9,6 +9,9 @@ The Evaluation feature in AI Dev Gallery enables developers to test, compare, an
 ### [Current State](current-state.md)
 Latest implementation status, features, and known limitations.
 
+### [Evaluation Insights](evaluation-insights.md) ✨ NEW
+Comprehensive guide to the insights and comparison features.
+
 ### [User Guide](user-guide/)
 - Getting started with evaluations
 - Creating evaluations (all workflows)
@@ -42,9 +45,16 @@ Historical planning documents organized by development phase.
 - Comprehensive metrics (SPICE, CLIP, METEOR, Length Stats, AI Judge)
 - Modern UI with multi-selection and bulk operations
 - JSONL import/export for interoperability
+- **NEW: Evaluation Insights** - Detailed visualizations and analysis
+- **NEW: Comparison View** - Compare 2-5 evaluations side-by-side
 
 ## 📝 Recent Updates
 
+- **June 20, 2025**: Completed Evaluation Insights feature
+  - Full visualization capabilities with charts and tables
+  - Individual results browser with file tree navigation
+  - Export functionality (CSV, JSON, HTML reports)
+  - Multi-evaluation comparison view
 - Added evaluation name customization for Import Results
 - Implemented multi-selection with checkboxes
 - Added Image Description API with teaching UI

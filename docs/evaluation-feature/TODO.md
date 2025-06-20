@@ -38,24 +38,33 @@ This consolidated TODO list represents the current state of development for the 
 - ✅ Model name on second line
 - ✅ Custom criteria names display
 
-## Phase 2: Visualization & Insights 🚧 IN PROGRESS
+## Phase 2: Visualization & Insights ✅ COMPLETE
 
-### Evaluation Insights Page (Priority 1)
-- ⏳ Create EvaluationInsightsPage.xaml/cs
-- ⏳ Navigation from list double-click
-- ⏳ Overview section with aggregate scores
-- ⏳ Criteria breakdown with charts
-- ⏳ Dataset information display
-- ⏳ Individual image results gallery
-- ⏳ Export results button
-- ⏳ Breadcrumb navigation
+### Evaluation Insights Page ✅
+- ✅ Create EvaluationInsightsPage.xaml/cs
+- ✅ Navigation from list double-click
+- ✅ Overview section with aggregate scores
+- ✅ Criteria breakdown with charts
+- ✅ Dataset information display
+- ✅ Individual image results gallery with file tree
+- ✅ Export results button (CSV, JSON, HTML)
+- ✅ Breadcrumb navigation
 
-### Score Visualizations
-- ⏳ Radar chart for multi-metric comparison
-- ⏳ Bar charts for criteria breakdown
-- ⏳ Progress indicators for running evaluations
-- ⏳ Score distribution histograms
-- ⏳ Trend analysis (if multiple runs)
+### Score Visualizations ✅
+- ✅ Bar charts for criteria breakdown
+- ✅ Score distribution histograms
+- ✅ Statistical summaries (mean, std dev, min/max)
+- ✅ Folder-level performance analysis
+- ⏳ Radar chart for multi-metric comparison (future enhancement)
+- ⏳ Progress indicators for running evaluations (needs backend)
+
+### Comparison View ✅ NEW
+- ✅ Multi-evaluation selection (2-5 evaluations)
+- ✅ Side-by-side comparison with grouped bar charts
+- ✅ Model rankings with medals
+- ✅ Key statistics (consistency, best performer)
+- ✅ Detailed comparison table
+- ✅ Full export support
 
 ## Phase 3: Backend Execution Pipeline ❌ NOT STARTED
 
