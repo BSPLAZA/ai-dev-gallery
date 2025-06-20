@@ -741,7 +741,7 @@ namespace AIDevGallery.Pages.Evaluate
             try
             {
                 // Create print document
-                var printDoc = new Windows.UI.Xaml.Printing.PrintDocument();
+                var printDoc = new Microsoft.UI.Xaml.Printing.PrintDocument();
                 var printDocSource = printDoc.DocumentSource;
                 
                 // Create print task
@@ -763,7 +763,7 @@ namespace AIDevGallery.Pages.Evaluate
                 {
                     // Create print content
                     var printContent = CreatePrintContent();
-                    printDoc.SetPreviewPageCount(1, Windows.UI.Xaml.Printing.PreviewPageCountType.Final);
+                    printDoc.SetPreviewPageCount(1, Microsoft.UI.Xaml.Printing.PreviewPageCountType.Final);
                 };
                 
                 printDoc.GetPreviewPage += (s, args) =>
