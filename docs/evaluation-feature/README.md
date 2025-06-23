@@ -2,65 +2,75 @@
 
 ## Overview
 
-The Evaluation feature in AI Dev Gallery enables developers to test, compare, and analyze AI model performance with their datasets. This comprehensive documentation covers everything from user guides to technical architecture.
+The evaluation feature enables users to assess AI model performance through three distinct workflows: Test Model, Evaluate Responses, and Import Results. This documentation provides comprehensive guides for users, developers, and contributors.
 
-## 📚 Documentation Structure
+## Essential Documents
 
-### [Current State](current-state.md)
-Latest implementation status, features, and known limitations.
+### 📊 Current Status
+- **[Current State](current-state.md)** - What's implemented and working
+- **[Active Tasks](TODO.md)** - Development priorities and roadmap
+- **[Documentation Status](DOCUMENTATION-STATUS.md)** - Doc maintenance tracking
 
-### [Evaluation Insights](evaluation-insights.md) ✨ NEW
-Comprehensive guide to the insights and comparison features.
+### 🚀 Feature Overview
+- **[Evaluation Insights Guide](evaluation-insights.md)** - Comprehensive feature guide
+- **[Git Workflow](git-workflow.md)** - Contributing from forks to staging
 
-### [User Guide](user-guide/)
-- Getting started with evaluations
-- Creating evaluations (all workflows)
-- Understanding metrics and scores
-- Importing and exporting results
+## Guides
 
-### [Developer Guide](developer-guide/)
-- Development environment setup
-- Adding new AI models
-- Implementing new metrics
-- Contributing guidelines
+### 👥 For Users
+- **[User Guide](user-guide/)** - Step-by-step usage instructions
+  - [Getting Started](user-guide/getting-started.md)
+  - [Workflows Explained](user-guide/workflows-explained.md)  
+  - [Import JSONL Guide](user-guide/import-jsonl-guide.md)
 
-### [Architecture](architecture/)
-- Technical design and data models
-- UI components and patterns
-- API integration approach
+### 🔧 For Developers
+- **[Developer Guide](developer-guide/)** - Implementation details
+  - [Architecture Overview](architecture/overview.md)
+  - [Data Models](developer-guide/data-models.md)
+  - [UI Components](developer-guide/ui-components.md)
 
-### [Planning Archive](planning-archive/)
-Historical planning documents organized by development phase.
+### 🏗️ Architecture
+- **[System Architecture](architecture/)** - Technical design
+  - [Overview](architecture/overview.md)
+  - [Data Flow](architecture/data-flow.md)
+  - [State Management](architecture/state-management.md)
 
-## 🚀 Quick Start
+## Quick Links
 
-1. **For Users**: Start with the [User Guide](user-guide/README.md)
-2. **For Developers**: See the [Developer Guide](developer-guide/README.md)
-3. **For Architecture**: Review [Architecture docs](architecture/README.md)
+### Key Features
+- ✅ **Three evaluation workflows** with guided wizard
+- ✅ **Multi-select list view** with bulk operations
+- ✅ **Detailed insights** with visualizations
+- ✅ **Comparison view** for 2-5 evaluations
+- ✅ **Export capabilities** (CSV, JSON, HTML)
 
-## 🎯 Key Features
+### Important Paths
+- **Pages**: `AIDevGallery/Pages/Evaluate/`
+- **Controls**: `AIDevGallery/Controls/Evaluate/`
+- **Services**: `AIDevGallery/Services/Evaluate/`
+- **Models**: `AIDevGallery/Models/Evaluation*.cs`
 
-- Three evaluation workflows (Test Model, Evaluate Responses, Import Results)
-- Multi-model support including local Image Description API
-- Comprehensive metrics (SPICE, CLIP, METEOR, Length Stats, AI Judge)
-- Modern UI with multi-selection and bulk operations
-- JSONL import/export for interoperability
-- **NEW: Evaluation Insights** - Detailed visualizations and analysis
-- **NEW: Comparison View** - Compare 2-5 evaluations side-by-side
+### Development Stats
+- **Total Code**: ~11,500 lines
+- **Components**: 20+ XAML controls
+- **Features**: 100% UI complete
+- **Backend**: Pending (Phase 3)
 
-## 📝 Recent Updates
+## Historical Context
 
-- **June 20, 2025**: Completed Evaluation Insights feature
-  - Full visualization capabilities with charts and tables
-  - Individual results browser with file tree navigation
-  - Export functionality (CSV, JSON, HTML reports)
-  - Multi-evaluation comparison view
-- Added evaluation name customization for Import Results
-- Implemented multi-selection with checkboxes
-- Added Image Description API with teaching UI
-- Separated model names from evaluation names
-- Enhanced UI with consistent blue theme
+### 📁 Planning Archive
+Preserved development history in **[planning-archive/](planning-archive/)**:
+- Phase 1: Initial implementation
+- Phase 2: List view and improvements  
+- Phase 3: Insights and visualization
+- Phase 4: Comparison features
+
+### 🔄 Migration History
+- Developed across 14+ branches over 4 months
+- Consolidated into staging via 2 PRs
+- See [Git Workflow](git-workflow.md) for details
 
 ---
 
-*For development setup and guidelines, see our [Developer Guide](developer-guide/README.md)*
+**Last Updated**: June 23, 2025  
+**Status**: Feature complete (UI), awaiting backend implementation

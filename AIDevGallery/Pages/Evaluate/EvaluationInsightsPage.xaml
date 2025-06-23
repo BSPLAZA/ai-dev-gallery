@@ -103,7 +103,9 @@
                                         Style="{StaticResource SubtleButtonStyle}"
                                         Padding="4"
                                         Margin="4,0,0,0"
-                                        VerticalAlignment="Center">
+                                        VerticalAlignment="Center"
+                                        AutomationProperties.Name="Status information"
+                                        ToolTipService.ToolTip="View status details">
                                     <FontIcon Glyph="&#xE946;" 
                                               FontSize="14"/>
                                 </Button>
@@ -252,13 +254,15 @@
                                     <Button x:Name="CopyChartButton"
                                             Click="CopyChart_Click"
                                             ToolTipService.ToolTip="Copy chart to clipboard"
-                                            Style="{StaticResource SubtleButtonStyle}">
+                                            Style="{StaticResource SubtleButtonStyle}"
+                                            AutomationProperties.Name="Copy chart to clipboard">
                                         <FontIcon Glyph="&#xE8C8;" FontSize="14"/>
                                     </Button>
                                     <Button x:Name="SaveChartButton"
                                             Click="SaveChartAsImage_Click"
                                             ToolTipService.ToolTip="Save chart as image"
-                                            Style="{StaticResource SubtleButtonStyle}">
+                                            Style="{StaticResource SubtleButtonStyle}"
+                                            AutomationProperties.Name="Save chart as image">
                                         <FontIcon Glyph="&#xE74E;" FontSize="14"/>
                                     </Button>
                                 </StackPanel>

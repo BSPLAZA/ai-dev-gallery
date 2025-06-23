@@ -144,13 +144,15 @@
                 
                 <Button Style="{StaticResource CardActionButtonStyle}"
                        Click="OnViewClick"
-                       ToolTipService.ToolTip="View Details">
+                       ToolTipService.ToolTip="View Details"
+                       AutomationProperties.Name="View evaluation details">
                     <FontIcon Glyph="&#xE1A5;" FontSize="16"/>
                 </Button>
                 
                 <Button Style="{StaticResource CardActionButtonStyle}"
                        Click="OnDeleteClick"
-                       ToolTipService.ToolTip="Delete">
+                       ToolTipService.ToolTip="Delete"
+                       AutomationProperties.Name="Delete evaluation">
                     <FontIcon Glyph="&#xE107;" FontSize="16" 
                              Foreground="{ThemeResource SystemFillColorCriticalBrush}"/>
                 </Button>
