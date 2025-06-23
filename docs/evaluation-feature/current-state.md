@@ -137,4 +137,17 @@ See [TODO.md](TODO.md) for detailed task breakdown.
 - `DatasetConfiguration` - Dataset info
 - `EvaluationMetrics` - Metric config
 
+## Documentation Guidelines
+
+### When to Create New Docs
+1. **Don't create stub files** - Wait until feature is implemented
+2. **Document what exists** - Not what's planned
+3. **Keep archives unchanged** - They're historical records
+
+### How to Maintain
+1. Update TODO.md as tasks complete
+2. Update current-state.md after major changes
+3. Create new guides only when features ship
+4. Archive old designs when making major pivots
+
 [← Back to Documentation](README.md)
