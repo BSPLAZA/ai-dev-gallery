@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="AIDevGallery.Controls.Evaluate.SelectionActionBar"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:AIDevGallery.Controls.Evaluate"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Border x:Name="ActionBarContainer"
+            Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Padding="16,12"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Bottom"
+            Margin="0,0,0,24"
+            >
+        
+        <Border.RenderTransform>
+            <TranslateTransform x:Name="SlideTransform" Y="100"/>
+        </Border.RenderTransform>
+
+        <StackPanel Orientation="Horizontal" Spacing="16">
+            <!-- Selection Count -->
+            <TextBlock VerticalAlignment="Center">
+                <Run Text="{x:Bind SelectedCount, Mode=OneWay}"/>
+                <Run Text="{x:Bind GetSelectionText(SelectedCount), Mode=OneWay}"/>
+            </TextBlock>
+
+            <!-- Separator -->
+            <Rectangle Width="1" 
+                       Height="20" 
+                       Fill="{ThemeResource DividerStrokeColorDefaultBrush}" 
+                       VerticalAlignment="Center"/>
+
+            <!-- Compare Button -->
+            <Button x:Name="CompareButton"
+                    Content="Compare" 
+                    Style="{StaticResource AccentButtonStyle}"
+                    Click="OnCompareClick"
+                    IsEnabled="{x:Bind CanCompare(SelectedCount), Mode=OneWay}">
+                <Button.KeyboardAccelerators>
+                    <KeyboardAccelerator Modifiers="Control" Key="K"/>
+                </Button.KeyboardAccelerators>
+            </Button>
+
+            <!-- Delete Button -->
+            <Button x:Name="DeleteButton"
+                    Content="Delete" 
+                    Click="OnDeleteClick">
+                <Button.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="Delete"/>
+                </Button.KeyboardAccelerators>
+            </Button>
+
+            <!-- Cancel Button -->
+            <Button x:Name="CancelButton"
+                    Content="Cancel" 
+                    Click="OnCancelClick">
+                <Button.KeyboardAccelerators>
+                    <KeyboardAccelerator Key="Escape"/>
+                </Button.KeyboardAccelerators>
+            </Button>
+        </StackPanel>
+
+        <!-- Animations -->
+        <Border.Resources>
+            <Storyboard x:Name="ShowAnimation">
+                <DoubleAnimation Storyboard.TargetName="SlideTransform"
+                                 Storyboard.TargetProperty="Y"
+                                 From="100"
+                                 To="0"
+                                 Duration="0:0:0.3">
+                    <DoubleAnimation.EasingFunction>
+                        <CubicEase EasingMode="EaseOut"/>
+                    </DoubleAnimation.EasingFunction>
+                </DoubleAnimation>
+                <DoubleAnimation Storyboard.TargetName="ActionBarContainer"
+                                 Storyboard.TargetProperty="Opacity"
+                                 From="0"
+                                 To="1"
+                                 Duration="0:0:0.2"/>
+            </Storyboard>
+
+            <Storyboard x:Name="HideAnimation">
+                <DoubleAnimation Storyboard.TargetName="SlideTransform"
+                                 Storyboard.TargetProperty="Y"
+                                 From="0"
+                                 To="100"
+                                 Duration="0:0:0.2">
+                    <DoubleAnimation.EasingFunction>
+                        <CubicEase EasingMode="EaseIn"/>
+                    </DoubleAnimation.EasingFunction>
+                </DoubleAnimation>
+                <DoubleAnimation Storyboard.TargetName="ActionBarContainer"
+                                 Storyboard.TargetProperty="Opacity"
+                                 From="1"
+                                 To="0"
+                                 Duration="0:0:0.15"/>
+            </Storyboard>
+        </Border.Resources>
+    </Border>
+</UserControl>
