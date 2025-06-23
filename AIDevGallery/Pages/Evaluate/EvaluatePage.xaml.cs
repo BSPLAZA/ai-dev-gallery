@@ -901,4 +901,62 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             System.Diagnostics.Debug.WriteLine($"Error saving evaluation: {ex}");
         }
     }
+    
+    private async Task ShowComparisonPreviewAsync(List<EvaluationListItemViewModel> selectedEvaluations)
+    {
+        // Create preview content
+        var content = new StackPanel { Spacing = 12 };
+        
+        content.Children.Add(new TextBlock 
+        { 
+            Text = "The comparison feature will allow you to:",
+            Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
+        });
+        
+        var features = new List<string>
+        {
+            "• Compare evaluation scores side-by-side",
+            "• View performance rankings across models",
+            "• Analyze criteria-specific differences",
+            "• Export comparison reports",
+            "• Visualize results with interactive charts"
+        };
+        
+        foreach (var feature in features)
+        {
+            content.Children.Add(new TextBlock 
+            { 
+                Text = feature,
+                Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                Margin = new Thickness(12, 0, 0, 0)
+            });
+        }
+        
+        content.Children.Add(new TextBlock 
+        { 
+            Text = "\nSelected evaluations:",
+            Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
+            Margin = new Thickness(0, 12, 0, 0)
+        });
+        
+        foreach (var eval in selectedEvaluations)
+        {
+            content.Children.Add(new TextBlock 
+            { 
+                Text = $"• {eval.Name} ({eval.ModelName})",
+                Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                Margin = new Thickness(12, 0, 0, 0)
+            });
+        }
+        
+        var dialog = new ContentDialog
+        {
+            Title = "Comparison View - Coming Soon",
+            Content = content,
+            CloseButtonText = "OK",
+            XamlRoot = this.XamlRoot
+        };
+        
+        await dialog.ShowAsync();
+    }
 }
