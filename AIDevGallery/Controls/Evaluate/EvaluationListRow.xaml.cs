@@ -12,6 +12,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Windows.UI;
+using Windows.System;
 
 namespace AIDevGallery.Controls.Evaluate
 {
@@ -274,6 +275,85 @@ namespace AIDevGallery.Controls.Evaluate
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        // Accessibility helper methods
+        public string GetAccessibleName()
+        {
+            if (ViewModel == null) return "Evaluation item";
+            
+            var status = ViewModel.Status switch
+            {
+                EvaluationStatus.Running => "Running",
+                EvaluationStatus.Completed => "Completed",
+                EvaluationStatus.Failed => "Failed",
+                EvaluationStatus.Imported => "Imported",
+                _ => "Unknown"
+            };
+            
+            return $"{EvaluationName}, {status}, {ItemCount} items, {ModelName}";
+        }
+
+        public string GetAccessibleDescription()
+        {
+            if (ViewModel == null) return string.Empty;
+            
+            var description = $"Evaluation created {GetFormattedDate(Timestamp)}.";
+            
+            if (IsCompleted)
+            {
+                description += $" Average score: {AverageScore:F1} out of 5.";
+            }
+            else if (IsRunning && RunningProgress.HasValue)
+            {
+                description += $" Progress: {RunningProgress:F0}%.";
+            }
+            
+            description += $" Criteria: {GetCriteriaDisplay()}.";
+            description += " Press Space to select, Enter to view details.";
+            
+            return description;
+        }
+
+        public string GetCheckboxAccessibleName()
+        {
+            return $"Select {EvaluationName}";
+        }
+
+        public string GetWorkflowAccessibleName(EvaluationWorkflow workflow)
+        {
+            return workflow switch
+            {
+                EvaluationWorkflow.ImportResults => "Imported results workflow",
+                EvaluationWorkflow.TestModel => "Test model workflow",
+                EvaluationWorkflow.EvaluateResponses => "Evaluate responses workflow",
+                _ => "Unknown workflow"
+            };
+        }
+
+        // Keyboard navigation handler
+        private void OnKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case VirtualKey.Space:
+                    // Toggle selection
+                    if (ViewModel != null)
+                    {
+                        ViewModel.IsSelected = !ViewModel.IsSelected;
+                        e.Handled = true;
+                    }
+                    break;
+                    
+                case VirtualKey.Enter:
+                    // Open details
+                    if (ViewModel != null)
+                    {
+                        ItemDoubleClicked?.Invoke(this, ViewModel);
+                        e.Handled = true;
+                    }
+                    break;
+            }
         }
     }
 }

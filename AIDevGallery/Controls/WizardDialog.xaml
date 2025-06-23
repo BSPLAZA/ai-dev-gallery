@@ -8,7 +8,8 @@
     DefaultButton="Primary"
     PrimaryButtonClick="ContentDialog_PrimaryButtonClick"
     SecondaryButtonClick="ContentDialog_SecondaryButtonClick"
-    AutomationProperties.Name="Create evaluation wizard">
+    AutomationProperties.Name="Create evaluation wizard"
+    AutomationProperties.LiveSetting="Polite">
     
     <ContentDialog.Resources>
         <ResourceDictionary Source="ms-appx:///Styles/Colors.xaml"/>
@@ -29,21 +30,35 @@
             <StackPanel Spacing="8">
                 <TextBlock x:Name="StepTitleText" 
                            Text="Create New Evaluation" 
-                           Style="{StaticResource SubtitleTextBlockStyle}"/>
+                           Style="{StaticResource SubtitleTextBlockStyle}"
+                           AutomationProperties.HeadingLevel="Level2"/>
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <ProgressBar x:Name="WizardProgressBar" 
                                  Value="1" 
                                  Maximum="5" 
                                  Width="200" 
-                                 Height="4"/>
+                                 Height="4"
+                                 AutomationProperties.Name="Wizard progress"/>
                     <TextBlock x:Name="StepProgressText" 
                                Text="Step 1 of 5" 
                                Style="{StaticResource CaptionTextBlockStyle}" 
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               AutomationProperties.LiveSetting="Polite"/>
                 </StackPanel>
             </StackPanel>
         </Border>
         
-        <Frame x:Name="ContentFrame" Grid.Row="1"/>
+        <!-- Content Frame with Loading Overlay -->
+        <Grid Grid.Row="1">
+            <Frame x:Name="ContentFrame"/>
+            
+            <!-- Validation Error Bar -->
+            <InfoBar x:Name="ValidationErrorBar"
+                     Severity="Error"
+                     IsOpen="False"
+                     VerticalAlignment="Top"
+                     Margin="16"
+                     AutomationProperties.LiveSetting="Assertive"/>
+        </Grid>
     </Grid>
 </ContentDialog>
