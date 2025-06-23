@@ -1,0 +1,597 @@
+<!-- Copyright (c) Microsoft Corporation. All rights reserved. -->
+<!-- Licensed under the MIT License. -->
+
+<Page
+    x:Class="AIDevGallery.Pages.Evaluate.DatasetUploadPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <ResourceDictionary Source="ms-appx:///Styles/Colors.xaml"/>
+    </Page.Resources>
+
+    <!-- 
+    Step 4: Upload Dataset
+    Purpose: Upload and validate evaluation dataset (JSONL or image folder)
+    -->
+
+    <ScrollViewer MaxHeight="600" Padding="24">
+        <StackPanel Spacing="24">
+            
+            <!-- Header -->
+            <StackPanel Spacing="8">
+                <TextBlock 
+                    x:Name="PageTitle"
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Text="Upload Dataset" />
+                <TextBlock 
+                    x:Name="HeaderDescriptionText"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="Provide your evaluation dataset by uploading a JSONL file or selecting an image folder."
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!-- File Requirements -->
+            <Border 
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="16">
+                <StackPanel Spacing="12">
+                    <TextBlock 
+                        Text="File Requirements" 
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    
+                    <TextBlock 
+                        x:Name="RequirementsText"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        TextWrapping="Wrap">
+                        <Run Text="• Format: JSONL (one JSON object per line)" />
+                        <LineBreak />
+                        <Run Text="• Required fields: image_path, prompt" />
+                        <LineBreak />
+                        <Run Text="• Image types: .jpg, .jpeg, .png, .gif, .bmp, .webp (case insensitive)" />
+                        <LineBreak />
+                        <Run Text="• Max dataset size: 1,000 images" />
+                    </TextBlock>
+
+                    <TextBlock 
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        Margin="0,8,0,0">
+                        <Run Text="Image paths can be:" />
+                        <LineBreak />
+                        <Run Text="• Absolute: C:\data\images\img1.jpg" />
+                        <LineBreak />
+                        <Run Text="• Relative: images/category/img1.jpg (relative to JSONL location)" />
+                    </TextBlock>
+
+                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
+                        <HyperlinkButton 
+                            x:Name="DownloadExampleButton"
+                            Content="Download example"
+                            Click="DownloadExample_Click"
+                            AutomationProperties.Name="Download example JSONL file" />
+                        <HyperlinkButton 
+                            x:Name="CopyExampleButton"
+                            Content="Copy example"
+                            Click="CopyExample_Click"
+                            AutomationProperties.Name="Copy example JSONL to clipboard" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Single Upload Area for Workflow 1 -->
+            <Border 
+                x:Name="SingleUploadArea"
+                Visibility="Visible">
+                <Border 
+                    x:Name="DropZone"
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    BorderThickness="2"
+                    CornerRadius="4"
+                    MinHeight="200"
+                    AllowDrop="True"
+                    DragOver="DropZone_DragOver"
+                    Drop="DropZone_Drop"
+                    DragLeave="DropZone_DragLeave">
+                    
+                    <Border.BorderBrush>
+                        <SolidColorBrush x:Name="DropZoneBorderBrush" Color="{ThemeResource ControlStrokeColorDefault}" Opacity="0.5" />
+                    </Border.BorderBrush>
+
+                    <Grid>
+                        <StackPanel 
+                            x:Name="UploadPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="16">
+                            
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="16">
+                                <FontIcon Glyph="&#xE8E5;" FontSize="48" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <TextBlock 
+                                    Text="OR" 
+                                    Style="{StaticResource SubtitleTextBlockStyle}"
+                                    VerticalAlignment="Center"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <FontIcon Glyph="&#xE8B7;" FontSize="48" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+
+                            <TextBlock 
+                                Text="Drop JSONL file or image folder here"
+                                Style="{StaticResource BodyTextBlockStyle}"
+                                HorizontalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+                                <Button 
+                                    x:Name="BrowseFileButton"
+                                    Content="Browse for file..."
+                                    Click="BrowseFile_Click"
+                                    AutomationProperties.Name="Browse for JSONL file" />
+                                <Button 
+                                    x:Name="BrowseFolderButton"
+                                    Content="Browse for folder..."
+                                    Click="BrowseFolder_Click"
+                                    AutomationProperties.Name="Browse for image folder" />
+                            </StackPanel>
+
+                            <TextBlock 
+                                Text="Supported: .jsonl (max 100MB)"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                HorizontalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
+
+                        <!-- Progress Ring (hidden by default) -->
+                        <StackPanel 
+                            x:Name="LoadingPanel"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Spacing="16"
+                            Visibility="Collapsed">
+                            <ProgressRing IsActive="True" />
+                            <TextBlock 
+                                x:Name="LoadingText"
+                                Text="Validating dataset..."
+                                Style="{StaticResource BodyTextBlockStyle}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Border>
+
+            <!-- Two-Part Upload Area for Workflows 2 & 3 -->
+            <StackPanel 
+                x:Name="TwoPartUploadArea"
+                Visibility="Collapsed"
+                Spacing="24">
+                
+                <!-- Evaluation Name for Import Results workflow -->
+                <StackPanel x:Name="EvaluationNamePanel" Spacing="8" Visibility="Collapsed">
+                    <TextBlock 
+                        Text="Evaluation Name"
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBox 
+                        x:Name="EvaluationNameTextBox"
+                        PlaceholderText="Enter a name for this evaluation"
+                        AutomationProperties.Name="Evaluation name"
+                        TextChanged="EvaluationNameTextBox_TextChanged" />
+                    <TextBlock 
+                        x:Name="EvaluationNameValidation"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                        Visibility="Collapsed"
+                        Text="Please enter an evaluation name" />
+                </StackPanel>
+                
+                <!-- Part 1: Image Dataset Upload -->
+                <StackPanel Spacing="8">
+                    <TextBlock 
+                        Text="Step 1: Upload Your Image Dataset"
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    
+                    <Border 
+                        x:Name="ImageDropZone"
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        BorderThickness="2"
+                        CornerRadius="4"
+                        MinHeight="150"
+                        AllowDrop="True"
+                        DragOver="ImageDropZone_DragOver"
+                        Drop="ImageDropZone_Drop"
+                        DragLeave="ImageDropZone_DragLeave">
+                        
+                        <Border.BorderBrush>
+                            <SolidColorBrush x:Name="ImageDropZoneBorderBrush" Color="{ThemeResource ControlStrokeColorDefault}" Opacity="0.5" />
+                        </Border.BorderBrush>
+
+                        <Grid>
+                            <StackPanel 
+                                x:Name="ImageUploadPanel"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Spacing="12"
+                                Visibility="Visible">
+                                
+                                <FontIcon Glyph="&#xE8B7;" FontSize="36" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                
+                                <TextBlock 
+                                    Text="Drop image folder here or click to browse"
+                                    Style="{StaticResource BodyTextBlockStyle}"
+                                    HorizontalAlignment="Center"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                                <Button 
+                                    x:Name="BrowseImageFolderButton"
+                                    Content="Browse for folder..."
+                                    Click="BrowseImageFolder_Click"
+                                    HorizontalAlignment="Center"
+                                    AutomationProperties.Name="Browse for image folder" />
+                            </StackPanel>
+
+                            <!-- Success State -->
+                            <StackPanel 
+                                x:Name="ImageUploadSuccess"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Spacing="8"
+                                Visibility="Collapsed">
+                                <FontIcon Glyph="&#xE73E;" FontSize="32" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                <TextBlock x:Name="ImageFolderPathText" Style="{StaticResource BodyTextBlockStyle}" />
+                                <TextBlock x:Name="ImageCountText" Style="{StaticResource CaptionTextBlockStyle}" />
+                                <Button Content="Change folder" Click="ChangeImageFolder_Click" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <!-- Part 2: JSONL Data Upload -->
+                <StackPanel Spacing="8">
+                    <TextBlock 
+                        Text="Step 2: Upload Response Data"
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    
+                    <Border 
+                        x:Name="JsonlDropZone"
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                        BorderThickness="2"
+                        CornerRadius="4"
+                        MinHeight="150"
+                        AllowDrop="True"
+                        DragOver="JsonlDropZone_DragOver"
+                        Drop="JsonlDropZone_Drop"
+                        DragLeave="JsonlDropZone_DragLeave"
+                        IsHitTestVisible="False"
+                        Opacity="0.5">
+                        
+                        <Border.BorderBrush>
+                            <SolidColorBrush x:Name="JsonlDropZoneBorderBrush" Color="{ThemeResource ControlStrokeColorDefault}" Opacity="0.5" />
+                        </Border.BorderBrush>
+
+                        <Grid>
+                            <StackPanel 
+                                x:Name="JsonlUploadPanel"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Spacing="12"
+                                Visibility="Visible">
+                                
+                                <FontIcon Glyph="&#xE8E5;" FontSize="36" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                
+                                <TextBlock 
+                                    x:Name="JsonlUploadText"
+                                    Text="Upload images first"
+                                    Style="{StaticResource BodyTextBlockStyle}"
+                                    HorizontalAlignment="Center"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                                <Button 
+                                    x:Name="BrowseJsonlButton"
+                                    Content="Browse for JSONL..."
+                                    Click="BrowseJsonl_Click"
+                                    HorizontalAlignment="Center"
+                                    IsEnabled="False"
+                                    AutomationProperties.Name="Browse for JSONL file" />
+                                    
+                                <!-- JSONL file requirements -->
+                                <TextBlock 
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    TextWrapping="Wrap"
+                                    HorizontalAlignment="Center"
+                                    MaxWidth="400"
+                                    Margin="0,8,0,0">
+                                    <Run Text="Required fields: " FontWeight="SemiBold" />
+                                    <Run x:Name="JsonlRequiredFieldsText" Text="image_path, prompt, response" />
+                                </TextBlock>
+                            </StackPanel>
+
+                            <!-- Success State -->
+                            <StackPanel 
+                                x:Name="JsonlUploadSuccess"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Spacing="8"
+                                Visibility="Collapsed">
+                                <FontIcon Glyph="&#xE73E;" FontSize="32" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                <TextBlock x:Name="JsonlFilePathText" Style="{StaticResource BodyTextBlockStyle}" />
+                                <TextBlock x:Name="JsonlEntryCountText" Style="{StaticResource CaptionTextBlockStyle}" />
+                                <Button Content="Change file" Click="ChangeJsonlFile_Click" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Two-Part Upload Validation Report (hidden by default) -->
+            <Border 
+                x:Name="TwoPartValidationPanel"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="16"
+                Visibility="Collapsed">
+                
+                <StackPanel Spacing="12">
+                    <!-- Validation Status -->
+                    <InfoBar 
+                        x:Name="TwoPartValidationInfoBar"
+                        IsOpen="True"
+                        IsClosable="False" />
+                    
+                    <!-- Validation Action Buttons -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                        <!-- View Details button removed as it wasn't functional -->
+                        <Button x:Name="FixIssuesButton" Content="Fix Issues" Click="FixIssues_Click" Visibility="Collapsed" />
+                        <Button x:Name="ProceedAnywayButton" Content="Proceed Anyway" Click="ProceedAnyway_Click" Visibility="Collapsed" />
+                    </StackPanel>
+                    
+                    <!-- Match Summary -->
+                    <StackPanel x:Name="MatchSummaryPanel" Spacing="4" Visibility="Collapsed">
+                        <TextBlock Text="Matching Summary" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <TextBlock x:Name="MatchSummaryText" Style="{StaticResource CaptionTextBlockStyle}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    
+                    <!-- Folder Structure for Two-Part Upload -->
+                    <Expander 
+                        x:Name="TwoPartFolderStructureExpander"
+                        Header="Folder Structure"
+                        IsExpanded="True"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Visibility="Collapsed">
+                        <TreeView 
+                            x:Name="TwoPartFolderTreeView"
+                            MinHeight="100"
+                            MaxHeight="200" />
+                    </Expander>
+                    
+                    <!-- Group by Folder Toggle -->
+                    <ToggleSwitch 
+                        x:Name="TwoPartGroupByFolderToggle"
+                        Header="Group evaluations by folder"
+                        IsEnabled="False"
+                        OffContent="No"
+                        OnContent="Yes" />
+                    
+                    <!-- Action Buttons -->
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Button x:Name="ChangeImagesButton" Content="Change images" Click="ChangeImages_Click" />
+                        <Button x:Name="ChangeJsonlButton2" Content="Change JSONL" Click="ChangeJsonl_Click" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Model Name Input (for workflows 2 & 3) -->
+            <StackPanel 
+                x:Name="ModelNamePanel"
+                Spacing="8"
+                Visibility="Collapsed">
+                <TextBlock 
+                    Text="Model Name"
+                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <TextBox 
+                    x:Name="ModelNameInput"
+                    PlaceholderText="e.g., GPT-4V, Claude 3.5, Gemini Pro"
+                    TextChanged="ModelNameInput_TextChanged"
+                    AutomationProperties.Name="Model name input" />
+                <TextBlock 
+                    Text="This will be applied to all entries"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+            
+            <!-- Default Prompt Input (for workflows 2 & 3) -->
+            <StackPanel 
+                x:Name="DefaultPromptPanel"
+                Spacing="8"
+                Visibility="Collapsed">
+                <TextBlock 
+                    Text="Default Prompt (Optional)"
+                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <TextBox 
+                    x:Name="DefaultPromptInput"
+                    PlaceholderText="e.g., Describe this image in detail"
+                    TextWrapping="Wrap"
+                    AcceptsReturn="True"
+                    MaxHeight="100"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    TextChanged="DefaultPromptInput_TextChanged"
+                    AutomationProperties.Name="Default prompt input" />
+                <TextBlock 
+                    Text="Used for entries without a prompt field in the JSONL"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+
+            <!-- Dataset Size Error (hidden by default) -->
+            <Border 
+                x:Name="DatasetSizeErrorPanel"
+                Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
+                BorderBrush="{ThemeResource SystemFillColorCriticalBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="16"
+                Visibility="Collapsed">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <FontIcon Glyph="&#xE783;" FontSize="24" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                        <TextBlock 
+                            Text="Dataset Exceeds Maximum Size" 
+                            Style="{StaticResource SubtitleTextBlockStyle}" 
+                            VerticalAlignment="Center" />
+                    </StackPanel>
+                    
+                    <TextBlock x:Name="DatasetErrorText" TextWrapping="Wrap">
+                        <Run Text="Your dataset contains " />
+                        <Run x:Name="TotalEntriesRun" FontWeight="Bold" />
+                        <Run Text=" items. The maximum allowed size is 1,000 items." />
+                    </TextBlock>
+                    
+                    <TextBlock 
+                        Text="This limit ensures reasonable evaluation times and system performance. Please select a smaller dataset."
+                        TextWrapping="Wrap"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    
+                    <TextBlock 
+                        Text="To work with larger datasets:"
+                        FontWeight="SemiBold"
+                        Margin="0,8,0,0" />
+                    
+                    <TextBlock 
+                        Text="• Select a subset of your images (max 1,000)&#x0a;• Create a representative sample&#x0a;• Split into multiple smaller datasets"
+                        TextWrapping="Wrap"
+                        Margin="16,0,0,0" />
+                    
+                    <Button 
+                        x:Name="SelectDifferentDatasetButton"
+                        Content="Select Different Dataset"
+                        Style="{StaticResource AccentButtonStyle}"
+                        Click="SelectDifferentDataset_Click"
+                        Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Validation Results (hidden by default) -->
+            <Border 
+                x:Name="ValidationResultsPanel"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="16"
+                Visibility="Collapsed">
+                
+                <StackPanel Spacing="12">
+                    <!-- File Info -->
+                    <StackPanel Spacing="4">
+                        <TextBlock 
+                            Text="Dataset"
+                            Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        <TextBlock 
+                            x:Name="DatasetPathText"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            TextWrapping="Wrap"
+                            IsTextSelectionEnabled="True" />
+                    </StackPanel>
+
+                    <!-- Validation Status -->
+                    <InfoBar 
+                        x:Name="ValidationInfoBar"
+                        IsOpen="True"
+                        IsClosable="False" />
+
+                    <!-- Dataset Statistics -->
+                    <StackPanel x:Name="StatisticsPanel" Spacing="8" Visibility="Collapsed">
+                        <TextBlock 
+                            x:Name="EntryCountText"
+                            Style="{StaticResource BodyTextBlockStyle}" />
+                        
+                        <TextBlock 
+                            x:Name="BaseDirectoryText"
+                            Style="{StaticResource CaptionTextBlockStyle}" />
+
+                        <!-- Folder Structure (if applicable) -->
+                        <Expander 
+                            x:Name="FolderStructureExpander"
+                            Header="Image organization"
+                            IsExpanded="True"
+                            Visibility="Collapsed">
+                            <TreeView 
+                                x:Name="FolderTreeView"
+                                MaxHeight="200"
+                                Margin="0,8,0,0" />
+                        </Expander>
+                    </StackPanel>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
+                        <ToggleButton 
+                            x:Name="GroupByFolderToggle"
+                            Content="Group by folder"
+                            IsChecked="True"
+                            Checked="GroupByFolder_Checked"
+                            Unchecked="GroupByFolder_Unchecked"
+                            IsEnabled="False"
+                            AutomationProperties.Name="Toggle group by folder view" />
+                        <Button 
+                            x:Name="ChangeDatasetButton"
+                            Content="Change dataset"
+                            Click="ChangeDataset_Click"
+                            AutomationProperties.Name="Select a different dataset" />
+                    </StackPanel>
+
+                    <!-- Preview Section (hidden by default) -->
+                    <Expander 
+                        x:Name="PreviewExpander"
+                        Header="Preview (first 5 entries)"
+                        IsExpanded="False"
+                        Visibility="Collapsed">
+                        <ListView 
+                            x:Name="PreviewListView"
+                            MaxHeight="300"
+                            Margin="0,8,0,0"
+                            SelectionMode="None">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border 
+                                        Background="{ThemeResource SubtleFillColorTertiaryBrush}"
+                                        CornerRadius="4"
+                                        Padding="12"
+                                        Margin="0,4">
+                                        <StackPanel Spacing="4">
+                                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}">
+                                                <Run Text="Image: " FontWeight="SemiBold" />
+                                                <Run Text="{Binding ImagePath}" />
+                                            </TextBlock>
+                                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}">
+                                                <Run Text="Prompt: " FontWeight="SemiBold" />
+                                                <Run Text="{Binding Prompt}" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Expander>
+                </StackPanel>
+            </Border>
+
+            <!-- Relative Path Warning -->
+            <InfoBar 
+                x:Name="RelativePathWarning"
+                Severity="Informational"
+                IsOpen="False"
+                IsClosable="False"
+                Message="Using relative paths? Make sure to run evaluations from the same folder structure." />
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

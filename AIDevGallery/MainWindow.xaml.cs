@@ -5,6 +5,7 @@ using AIDevGallery.Controls;
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Pages;
+using AIDevGallery.Pages.Evaluate;
 using AIDevGallery.Utils;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -107,6 +108,9 @@ internal sealed partial class MainWindow : WindowEx
                 break;
             case "apis":
                 Navigate(typeof(APISelectionPage), obj);
+                break;
+            case "evaluate":
+                Navigate(typeof(EvaluatePage), obj);
                 break;
             case "contribute":
                 _ = Launcher.LaunchUriAsync(new Uri("https://aka.ms/ai-dev-gallery-repo"));
@@ -252,6 +256,10 @@ internal sealed partial class MainWindow : WindowEx
         else if (e.SourcePageType == typeof(APISelectionPage))
         {
             NavView.SelectedItem = NavView.MenuItems[3];
+        }
+        else if (e.SourcePageType == typeof(EvaluatePage))
+        {
+            NavView.SelectedItem = NavView.MenuItems[4];
         }
         else if (e.SourcePageType == typeof(SettingsPage))
         {

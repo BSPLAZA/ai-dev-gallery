@@ -1,0 +1,236 @@
+<Page  
+    x:Class="AIDevGallery.Pages.Evaluate.WorkflowSelectionPage"  
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"  
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"  
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"  
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"  
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <ResourceDictionary Source="ms-appx:///Styles/Colors.xaml"/>
+    </Page.Resources>
+
+    <!--  
+    Step 2: Choose Your Workflow  
+    Purpose: User selects how they want to proceed with evaluation  
+    Three options: Test Model (full pipeline), Evaluate Responses, Import Results  
+    -->  
+
+    <ScrollViewer MaxHeight="600" Padding="24">
+        <StackPanel Spacing="24">
+
+            <!-- Step Header -->
+            <StackPanel Spacing="8">  
+                <TextBlock   
+                    Style="{StaticResource SubtitleTextBlockStyle}"  
+                    Text="How would you like to proceed?" />  
+                <TextBlock   
+                    Style="{StaticResource BodyTextBlockStyle}"  
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"  
+                    Text="Choose your evaluation workflow based on what you have available." />  
+            </StackPanel>
+
+            <!-- Workflow Options -->
+            <StackPanel Spacing="16">
+                
+                <!-- Test My Model (Full Pipeline) -->  
+                <Grid Style="{StaticResource CardGridStyle}" Padding="0">  
+                    <RadioButton   
+                        x:Name="TestModelRadio"  
+                        GroupName="WorkflowType"  
+                        Checked="WorkflowType_Checked"  
+                        IsChecked="True"  
+                        Padding="16"  
+                        AutomationProperties.Name="Test My Model workflow"  
+                        AutomationProperties.HelpText="Full evaluation pipeline: provide dataset and model configuration, we generate responses and evaluate them">
+                        <StackPanel Spacing="12">
+                            <!-- Title with Icon -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock 
+                                    Text="✨" 
+                                    FontSize="16"
+                                    VerticalAlignment="Center" />
+                                <TextBlock   
+                                    Text="Test My Model (Full Pipeline)"   
+                                    Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            </StackPanel>
+                            
+                            <!-- Tagline -->
+                            <TextBlock
+                                Text="Most Complete Evaluation"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            
+                            <!-- Details Grid -->
+                            <Grid ColumnSpacing="24" Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- What you provide -->
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock 
+                                        Text="What you provide:" 
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                        • Dataset (local images + prompts)<LineBreak/>
+                                        • Model API configuration<LineBreak/>
+                                        • Quality criteria
+                                    </TextBlock>
+                                </StackPanel>
+                                
+                                <!-- What we do -->
+                                <StackPanel Grid.Column="1" Spacing="4">
+                                    <TextBlock 
+                                        Text="What we do:" 
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                        • Generate responses using your model<LineBreak/>
+                                        • Evaluate quality with LLM judge<LineBreak/>
+                                        • Provide comprehensive analysis
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </RadioButton>  
+                </Grid>
+
+                <!-- Evaluate My Responses -->  
+                <Grid Style="{StaticResource CardGridStyle}" Padding="0">  
+                    <RadioButton   
+                        x:Name="EvaluateResponsesRadio"  
+                        GroupName="WorkflowType"  
+                        Checked="WorkflowType_Checked"  
+                        Padding="16"  
+                        AutomationProperties.Name="Evaluate My Responses workflow"  
+                        AutomationProperties.HelpText="Evaluate existing responses: provide JSONL with responses, we evaluate quality">
+                        <StackPanel Spacing="12">
+                            <!-- Title -->
+                            <TextBlock   
+                                Text="Evaluate My Responses"   
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            
+                            <!-- Tagline -->
+                            <TextBlock
+                                Text="You have generated responses"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            
+                            <!-- Details Grid -->
+                            <Grid ColumnSpacing="24" Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- What you provide -->
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock 
+                                        Text="What you provide:" 
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                        • JSONL with images, prompts, and responses<LineBreak/>
+                                        • Quality criteria to measure
+                                    </TextBlock>
+                                </StackPanel>
+                                
+                                <!-- What we do -->
+                                <StackPanel Grid.Column="1" Spacing="4">
+                                    <TextBlock 
+                                        Text="What we do:" 
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                        • LLM judge evaluates each response<LineBreak/>
+                                        • Direct image-to-response analysis<LineBreak/>
+                                        • Quality scoring and insights
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </RadioButton>  
+                </Grid>
+
+                <!-- Import My Results -->  
+                <Grid Style="{StaticResource CardGridStyle}" Padding="0">  
+                    <RadioButton   
+                        x:Name="ImportResultsRadio"  
+                        GroupName="WorkflowType"  
+                        Checked="WorkflowType_Checked"  
+                        Padding="16"  
+                        AutomationProperties.Name="Import My Results workflow"  
+                        AutomationProperties.HelpText="Import completed evaluation: provide JSONL with scores, we enable analysis and comparison">
+                        <StackPanel Spacing="12">
+                            <!-- Title -->
+                            <TextBlock   
+                                Text="Import My Results"   
+                                Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            
+                            <!-- Tagline -->
+                            <TextBlock
+                                Text="You have completed evaluation scores"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            
+                            <!-- Details Grid -->
+                            <Grid ColumnSpacing="24" Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                
+                                <!-- What you provide -->
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock 
+                                        Text="What you provide:" 
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                        • JSONL with scores and metrics
+                                    </TextBlock>
+                                </StackPanel>
+                                
+                                <!-- What we do -->
+                                <StackPanel Grid.Column="1" Spacing="4">
+                                    <TextBlock 
+                                        Text="What we do:" 
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        FontWeight="SemiBold" />
+                                    <TextBlock
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                        • Import and validate your results<LineBreak/>
+                                        • Enable comparison with other evals<LineBreak/>
+                                        • Visualization and analysis tools
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </RadioButton>  
+                </Grid>
+                
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>
