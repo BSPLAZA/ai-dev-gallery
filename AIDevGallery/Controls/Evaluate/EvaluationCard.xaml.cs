@@ -16,23 +16,43 @@ namespace AIDevGallery.Controls.Evaluate;
 /// </summary>
 public sealed partial class EvaluationCard : UserControl
 {
+    /// <summary>
+    /// Dependency property for the ViewModel
+    /// </summary>
     public static readonly DependencyProperty ViewModelProperty =
         DependencyProperty.Register(nameof(ViewModel), typeof(EvaluationCardViewModel), 
             typeof(EvaluationCard), new PropertyMetadata(null, OnViewModelChanged));
 
+    /// <summary>
+    /// Gets or sets the view model for the evaluation card
+    /// </summary>
     public EvaluationCardViewModel? ViewModel
     {
         get => (EvaluationCardViewModel?)GetValue(ViewModelProperty);
         set => SetValue(ViewModelProperty, value);
     }
 
+    /// <summary>
+    /// Event raised when the view button is clicked
+    /// </summary>
     public event EventHandler<EvaluationCardViewModel>? ViewClicked;
+    
+    /// <summary>
+    /// Event raised when the delete button is clicked
+    /// </summary>
     public event EventHandler<EvaluationCardViewModel>? DeleteClicked;
+    
+    /// <summary>
+    /// Event raised when the card itself is clicked
+    /// </summary>
     public event EventHandler<EvaluationCardViewModel>? CardClicked;
 
     private Storyboard? _hoverEnterStoryboard;
     private Storyboard? _hoverExitStoryboard;
 
+    /// <summary>
+    /// Initializes a new instance of the EvaluationCard control
+    /// </summary>
     public EvaluationCard()
     {
         this.InitializeComponent();
@@ -157,21 +177,41 @@ public sealed partial class EvaluationCard : UserControl
         }
     }
 
+    /// <summary>
+    /// Formats the criteria label for display
+    /// </summary>
+    /// <param name="criteria">The criteria text to format</param>
+    /// <returns>Formatted criteria label</returns>
     public string FormatCriteriaLabel(string criteria)
     {
         return string.IsNullOrEmpty(criteria) ? "" : $"Criteria: {criteria}";
     }
 
+    /// <summary>
+    /// Formats the scores label for display
+    /// </summary>
+    /// <param name="scores">The scores text to format</param>
+    /// <returns>Formatted scores label</returns>
     public string FormatScoresLabel(string scores)
     {
         return string.IsNullOrEmpty(scores) ? "" : $"Scores:   {scores}";
     }
 
+    /// <summary>
+    /// Determines if the progress indicator should be indeterminate
+    /// </summary>
+    /// <param name="progress">The progress value</param>
+    /// <returns>True if progress should be indeterminate, false otherwise</returns>
     public bool IsProgressIndeterminate(double? progress)
     {
         return !progress.HasValue || progress.Value == 0;
     }
     
+    /// <summary>
+    /// Gets the progress value for the progress indicator
+    /// </summary>
+    /// <param name="progress">The nullable progress value</param>
+    /// <returns>The progress value or 0.0 if null</returns>
     public double GetProgressValue(double? progress)
     {
         return progress ?? 0.0;
