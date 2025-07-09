@@ -18,12 +18,23 @@ namespace AIDevGallery.Pages.Evaluate
     /// </summary>
     public sealed partial class ModelConfigurationStep : Page
     {
+        /// <summary>
+        /// Delegate for validation changed events
+        /// </summary>
+        /// <param name="isValid">True if validation passed, false otherwise</param>
         public delegate void ValidationChangedEventHandler(bool isValid);
+        
+        /// <summary>
+        /// Event raised when validation state changes
+        /// </summary>
         public event ValidationChangedEventHandler? ValidationChanged;
 
         private string? selectedModelId;
         private string? selectedModelName;
 
+        /// <summary>
+        /// Initializes a new instance of the ModelConfigurationStep class
+        /// </summary>
         public ModelConfigurationStep()
         {
             this.InitializeComponent();
@@ -211,6 +222,10 @@ namespace AIDevGallery.Pages.Evaluate
 
         private EvaluationWizardState? _wizardState;
 
+        /// <summary>
+        /// Called when the page is navigated to
+        /// </summary>
+        /// <param name="e">Navigation event arguments</param>
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -226,6 +241,10 @@ namespace AIDevGallery.Pages.Evaluate
             UpdateParentDialogState();
         }
 
+        /// <summary>
+        /// Called when navigating away from this page
+        /// </summary>
+        /// <param name="e">Navigation cancellation event arguments</param>
         protected override void OnNavigatingFrom(Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
         {
             base.OnNavigatingFrom(e);
