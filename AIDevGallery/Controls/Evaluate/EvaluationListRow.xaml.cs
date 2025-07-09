@@ -11,6 +11,7 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Windows.System;
 using Windows.UI;
 
 namespace AIDevGallery.Controls.Evaluate
