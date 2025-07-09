@@ -18,11 +18,7 @@
           PointerEntered="OnPointerEntered"
           PointerExited="OnPointerExited"
           Tapped="OnRowTapped"
-          DoubleTapped="OnRowDoubleTapped"
-          AutomationProperties.Name="{x:Bind GetAccessibleName(), Mode=OneWay}"
-          AutomationProperties.HelpText="{x:Bind GetAccessibleDescription(), Mode=OneWay}"
-          TabIndex="0"
-          KeyDown="OnKeyDown">
+          DoubleTapped="OnRowDoubleTapped">
         
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="32"/>  <!-- Checkbox -->
@@ -41,16 +37,14 @@
                   MinWidth="32"
                   MinHeight="32"
                   IsChecked="{x:Bind IsSelected, Mode=TwoWay}"
-                  Click="OnCheckboxClick"
-                  AutomationProperties.Name="{x:Bind GetCheckboxAccessibleName(), Mode=OneWay}"/>
+                  Click="OnCheckboxClick"/>
         
         <!-- Workflow Icon -->
         <FontIcon Grid.Column="1" 
                   VerticalAlignment="Center"
                   FontSize="18"
                   Foreground="{ThemeResource SystemFillColorAttentionBrush}"
-                  Glyph="{x:Bind GetWorkflowGlyph(WorkflowType), Mode=OneWay}"
-                  AutomationProperties.Name="{x:Bind GetWorkflowAccessibleName(WorkflowType), Mode=OneWay}"/>
+                  Glyph="{x:Bind GetWorkflowGlyph(WorkflowType), Mode=OneWay}"/>
 
         <!-- Main Content -->
         <StackPanel Grid.Column="2" 

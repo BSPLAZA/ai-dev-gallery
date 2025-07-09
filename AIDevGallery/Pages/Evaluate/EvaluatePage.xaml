@@ -35,8 +35,7 @@
                 <TextBlock
                     Text="Evaluate"
                     Style="{StaticResource TitleTextBlockStyle}"
-                    Margin="0,0,0,4"
-                    AutomationProperties.HeadingLevel="Level1" />
+                    Margin="0,0,0,4" />
                 <TextBlock
                     Style="{StaticResource BodyTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -58,8 +57,7 @@
                 </Button>
                 <Button x:Name="RefreshButton" 
                        Click="RefreshButton_Click"
-                       ToolTipService.ToolTip="Refresh list"
-                       AutomationProperties.Name="Refresh evaluation list">
+                       ToolTipService.ToolTip="Refresh list">
                     <FontIcon Glyph="&#xE117;" FontSize="16"/>
                 </Button>
             </StackPanel>
@@ -78,9 +76,7 @@
                     PlaceholderText="Search evaluations..."
                     Width="320"
                     VerticalAlignment="Center"
-                    TextChanged="SearchBox_TextChanged"
-                    AutomationProperties.Name="Search evaluations"
-                    AutomationProperties.HelpText="Filter evaluations by name, model, or dataset">
+                    TextChanged="SearchBox_TextChanged">
                 <TextBox.KeyboardAccelerators>
                     <KeyboardAccelerator Modifiers="Control" Key="F"/>
                 </TextBox.KeyboardAccelerators>
@@ -104,9 +100,7 @@
                          Height="60"
                          HorizontalAlignment="Center"
                          VerticalAlignment="Center"
-                         Visibility="Collapsed"
-                         AutomationProperties.Name="Loading evaluations"
-                         AutomationProperties.LiveSetting="Assertive"/>
+                         Visibility="Collapsed"/>
 
             <!-- Empty State -->
             <StackPanel x:Name="EmptyState"
@@ -225,8 +219,7 @@
                         <CheckBox x:Name="SelectAllCheckBox"
                                   Grid.Column="0"
                                   Click="SelectAllCheckBox_Click"
-                                  VerticalAlignment="Center"
-                                  AutomationProperties.Name="Select all evaluations"/>
+                                  VerticalAlignment="Center"/>
                         
                         <TextBlock Grid.Column="1"
                                    Text="Select All"
@@ -244,9 +237,7 @@
                          IsItemClickEnabled="True"
                          ItemClick="EvaluationsList_ItemClick"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                         ScrollViewer.VerticalScrollBarVisibility="Auto"
-                         AutomationProperties.Name="Evaluations list"
-                         AutomationProperties.LiveSetting="Polite">
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
                     
                     <ListView.ItemsPanel>
                         <ItemsPanelTemplate>

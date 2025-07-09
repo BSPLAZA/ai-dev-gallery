@@ -236,20 +236,10 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         }
     }
 
-    private async void NavigateToEvaluationDetails(EvaluationListItemViewModel evaluation)
+    private void NavigateToEvaluationDetails(EvaluationListItemViewModel evaluation)
     {
-        // TODO: Navigate to evaluation insights page (coming in next PR)
-        // Frame.Navigate(typeof(EvaluationInsightsPage), evaluation.Id);
-        
-        // Temporary: Show coming soon dialog
-        var dialog = new ContentDialog
-        {
-            Title = "Evaluation Insights - Coming Soon",
-            Content = "Detailed evaluation insights and analytics will be available in the next update.",
-            CloseButtonText = "OK",
-            XamlRoot = this.XamlRoot
-        };
-        await dialog.ShowAsync();
+        // Navigate to evaluation insights page
+        Frame.Navigate(typeof(EvaluationInsightsPage), evaluation.Id);
     }
 
     // Empty State Event Handlers
@@ -322,12 +312,9 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
         
         if (selectedEvaluations.Count >= 2 && selectedEvaluations.Count <= 5)
         {
-            // TODO: Navigate to comparison page (coming in next PR)
-            // var evaluationIds = selectedEvaluations.Select(e => e.Id).ToList();
-            // Frame.Navigate(typeof(CompareEvaluationsPage), evaluationIds);
-            
-            // For now, show the preview dialog
-            await ShowComparisonPreviewAsync(selectedEvaluations);
+            // Navigate to comparison page with selected evaluation IDs
+            var evaluationIds = selectedEvaluations.Select(e => e.Id).ToList();
+            Frame.Navigate(typeof(CompareEvaluationsPage), evaluationIds);
         }
         else if (selectedEvaluations.Count < 2)
         {
@@ -900,63 +887,5 @@ internal sealed partial class EvaluatePage : Page, INotifyPropertyChanged
             // Log error
             System.Diagnostics.Debug.WriteLine($"Error saving evaluation: {ex}");
         }
-    }
-    
-    private async Task ShowComparisonPreviewAsync(List<EvaluationListItemViewModel> selectedEvaluations)
-    {
-        // Create preview content
-        var content = new StackPanel { Spacing = 12 };
-        
-        content.Children.Add(new TextBlock 
-        { 
-            Text = "The comparison feature will allow you to:",
-            Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
-        });
-        
-        var features = new List<string>
-        {
-            "• Compare evaluation scores side-by-side",
-            "• View performance rankings across models",
-            "• Analyze criteria-specific differences",
-            "• Export comparison reports",
-            "• Visualize results with interactive charts"
-        };
-        
-        foreach (var feature in features)
-        {
-            content.Children.Add(new TextBlock 
-            { 
-                Text = feature,
-                Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
-                Margin = new Thickness(12, 0, 0, 0)
-            });
-        }
-        
-        content.Children.Add(new TextBlock 
-        { 
-            Text = "\nSelected evaluations:",
-            Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
-            Margin = new Thickness(0, 12, 0, 0)
-        });
-        
-        foreach (var eval in selectedEvaluations)
-        {
-            content.Children.Add(new TextBlock 
-            { 
-                Text = $"• {eval.Name} ({eval.ModelName})",
-                Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
-                Margin = new Thickness(12, 0, 0, 0)
-            });
-        }
-        
-        var dialog = new ContentDialog
-        {
-            Title = "Comparison View - Coming Soon",
-            Content = content,
-            CloseButtonText = "OK",
-            XamlRoot = this.XamlRoot
-        };
-        
-        await dialog.ShowAsync();
     }
 }

@@ -1,0 +1,991 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="AIDevGallery.Pages.Evaluate.EvaluationInsightsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <!-- Spacing between cards -->
+        <x:Double x:Key="SettingsCardSpacing">4</x:Double>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Header -->
+            <RowDefinition Height="*"/>    <!-- Content -->
+            <RowDefinition Height="Auto"/> <!-- Actions Bar -->
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <Grid Grid.Row="0" Padding="36,24,36,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Breadcrumb Navigation -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                <Button x:Name="BackButton" 
+                        Click="BackButton_Click"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        VerticalAlignment="Center"
+                        AutomationProperties.Name="Go back to evaluations list">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon Glyph="&#xE72B;" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Evaluations" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <TextBlock Text=">" 
+                           VerticalAlignment="Center"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                <TextBlock x:Name="EvaluationNameText" 
+                           VerticalAlignment="Center"
+                           Style="{StaticResource BodyTextBlockStyle}"/>
+            </StackPanel>
+        </Grid>
+        
+        <!-- Loading State -->
+        <Grid x:Name="LoadingPanel" 
+              Grid.Row="1" 
+              Visibility="Visible">
+            <StackPanel HorizontalAlignment="Center" 
+                        VerticalAlignment="Center"
+                        Spacing="12">
+                <ProgressRing IsActive="True" Width="48" Height="48"/>
+                <TextBlock Text="Loading evaluation insights..."
+                           Style="{StaticResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            </StackPanel>
+        </Grid>
+        
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" 
+                      x:Name="ContentScrollViewer"
+                      Visibility="Collapsed"
+                      VerticalScrollBarVisibility="Auto">
+            <Grid Padding="36,24,36,36">
+                <StackPanel MaxWidth="1000" 
+                            HorizontalAlignment="Stretch"
+                            Spacing="{StaticResource SettingsCardSpacing}">
+                    
+                    <!-- Evaluation Title and Metadata -->
+                    <StackPanel Spacing="8">
+                        <TextBlock x:Name="PageTitle" 
+                                   Text="Evaluation Insights"
+                                   Style="{StaticResource TitleTextBlockStyle}"/>
+                        
+                        <TextBlock x:Name="EvaluationTitle"
+                                   Style="{StaticResource SubtitleTextBlockStyle}"
+                                   TextWrapping="Wrap"/>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <TextBlock>
+                                <Run Text="Model:" FontWeight="SemiBold"/>
+                                <Run x:Name="ModelNameRun"/>
+                            </TextBlock>
+                            <TextBlock Text="|" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            <TextBlock>
+                                <Run Text="Dataset:" FontWeight="SemiBold"/>
+                                <Run x:Name="DatasetNameRun"/>
+                            </TextBlock>
+                            <TextBlock Text="|" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            <TextBlock x:Name="TimestampText"/>
+                        </StackPanel>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="Status:" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="StatusText"/>
+                                <Button x:Name="StatusInfoBadge"
+                                        Style="{StaticResource SubtleButtonStyle}"
+                                        Padding="4"
+                                        Margin="4,0,0,0"
+                                        VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE946;" 
+                                              FontSize="14"/>
+                                </Button>
+                            </StackPanel>
+                            <TextBlock Text="|" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="Overall Score:" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="StarRatingText" FontFamily="Segoe UI Symbol"/>
+                                <TextBlock x:Name="ScoreText"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                    
+                    <!-- Metric Cards -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Images Processed Card -->
+                        <Grid Grid.Column="0" 
+                              Style="{StaticResource CardGridStyle}"
+                              Margin="0,0,4,0">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Images Processed" 
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock x:Name="ImagesProcessedText" 
+                                           Style="{StaticResource SubtitleTextBlockStyle}"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock x:Name="ProcessingStatusText" 
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource SystemFillColorSuccessBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <!-- Average Score Card -->
+                        <Grid Grid.Column="1" 
+                              Style="{StaticResource CardGridStyle}"
+                              Margin="4,0,4,0">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Average Score" 
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock x:Name="AverageScoreText" 
+                                           Style="{StaticResource SubtitleTextBlockStyle}"
+                                           FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <!-- Criteria Evaluated Card -->
+                        <Grid Grid.Column="2" 
+                              Style="{StaticResource CardGridStyle}"
+                              Margin="4,0,4,0">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Criteria Evaluated" 
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock x:Name="CriteriaCountText" 
+                                           Style="{StaticResource SubtitleTextBlockStyle}"
+                                           FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <!-- Duration Card -->
+                        <Grid Grid.Column="3" 
+                              Style="{StaticResource CardGridStyle}"
+                              Margin="4,0,0,0">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Duration" 
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                <TextBlock x:Name="DurationText" 
+                                           Style="{StaticResource SubtitleTextBlockStyle}"
+                                           FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                    
+                    <!-- View Switcher -->
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <ToggleButton x:Name="ChartViewToggle" 
+                                      IsChecked="True"
+                                      Click="ViewToggle_Click"
+                                      AutomationProperties.Name="Chart view"
+                                      ToolTipService.ToolTip="Show evaluation results as charts">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8A1;" FontSize="16"/>
+                                <TextBlock Text="Chart"/>
+                            </StackPanel>
+                        </ToggleButton>
+                        
+                        <ToggleButton x:Name="TableViewToggle" 
+                                      Click="ViewToggle_Click"
+                                      AutomationProperties.Name="Table view"
+                                      ToolTipService.ToolTip="Show evaluation results as table">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8A5;" FontSize="16"/>
+                                <TextBlock Text="Table"/>
+                            </StackPanel>
+                        </ToggleButton>
+                        
+                        <ToggleButton x:Name="FolderViewToggle" 
+                                      Click="ViewToggle_Click"
+                                      Visibility="{x:Bind _viewModel.HasFolderStatistics, Mode=OneWay}"
+                                      AutomationProperties.Name="Folder view"
+                                      ToolTipService.ToolTip="Show evaluation results by folder">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8B7;" FontSize="16"/>
+                                <TextBlock Text="Folders"/>
+                            </StackPanel>
+                        </ToggleButton>
+                    </StackPanel>
+                    
+                    <!-- Criteria Visualization Container -->
+                    <Grid x:Name="VisualizationContainer" 
+                          MinHeight="400">
+                        
+                        <!-- Chart View -->
+                        <Grid x:Name="ChartView" 
+                              Visibility="Visible"
+                              Style="{StaticResource CardGridStyle}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <!-- Chart Header with Controls -->
+                            <Grid Grid.Row="0" Margin="16,16,16,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Column="0" 
+                                           Text="Average Scores by Evaluation Criteria"
+                                           Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                                
+                                <StackPanel Grid.Column="1" 
+                                            Orientation="Horizontal" 
+                                            Spacing="4">
+                                    <Button x:Name="CopyChartButton"
+                                            Click="CopyChart_Click"
+                                            ToolTipService.ToolTip="Copy chart to clipboard"
+                                            Style="{StaticResource SubtleButtonStyle}">
+                                        <FontIcon Glyph="&#xE8C8;" FontSize="14"/>
+                                    </Button>
+                                    <Button x:Name="SaveChartButton"
+                                            Click="SaveChartAsImage_Click"
+                                            ToolTipService.ToolTip="Save chart as image"
+                                            Style="{StaticResource SubtleButtonStyle}">
+                                        <FontIcon Glyph="&#xE74E;" FontSize="14"/>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                            
+                            <!-- Chart Content -->
+                            <Grid Grid.Row="1" x:Name="ChartContentGrid" Padding="16,8,16,16">
+                                <!-- Chart will be dynamically created here -->
+                            </Grid>
+                            
+                            <!-- Scale Legend -->
+                            <Border Grid.Row="2" 
+                                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="0,1,0,0"
+                                    Padding="16,8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <TextBlock Grid.Column="0"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                        <Run Text="Scale:"/>
+                                        <Run Text="0-1.9 Needs Improvement" Foreground="#FF5722"/>
+                                        <Run Text="|"/>
+                                        <Run Text="2.0-2.9 Fair" Foreground="#FFC107"/>
+                                        <Run Text="|"/>
+                                        <Run Text="3.0-3.9 Good" Foreground="#2196F3"/>
+                                        <Run Text="|"/>
+                                        <Run Text="4.0-5.0 Excellent" Foreground="#4CAF50"/>
+                                    </TextBlock>
+                                    
+                                    <TextBlock Grid.Column="1"
+                                               x:Name="BoxPlotLegend"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               Visibility="Collapsed"
+                                               Margin="24,0,0,0">
+                                        <Run Text="Box Plot:"/>
+                                        <Run Text="  " />
+                                        <Run Text="—" FontWeight="Bold"/> <Run Text="Min/Max"/>
+                                        <Run Text="  •  " Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                        <Run Text="□" Foreground="#2196F3"/> <Run Text="Q1-Q3"/>
+                                        <Run Text="  •  " Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                        <Run Text="|" FontWeight="Bold"/> <Run Text="Median"/>
+                                        <Run Text="  •  " Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                        <Run Text="◆" Foreground="#FF9800"/> <Run Text="Mean"/>
+                                    </TextBlock>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                        
+                        <!-- Table View -->
+                        <Grid x:Name="TableView" 
+                              Visibility="Collapsed"
+                              Style="{StaticResource CardGridStyle}"
+                              Padding="16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" 
+                                       Text="Criteria Performance Details"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                                       Margin="0,0,0,16"/>
+                            
+                            <ScrollViewer Grid.Row="1">
+                                <ItemsRepeater x:Name="CriteriaTableRepeater">
+                                    <ItemsRepeater.Layout>
+                                        <StackLayout Spacing="4"/>
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Style="{StaticResource CardGridStyle}"
+                                                  Padding="12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="80"/>
+                                                    <ColumnDefinition Width="100"/>
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <TextBlock Grid.Column="0" 
+                                                           Text="{Binding Name}"
+                                                           VerticalAlignment="Center"/>
+                                                
+                                                <TextBlock Grid.Column="1" 
+                                                           Text="{Binding ScoreText}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           FontWeight="SemiBold"/>
+                                                
+                                                <Border Grid.Column="2" 
+                                                        Background="{Binding StatusBrush}"
+                                                        CornerRadius="4"
+                                                        Padding="8,4"
+                                                        HorizontalAlignment="Right">
+                                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                                        <FontIcon Glyph="{Binding StatusGlyph}" 
+                                                                  FontSize="12"/>
+                                                        <TextBlock Text="{Binding StatusText}" 
+                                                                   FontSize="12"
+                                                                   FontWeight="SemiBold"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </ScrollViewer>
+                        </Grid>
+                        
+                        <!-- Folder View -->
+                        <Grid x:Name="FolderView" 
+                              Visibility="Collapsed"
+                              Style="{StaticResource CardGridStyle}"
+                              Padding="16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" 
+                                       Text="Performance by Folder"
+                                       Style="{StaticResource BodyStrongTextBlockStyle}"
+                                       Margin="0,0,0,16"/>
+                            
+                            <ScrollViewer Grid.Row="1">
+                                <ItemsRepeater x:Name="FolderStatsRepeater">
+                                    <ItemsRepeater.Layout>
+                                        <StackLayout Spacing="4"/>
+                                    </ItemsRepeater.Layout>
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel>
+                                                <!-- Folder Header -->
+                                                <Button Style="{StaticResource SubtleButtonStyle}"
+                                                        HorizontalAlignment="Stretch"
+                                                        HorizontalContentAlignment="Stretch"
+                                                        Padding="0"
+                                                        Click="FolderItem_Click"
+                                                        Tag="{Binding}">
+                                                    <Grid Style="{StaticResource CardGridStyle}"
+                                                          Padding="12">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        
+                                                        <!-- Expansion Chevron -->
+                                                        <FontIcon Grid.Column="0" 
+                                                                  Glyph="{Binding ChevronGlyph}" 
+                                                                  FontSize="12"
+                                                                  Margin="0,0,8,0"
+                                                                  VerticalAlignment="Center"/>
+                                                        
+                                                        <!-- Folder Icon -->
+                                                        <FontIcon Grid.Column="1" 
+                                                                  Glyph="&#xE8B7;" 
+                                                                  FontSize="16"
+                                                                  Margin="0,0,12,0"
+                                                                  VerticalAlignment="Center"/>
+                                                        
+                                                        <!-- Folder Path -->
+                                                        <TextBlock Grid.Column="2" 
+                                                                   Text="{Binding FolderPath}"
+                                                                   VerticalAlignment="Center"/>
+                                                        
+                                                        <!-- Item Count -->
+                                                        <TextBlock Grid.Column="3" 
+                                                                   Text="{Binding ItemCountText}" 
+                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                   Margin="0,0,12,0"
+                                                                   VerticalAlignment="Center"/>
+                                                        
+                                                        <!-- Average Score Badge -->
+                                                        <Border Grid.Column="4" 
+                                                                Background="{Binding ScoreBrush}"
+                                                                CornerRadius="4"
+                                                                Padding="12,6">
+                                                            <TextBlock Text="{Binding AverageScoreText}" 
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="White"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </Button>
+                                                
+                                                <!-- Expanded Content -->
+                                                <Grid Visibility="{Binding ExpandedVisibility}"
+                                                      Margin="40,0,0,8"
+                                                      Padding="16"
+                                                      Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                      CornerRadius="4">
+                                                    <StackPanel Spacing="12">
+                                                        <TextBlock Text="Criteria Scores for this Folder"
+                                                                   Style="{StaticResource BodyStrongTextBlockStyle}"
+                                                                   Margin="0,0,0,4"/>
+                                                        
+                                                        <!-- Criteria Scores -->
+                                                        <ItemsRepeater ItemsSource="{Binding CriteriaScores}">
+                                                            <ItemsRepeater.Layout>
+                                                                <StackLayout Spacing="4"/>
+                                                            </ItemsRepeater.Layout>
+                                                            <ItemsRepeater.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <Grid>
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="*"/>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                        </Grid.ColumnDefinitions>
+                                                                        
+                                                                        <TextBlock Grid.Column="0" 
+                                                                                   Text="{Binding Name}"
+                                                                                   Style="{StaticResource BodyTextBlockStyle}"/>
+                                                                        
+                                                                        <Border Grid.Column="1" 
+                                                                                Background="{Binding StatusBrush}"
+                                                                                CornerRadius="4"
+                                                                                Padding="8,4"
+                                                                                MinWidth="60">
+                                                                            <TextBlock Text="{Binding ScoreText}" 
+                                                                                       HorizontalAlignment="Center"
+                                                                                       FontWeight="SemiBold"
+                                                                                       Foreground="White"/>
+                                                                        </Border>
+                                                                    </Grid>
+                                                                </DataTemplate>
+                                                            </ItemsRepeater.ItemTemplate>
+                                                        </ItemsRepeater>
+                                                        
+                                                        <!-- Statistical Summary -->
+                                                        <Border BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                                                BorderThickness="0,1,0,0"
+                                                                Padding="0,8,0,0"
+                                                                Visibility="{Binding HasStatistics}">
+                                                            <StackPanel Spacing="4">
+                                                                <TextBlock Text="Statistical Summary"
+                                                                           Style="{StaticResource BodyStrongTextBlockStyle}"
+                                                                           Margin="0,0,0,4"/>
+                                                                
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    
+                                                                    <!-- Summary Stats -->
+                                                                    <StackPanel Grid.Column="0" Spacing="2">
+                                                                        <TextBlock Text="Items" 
+                                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                                        <TextBlock Text="{Binding ItemCount}"
+                                                                                   Style="{StaticResource BodyTextBlockStyle}"
+                                                                                   FontWeight="SemiBold"/>
+                                                                    </StackPanel>
+                                                                    
+                                                                    <StackPanel Grid.Column="1" Spacing="2">
+                                                                        <TextBlock Text="Mean" 
+                                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                                        <TextBlock Text="{Binding MeanScoreText}"
+                                                                                   Style="{StaticResource BodyTextBlockStyle}"
+                                                                                   FontWeight="SemiBold"/>
+                                                                    </StackPanel>
+                                                                    
+                                                                    <StackPanel Grid.Column="2" Spacing="2">
+                                                                        <TextBlock Text="Std Dev" 
+                                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                                        <TextBlock Text="{Binding StdDevText}"
+                                                                                   Style="{StaticResource BodyTextBlockStyle}"
+                                                                                   FontWeight="SemiBold"/>
+                                                                    </StackPanel>
+                                                                    
+                                                                    <StackPanel Grid.Column="3" Spacing="2">
+                                                                        <TextBlock Text="Range" 
+                                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                                        <TextBlock Text="{Binding RangeText}"
+                                                                                   Style="{StaticResource BodyTextBlockStyle}"
+                                                                                   FontWeight="SemiBold"/>
+                                                                    </StackPanel>
+                                                                </Grid>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                            </ScrollViewer>
+                        </Grid>
+                        
+                    </Grid>
+                    
+                    <!-- Statistical Summary (shown when detailed data available) -->
+                    <Grid x:Name="StatisticalSummaryCard" 
+                          Style="{StaticResource CardGridStyle}"
+                          Visibility="Collapsed"
+                          Padding="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/> <!-- Header -->
+                            <RowDefinition Height="Auto"/> <!-- Stats -->
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Stats will be added programmatically -->
+                    </Grid>
+                    
+                    <!-- Image Preview Area -->
+                    <Grid x:Name="ImagePreviewArea" 
+                          Style="{StaticResource CardGridStyle}"
+                          Visibility="Collapsed"
+                          MinHeight="500">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Header -->
+                        <Grid Grid.Row="0" Padding="16,16,16,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Column="0" 
+                                       Text="Individual Image Results" 
+                                       Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                            
+                            <TextBlock Grid.Column="1"
+                                       Text="Preview feature - data collection in progress"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        </Grid>
+                        
+                        <!-- Content Area -->
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="350"/> <!-- File navigation -->
+                                <ColumnDefinition Width="*"/>   <!-- Preview and details -->
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Left: File Navigation -->
+                            <Grid Grid.Column="0" 
+                                  Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                  BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                  BorderThickness="0,1,1,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <!-- Search and Filter -->
+                                <StackPanel Grid.Row="0" Margin="16,16,16,8" Spacing="8">
+                                    <TextBox x:Name="ImageSearchBox"
+                                             PlaceholderText="Search images..."
+                                             TextChanged="ImageSearchBox_TextChanged"
+                                             AutomationProperties.Name="Search images"
+                                             AutomationProperties.HelpText="Type to filter images by filename"/>
+                                    
+                                    <!-- Filter Options -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <ToggleButton x:Name="ErrorFilterToggle"
+                                                      Click="ErrorFilterToggle_Click"
+                                                      AutomationProperties.Name="Filter images with errors"
+                                                      ToolTipService.ToolTip="Show only images that have errors">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE783;" FontSize="14"/>
+                                                <TextBlock Text="Errors" FontSize="12"/>
+                                            </StackPanel>
+                                        </ToggleButton>
+                                        
+                                        <ToggleButton x:Name="HighScoreFilterToggle"
+                                                      Click="HighScoreFilterToggle_Click"
+                                                      AutomationProperties.Name="Filter highest scoring images"
+                                                      ToolTipService.ToolTip="Show only images with the highest scores">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE734;" FontSize="14"/>
+                                                <TextBlock Text="Highest Scores" FontSize="12"/>
+                                            </StackPanel>
+                                        </ToggleButton>
+                                        
+                                        <Button x:Name="ClearFiltersButton"
+                                                Click="ClearFilters_Click"
+                                                Visibility="Collapsed"
+                                                AutomationProperties.Name="Clear all filters"
+                                                ToolTipService.ToolTip="Remove all active filters">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <FontIcon Glyph="&#xE894;" FontSize="14"/>
+                                                <TextBlock Text="Clear" FontSize="12"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+                                
+                                <!-- Results Summary -->
+                                <TextBlock Grid.Row="1" 
+                                           x:Name="ImageResultsSummary"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           Margin="16,0,16,8"/>
+                                
+                                <!-- File List -->
+                                <Grid Grid.Row="2">
+                                    <!-- File Navigation TreeView with constrained height -->
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                  HorizontalScrollBarVisibility="Disabled"
+                                                  MaxHeight="600"
+                                                  VerticalAlignment="Top">
+                                        <TreeView x:Name="ImageFileTreeView" 
+                                                  SelectionMode="Single"
+                                                  ItemInvoked="ImageFileTreeView_ItemInvoked"
+                                                  Expanding="ImageFileTreeView_Expanding"
+                                                  Visibility="Collapsed">
+                                            <TreeView.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TreeViewItem ItemsSource="{Binding Children}"
+                                                                  IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
+                                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                                            <FontIcon Glyph="{Binding IconGlyph}" 
+                                                                      FontSize="16"/>
+                                                            <TextBlock Text="{Binding Name}" 
+                                                                       VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding ScoreText}" 
+                                                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                       VerticalAlignment="Center"
+                                                                       Margin="8,0,0,0"/>
+                                                            <!-- Loading indicator for folders -->
+                                                            <ProgressRing x:Name="FolderLoadingRing"
+                                                                          Width="16"
+                                                                          Height="16"
+                                                                          IsActive="{Binding IsLoading}"
+                                                                          Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                                          VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </TreeViewItem>
+                                                </DataTemplate>
+                                            </TreeView.ItemTemplate>
+                                        </TreeView>
+                                    </ScrollViewer>
+                                    
+                                    <!-- Empty State -->
+                                    <StackPanel x:Name="ImageFileEmptyState"
+                                                VerticalAlignment="Center" 
+                                                HorizontalAlignment="Center"
+                                                Spacing="12"
+                                                Margin="16">
+                                        <FontIcon Glyph="&#xE91B;" 
+                                                  FontSize="48"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBlock Text="No dataset folder found"
+                                                   Style="{StaticResource BodyTextBlockStyle}"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Dataset folder information is not available for this evaluation"
+                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   TextWrapping="Wrap"
+                                                   TextAlignment="Center"
+                                                   MaxWidth="250"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
+                            
+                            <!-- Right: Image Preview and Metadata -->
+                            <Grid Grid.Column="1" 
+                                  BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                  BorderThickness="0,1,0,0">
+                                <Grid Padding="24">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <!-- Preview Area -->
+                                    <Grid Grid.Row="0">
+                                        <!-- Empty State -->
+                                        <Border x:Name="ImagePreviewEmptyState"
+                                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                CornerRadius="8"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Padding="48">
+                                            <StackPanel Spacing="16">
+                                                <FontIcon Glyph="&#xEB9F;" 
+                                                          FontSize="64"
+                                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                <TextBlock Text="No image selected"
+                                                           Style="{StaticResource BodyTextBlockStyle}"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                           HorizontalAlignment="Center"/>
+                                                <TextBlock Text="Select an image from the left panel to view details"
+                                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                           HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                        
+                                        <!-- Image Display -->
+                                        <Border x:Name="ImagePreviewContainer"
+                                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                CornerRadius="8"
+                                                Visibility="Collapsed">
+                                            <Grid>
+                                                <Image x:Name="PreviewImage"
+                                                       Stretch="Uniform"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       MaxHeight="400"/>
+                                                
+                                                <!-- Loading State -->
+                                                <ProgressRing x:Name="ImageLoadingRing"
+                                                              IsActive="False"
+                                                              Width="32"
+                                                              Height="32"
+                                                              HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                    
+                                    <!-- Metadata Panel -->
+                                    <ScrollViewer Grid.Row="1" 
+                                                  x:Name="ImageMetadataPanel"
+                                                  Margin="0,16,0,0"
+                                                  VerticalScrollBarVisibility="Auto"
+                                                  Visibility="Collapsed">
+                                        <StackPanel Spacing="16">
+                                            <TextBlock Text="Evaluation Results"
+                                                       Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                                            
+                                            <!-- File Info -->
+                                            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="12">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="File Information"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0"
+                                                                   x:Name="ImageFileNameText"
+                                                                   Style="{StaticResource BodyTextBlockStyle}"
+                                                                   VerticalAlignment="Center"/>
+                                                        <Button Grid.Column="1"
+                                                                x:Name="CopyFileNameButton"
+                                                                Click="CopyFileName_Click"
+                                                                ToolTipService.ToolTip="Copy filename"
+                                                                Style="{StaticResource SubtleButtonStyle}"
+                                                                Margin="8,0,0,0"
+                                                                Padding="8"
+                                                                AutomationProperties.Name="Copy filename to clipboard">
+                                                            <FontIcon Glyph="&#xE8C8;" FontSize="14"/>
+                                                        </Button>
+                                                    </Grid>
+                                                    <TextBlock x:Name="ImagePathText"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                               TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Border>
+                                            
+                                            <!-- Scores -->
+                                            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="12">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="Criteria Scores"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                    <StackPanel x:Name="ImageScoresPanel"
+                                                                Spacing="4"/>
+                                                </StackPanel>
+                                            </Border>
+                                            
+                                            <!-- Prompt/Response -->
+                                            <Border x:Name="PromptResponseContainer"
+                                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="12"
+                                                    Visibility="Collapsed">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="Prompt"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                    <TextBlock x:Name="ImagePromptText"
+                                                               Style="{StaticResource BodyTextBlockStyle}"
+                                                               TextWrapping="Wrap"/>
+                                                    
+                                                    <TextBlock Text="Model Response"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                               Margin="0,8,0,0"/>
+                                                    <TextBlock x:Name="ImageResponseText"
+                                                               Style="{StaticResource BodyTextBlockStyle}"
+                                                               TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Border>
+                                            
+                                            <!-- Processing Info and Metadata -->
+                                            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="12">
+                                                <StackPanel Spacing="8">
+                                                    <TextBlock Text="Additional Information"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                    <TextBlock x:Name="ProcessingTimeText"
+                                                               Style="{StaticResource BodyTextBlockStyle}"
+                                                               Visibility="Collapsed"/>
+                                                    <TextBlock x:Name="AverageScoreText2"
+                                                               Style="{StaticResource BodyTextBlockStyle}"/>
+                                                    <!-- Custom metadata entries will be added here dynamically -->
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                    
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+        
+        <!-- Empty State -->
+        <Grid x:Name="EmptyStatePanel" 
+              Grid.Row="1" 
+              Visibility="Collapsed"
+              HorizontalAlignment="Center" 
+              VerticalAlignment="Center"
+              MaxWidth="400">
+            <StackPanel Spacing="12">
+                <FontIcon Glyph="&#xE9CE;" 
+                          FontSize="48"
+                          Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                          HorizontalAlignment="Center"/>
+                
+                <TextBlock Text="No evaluation data available"
+                           Style="{StaticResource SubtitleTextBlockStyle}"
+                           HorizontalAlignment="Center"/>
+                
+                <TextBlock Text="This evaluation doesn't have any results to display."
+                           Style="{StaticResource BodyTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Grid>
+        
+        <!-- Sticky Actions Bar -->
+        <Grid Grid.Row="2" 
+              x:Name="ActionsBar"
+              Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+              BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+              BorderThickness="0,1,0,0"
+              Padding="24,12">
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Right" 
+                        Spacing="8">
+                
+                <Button x:Name="ExportDataButton" 
+                        Click="ExportData_Click"
+                        AutomationProperties.Name="Export evaluation data"
+                        ToolTipService.ToolTip="Export evaluation data">
+                    <Button.Flyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem Text="Export as CSV" 
+                                            Click="ExportCsv_Click"
+                                            AutomationProperties.Name="Export evaluation as CSV file">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE8B7;"/>
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Export as JSON" 
+                                            Click="ExportJson_Click"
+                                            AutomationProperties.Name="Export evaluation as JSON file">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE943;"/>
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                        </MenuFlyout>
+                    </Button.Flyout>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE896;" FontSize="16"/>
+                        <TextBlock Text="Export Data"/>
+                    </StackPanel>
+                </Button>
+                
+                <Button x:Name="PrintButton" Click="PrintReport_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE749;" FontSize="16"/>
+                        <TextBlock Text="Print Report"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+        
+    </Grid>
+</Page>
