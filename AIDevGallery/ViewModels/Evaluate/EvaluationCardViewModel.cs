@@ -20,36 +20,100 @@ public partial class EvaluationCardViewModel : ObservableObject
 {
     private readonly EvaluationResult _evaluationResult;
     
+    /// <summary>
+    /// Initializes a new instance of the EvaluationCardViewModel class
+    /// </summary>
+    /// <param name="evaluationResult">The evaluation result to display</param>
     public EvaluationCardViewModel(EvaluationResult evaluationResult)
     {
         _evaluationResult = evaluationResult ?? throw new ArgumentNullException(nameof(evaluationResult));
     }
     
     // Basic Properties
+    /// <summary>
+    /// Gets the unique identifier of the evaluation
+    /// </summary>
     public string Id => _evaluationResult.Id;
+    
+    /// <summary>
+    /// Gets the name of the evaluation
+    /// </summary>
     public string Name => _evaluationResult.Name;
+    
+    /// <summary>
+    /// Gets the name of the model that was evaluated
+    /// </summary>
     public string ModelName => _evaluationResult.ModelName;
+    
+    /// <summary>
+    /// Gets the name of the dataset used for evaluation
+    /// </summary>
     public string DatasetName => _evaluationResult.DatasetName;
+    
+    /// <summary>
+    /// Gets a formatted description of the dataset including item count
+    /// </summary>
     public string DatasetDescription => $"{_evaluationResult.DatasetName} • {_evaluationResult.DatasetItemCount} items";
+    
+    /// <summary>
+    /// Gets the current status of the evaluation
+    /// </summary>
     public EvaluationStatus Status => _evaluationResult.Status;
+    
+    /// <summary>
+    /// Gets the type of evaluation workflow used
+    /// </summary>
     public EvaluationWorkflow WorkflowType => _evaluationResult.WorkflowType;
+    
+    /// <summary>
+    /// Gets the progress percentage as an integer
+    /// </summary>
     public int Progress => (int)(_evaluationResult.ProgressPercentage ?? (Status == EvaluationStatus.Completed ? 100 : 0));
     
     // Score Display
+    /// <summary>
+    /// Gets the average score of the evaluation
+    /// </summary>
     public double AverageScore => _evaluationResult.AverageScore;
+    
+    /// <summary>
+    /// Gets the formatted average score for display
+    /// </summary>
     public string ScoreDisplay => AverageScore.ToString("F1");
+    
+    /// <summary>
+    /// Gets the star rating representation of the score
+    /// </summary>
     public string StarRating => GetStarRating(AverageScore);
+    
+    /// <summary>
+    /// Gets the progress percentage based on the score
+    /// </summary>
     public double ProgressPercentage => (AverageScore / 5.0) * 100;
     
     // Criteria Scores
+    /// <summary>
+    /// Gets the criteria scores dictionary
+    /// </summary>
     public Dictionary<string, double> CriteriaScores => _evaluationResult.CriteriaScores;
+    
+    /// <summary>
+    /// Gets a formatted string of criteria names for display
+    /// </summary>
     public string CriteriaNames => CriteriaScores.Count <= 3 
         ? string.Join(" • ", CriteriaScores.Keys.Take(3))
         : $"{string.Join(" • ", CriteriaScores.Keys.Take(2))} • +{CriteriaScores.Count - 2} more";
+    
+    /// <summary>
+    /// Gets a formatted string of criteria scores for display
+    /// </summary>
     public string CriteriaScoresDisplay => string.Join(" • ", 
         CriteriaScores.Values.Take(3).Select(s => $"{s:F1}/5"));
     
     // Status Display
+    /// <summary>
+    /// Gets the icon representation of the evaluation status
+    /// </summary>
     public string StatusIcon => Status switch
     {
         EvaluationStatus.Completed => "✅",
@@ -59,6 +123,9 @@ public partial class EvaluationCardViewModel : ObservableObject
         _ => "❓"
     };
     
+    /// <summary>
+    /// Gets the text representation of the evaluation status
+    /// </summary>
     public string StatusText => Status switch
     {
         EvaluationStatus.Completed => "Completed",
@@ -69,12 +136,30 @@ public partial class EvaluationCardViewModel : ObservableObject
     };
     
     // Time Display
+    /// <summary>
+    /// Gets the relative time display for when the evaluation was performed
+    /// </summary>
     public string TimeDisplay => GetRelativeTimeDisplay(_evaluationResult.Timestamp);
+    
+    /// <summary>
+    /// Gets the formatted duration of the evaluation
+    /// </summary>
     public string DurationDisplay => _evaluationResult.Duration?.ToString(@"mm' min'") ?? "";
     
     // Colors and Gradients
+    /// <summary>
+    /// Gets the start color for score visualization gradients
+    /// </summary>
     public string ScoreColorStart => GetScoreColor(AverageScore, true);
+    
+    /// <summary>
+    /// Gets the end color for score visualization gradients
+    /// </summary>
     public string ScoreColorEnd => GetScoreColor(AverageScore, false);
+    
+    /// <summary>
+    /// Gets a solid color brush for the score color
+    /// </summary>
     public SolidColorBrush ScoreColorBrush
     {
         get
@@ -100,8 +185,15 @@ public partial class EvaluationCardViewModel : ObservableObject
     }
     
     // Progress Display (for running evaluations)
+    /// <summary>
+    /// Gets a value indicating whether progress should be shown
+    /// </summary>
     public bool ShowProgress => Status == EvaluationStatus.Running && 
                                WorkflowType != EvaluationWorkflow.ImportResults;
+    
+    /// <summary>
+    /// Gets the current running progress percentage
+    /// </summary>
     public double? RunningProgress => _evaluationResult.ProgressPercentage;
     
     // Interaction States
