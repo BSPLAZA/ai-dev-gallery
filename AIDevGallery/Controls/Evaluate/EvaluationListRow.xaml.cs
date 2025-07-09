@@ -11,8 +11,8 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Windows.UI;
 using Windows.System;
+using Windows.UI;
 
 namespace AIDevGallery.Controls.Evaluate
 {
@@ -227,7 +227,6 @@ namespace AIDevGallery.Controls.Evaluate
             // Checkbox state is already handled by two-way binding
         }
 
-
         private void UpdateVisualState()
         {
             if (IsSelected)
@@ -430,20 +429,11 @@ namespace AIDevGallery.Controls.Evaluate
             return description;
         }
 
-        /// <summary>
-        /// Gets the accessible name for the checkbox control
-        /// </summary>
-        /// <returns>A descriptive accessible name for the checkbox</returns>
         public string GetCheckboxAccessibleName()
         {
             return $"Select {EvaluationName}";
         }
 
-        /// <summary>
-        /// Gets the accessible name for the specified evaluation workflow
-        /// </summary>
-        /// <param name="workflow">The evaluation workflow to get the accessible name for</param>
-        /// <returns>A descriptive accessible name for the workflow</returns>
         public string GetWorkflowAccessibleName(EvaluationWorkflow workflow)
         {
             return workflow switch

@@ -17,12 +17,12 @@ public sealed partial class EvaluationEmptyState : UserControl
     /// Event raised when the Import Results action is clicked
     /// </summary>
     public event EventHandler? ImportResultsClicked;
-    
+
     /// <summary>
     /// Event raised when the Test Model action is clicked
     /// </summary>
     public event EventHandler? TestModelClicked;
-    
+
     /// <summary>
     /// Event raised when the Learn More action is clicked
     /// </summary>

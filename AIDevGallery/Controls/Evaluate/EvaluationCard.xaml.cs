@@ -20,7 +20,7 @@ public sealed partial class EvaluationCard : UserControl
     /// Dependency property for the ViewModel
     /// </summary>
     public static readonly DependencyProperty ViewModelProperty =
-        DependencyProperty.Register(nameof(ViewModel), typeof(EvaluationCardViewModel), 
+        DependencyProperty.Register(nameof(ViewModel), typeof(EvaluationCardViewModel),
             typeof(EvaluationCard), new PropertyMetadata(null, OnViewModelChanged));
 
     /// <summary>
@@ -36,12 +36,12 @@ public sealed partial class EvaluationCard : UserControl
     /// Event raised when the view button is clicked
     /// </summary>
     public event EventHandler<EvaluationCardViewModel>? ViewClicked;
-    
+
     /// <summary>
     /// Event raised when the delete button is clicked
     /// </summary>
     public event EventHandler<EvaluationCardViewModel>? DeleteClicked;
-    
+
     /// <summary>
     /// Event raised when the card itself is clicked
     /// </summary>
@@ -122,10 +122,10 @@ public sealed partial class EvaluationCard : UserControl
     {
         return score switch
         {
-            >= 4.5 => (Color.FromArgb(255, 76, 175, 80), Color.FromArgb(255, 102, 187, 106)),    // Green
-            >= 3.75 => (Color.FromArgb(255, 33, 150, 243), Color.FromArgb(255, 66, 165, 245)),   // Blue
-            >= 3.0 => (Color.FromArgb(255, 255, 193, 7), Color.FromArgb(255, 255, 202, 40)),     // Yellow
-            _ => (Color.FromArgb(255, 255, 87, 34), Color.FromArgb(255, 255, 112, 67))           // Orange
+            >= 4.5 => (Color.FromArgb(255, 76, 175, 80), Color.FromArgb(255, 102, 187, 106)), // Green
+            >= 3.75 => (Color.FromArgb(255, 33, 150, 243), Color.FromArgb(255, 66, 165, 245)), // Blue
+            >= 3.0 => (Color.FromArgb(255, 255, 193, 7), Color.FromArgb(255, 255, 202, 40)), // Yellow
+            _ => (Color.FromArgb(255, 255, 87, 34), Color.FromArgb(255, 255, 112, 67)) // Orange
         };
     }
 
@@ -135,7 +135,7 @@ public sealed partial class EvaluationCard : UserControl
         {
             ViewModel.IsHovered = true;
             _hoverEnterStoryboard?.Begin();
-            
+
             // Enhance shadow
             CardBorder.Translation = new System.Numerics.Vector3(0, 0, 8);
         }
@@ -147,7 +147,7 @@ public sealed partial class EvaluationCard : UserControl
         {
             ViewModel.IsHovered = false;
             _hoverExitStoryboard?.Begin();
-            
+
             // Reset shadow
             CardBorder.Translation = new System.Numerics.Vector3(0, 0, 0);
         }
@@ -206,7 +206,7 @@ public sealed partial class EvaluationCard : UserControl
     {
         return !progress.HasValue || progress.Value == 0;
     }
-    
+
     /// <summary>
     /// Gets the progress value for the progress indicator
     /// </summary>
