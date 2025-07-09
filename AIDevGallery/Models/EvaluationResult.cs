@@ -12,15 +12,54 @@ namespace AIDevGallery.Models;
 /// </summary>
 public class EvaluationResult
 {
+    /// <summary>
+    /// Gets or sets the unique identifier for this evaluation result
+    /// </summary>
     public required string Id { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the name of the evaluation
+    /// </summary>
     public required string Name { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the name of the model that was evaluated
+    /// </summary>
     public required string ModelName { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the name of the dataset used for evaluation
+    /// </summary>
     public required string DatasetName { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the number of items in the dataset
+    /// </summary>
     public int DatasetItemCount { get; set; }
+    
+    /// <summary>
+    /// Gets the number of items in the dataset (alias for compatibility)
+    /// </summary>
     public int ItemCount => DatasetItemCount; // Alias for compatibility
+    
+    /// <summary>
+    /// Gets or sets the type of evaluation workflow used
+    /// </summary>
     public EvaluationWorkflow WorkflowType { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the current status of the evaluation
+    /// </summary>
     public EvaluationStatus Status { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the timestamp when the evaluation was created or completed
+    /// </summary>
     public DateTime Timestamp { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the duration of the evaluation execution
+    /// </summary>
     public TimeSpan? Duration { get; set; }
     
     /// <summary>
@@ -47,9 +86,14 @@ public class EvaluationResult
     };
     
     /// <summary>
+    /// <summary>
     /// For running evaluations - progress percentage
     /// </summary>
     public double? ProgressPercentage { get; set; }
+    
+    /// <summary>
+    /// Gets the running progress percentage (alias for compatibility)
+    /// </summary>
     public double? RunningProgress => ProgressPercentage; // Alias for compatibility
     
     /// <summary>
@@ -95,8 +139,23 @@ public class EvaluationResult
 /// </summary>
 public enum ScoreRating
 {
+    /// <summary>
+    /// Excellent score (4.5-5.0)
+    /// </summary>
     Excellent,        // 4.5-5.0
+    
+    /// <summary>
+    /// Good score (3.75-4.49)
+    /// </summary>
     Good,            // 3.75-4.49
+    
+    /// <summary>
+    /// Fair score (3.0-3.74)
+    /// </summary>
     Fair,            // 3.0-3.74
+    
+    /// <summary>
+    /// Needs improvement (below 3.0)
+    /// </summary>
     NeedsImprovement // Below 3.0
 }
