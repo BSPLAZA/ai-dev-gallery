@@ -430,11 +430,20 @@ namespace AIDevGallery.Controls.Evaluate
             return description;
         }
 
+        /// <summary>
+        /// Gets the accessible name for the checkbox control
+        /// </summary>
+        /// <returns>A descriptive accessible name for the checkbox</returns>
         public string GetCheckboxAccessibleName()
         {
             return $"Select {EvaluationName}";
         }
 
+        /// <summary>
+        /// Gets the accessible name for the specified evaluation workflow
+        /// </summary>
+        /// <param name="workflow">The evaluation workflow to get the accessible name for</param>
+        /// <returns>A descriptive accessible name for the workflow</returns>
         public string GetWorkflowAccessibleName(EvaluationWorkflow workflow)
         {
             return workflow switch
