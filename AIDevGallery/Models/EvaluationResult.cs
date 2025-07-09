@@ -86,7 +86,6 @@ public class EvaluationResult
     };
     
     /// <summary>
-    /// <summary>
     /// For running evaluations - progress percentage
     /// </summary>
     public double? ProgressPercentage { get; set; }

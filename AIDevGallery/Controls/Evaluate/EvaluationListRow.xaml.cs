@@ -382,8 +382,6 @@ namespace AIDevGallery.Controls.Evaluate
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-<<<<<<< HEAD
-=======
 
         // Accessibility helper methods
         /// <summary>
@@ -471,6 +469,5 @@ namespace AIDevGallery.Controls.Evaluate
                     break;
             }
         }
->>>>>>> b294ce8 (Add XML documentation comments to evaluation controls and pages)
     }
 }
