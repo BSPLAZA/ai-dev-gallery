@@ -27,6 +27,27 @@ The two PRs below summarize the core of this POC and include descriptions/screen
    - Evaluation management views (card + list), **search/filter**, bulk selection, and status tracking
    - Local data persistence and sample data generation
    - Keyboard navigation & screen-reader support (accessibility improvements)
+## 📸 Screenshots
+Evaluation Home
+<img width="2538" height="1500" alt="Eval Home" src="https://github.com/user-attachments/assets/e5151c59-fcb4-41b4-9c59-6a2b20c409a0" />
+Step 1 - Select Eval Type
+<img width="2538" height="1500" alt="step1" src="https://github.com/user-attachments/assets/4ec099e5-153b-4b16-81e4-902521c97128" />
+
+Step 2 - Choose Workflow
+<img width="2538" height="1500" alt="step 2" src="https://github.com/user-attachments/assets/13dcc7d7-7dc2-4e8e-99b3-9dd16beff330" />
+
+Step 3 - Configure Model with Image Description API Chosen
+<img width="2756" height="1699" alt="step 3" src="https://github.com/user-attachments/assets/b21aeb62-3ea7-403a-972e-704723b7d264" />
+
+Step 4 - Dataset Input 
+<img width="2756" height="1699" alt="step 4" src="https://github.com/user-attachments/assets/fecbbe96-4cec-4cb2-a09f-34b50256b2fb" />
+
+Step 5 - Evaluation Criteria
+<img width="2756" height="1699" alt="step 5" src="https://github.com/user-attachments/assets/55bfd906-0e79-4888-bda8-61be3c47c822" />
+
+Step 6 - Evaluation Confirmation
+<img width="2756" height="1699" alt="step 6" src="https://github.com/user-attachments/assets/31d84ea7-6d19-4301-8084-f8ed8c3d39e4" />
+
 
 2) **PR #6 – Evaluation Insights, Analytics, and Comparison Features**  
    **Link:** https://github.com/BSPLAZA/ai-dev-gallery/pull/6  
@@ -36,6 +57,17 @@ The two PRs below summarize the core of this POC and include descriptions/screen
    - Basic statistics (mean/median/std dev), trends, and item-level analysis
    - **Export** evaluation results (JSON/CSV)
    - Continued focus on performance and accessibility
+
+## 📸 Screenshots
+Evaluation Insights
+<img width="3240" height="2064" alt="Eval Insights" src="https://github.com/user-attachments/assets/48e6ca58-eaf9-475b-9c71-7cabb7224b8c" />
+
+Printable Report
+<img width="3240" height="2064" alt="Printable Report" src="https://github.com/user-attachments/assets/796d0598-eeae-456d-8862-639c6658e8fb" />
+
+Compare Evaluations
+<img width="3240" height="2064" alt="Compare Evals" src="https://github.com/user-attachments/assets/229f3b3a-0136-4410-b43f-2adee9d2d096" />
+
 
 > **Tip:** In each PR, click the **“Files changed”** tab to review the implementation details.
 
