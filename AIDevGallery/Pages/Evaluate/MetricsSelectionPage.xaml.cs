@@ -20,7 +20,15 @@ namespace AIDevGallery.Pages.Evaluate
     /// </summary>
     public sealed partial class MetricsSelectionPage : Page, INotifyPropertyChanged
     {
+        /// <summary>
+        /// Delegate for validation changed events
+        /// </summary>
+        /// <param name="isValid">True if validation passed, false otherwise</param>
         public delegate void ValidationChangedEventHandler(bool isValid);
+        
+        /// <summary>
+        /// Event raised when validation state changes
+        /// </summary>
         public event ValidationChangedEventHandler? ValidationChanged;
 
         private const int MaxCriteria = 5;
@@ -29,6 +37,9 @@ namespace AIDevGallery.Pages.Evaluate
 
         private EvaluationWizardState? _wizardState;
 
+        /// <summary>
+        /// Initializes a new instance of the MetricsSelectionPage class
+        /// </summary>
         public MetricsSelectionPage()
         {
             this.InitializeComponent();
@@ -36,6 +47,10 @@ namespace AIDevGallery.Pages.Evaluate
             // Don't add default criterion here - wait for AI Judge to be checked
         }
 
+        /// <summary>
+        /// Called when the page is navigated to
+        /// </summary>
+        /// <param name="e">Navigation event arguments</param>
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -48,6 +63,10 @@ namespace AIDevGallery.Pages.Evaluate
             }
         }
 
+        /// <summary>
+        /// Called when navigating away from this page
+        /// </summary>
+        /// <param name="e">Navigation cancellation event arguments</param>
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
         {
             base.OnNavigatingFrom(e);
@@ -262,6 +281,9 @@ namespace AIDevGallery.Pages.Evaluate
 
         #region INotifyPropertyChanged
 
+        /// <summary>
+        /// Event raised when a property value changes
+        /// </summary>
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

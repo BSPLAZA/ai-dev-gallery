@@ -11,16 +11,25 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Windows.UI;
 using Windows.System;
+using Windows.UI;
 
 namespace AIDevGallery.Controls.Evaluate
 {
+    /// <summary>
+    /// A row control for displaying evaluation items in a list view
+    /// </summary>
     public sealed partial class EvaluationListRow : UserControl, INotifyPropertyChanged
     {
+        /// <summary>
+        /// Dependency property for the ViewModel
+        /// </summary>
         public static readonly DependencyProperty ViewModelProperty =
             DependencyProperty.Register(nameof(ViewModel), typeof(EvaluationListItemViewModel), typeof(EvaluationListRow), new PropertyMetadata(null, OnViewModelChanged));
 
+        /// <summary>
+        /// Gets or sets the view model for this evaluation list row
+        /// </summary>
         public EvaluationListItemViewModel ViewModel
         {
             get => (EvaluationListItemViewModel)GetValue(ViewModelProperty);
@@ -28,17 +37,59 @@ namespace AIDevGallery.Controls.Evaluate
         }
 
         // Bindable properties from ViewModel
+        /// <summary>
+        /// Gets the evaluation name
+        /// </summary>
         public string EvaluationName => ViewModel?.Name ?? string.Empty;
+        
+        /// <summary>
+        /// Gets the model name
+        /// </summary>
         public string ModelName => ViewModel?.ModelName ?? string.Empty;
+        
+        /// <summary>
+        /// Gets the dataset name
+        /// </summary>
         public string DatasetName => ViewModel?.DatasetName ?? string.Empty;
+        
+        /// <summary>
+        /// Gets the item count
+        /// </summary>
         public int ItemCount => ViewModel?.ItemCount ?? 0;
+        
+        /// <summary>
+        /// Gets the timestamp
+        /// </summary>
         public DateTime Timestamp => ViewModel?.Timestamp ?? DateTime.Now;
+        
+        /// <summary>
+        /// Gets the average score
+        /// </summary>
         public double AverageScore => ViewModel?.AverageScore ?? 0.0;
+        
+        /// <summary>
+        /// Gets the workflow type
+        /// </summary>
         public EvaluationWorkflow WorkflowType => ViewModel?.WorkflowType ?? EvaluationWorkflow.ImportResults;
+        
+        /// <summary>
+        /// Gets a value indicating whether the evaluation is completed
+        /// </summary>
         public bool IsCompleted => ViewModel?.Status == EvaluationStatus.Completed || ViewModel?.Status == EvaluationStatus.Imported;
+        
+        /// <summary>
+        /// Gets a value indicating whether the evaluation is running
+        /// </summary>
         public bool IsRunning => ViewModel?.Status == EvaluationStatus.Running;
+        
+        /// <summary>
+        /// Gets the running progress percentage
+        /// </summary>
         public double? RunningProgress => ViewModel?.RunningProgress;
         
+        /// <summary>
+        /// Gets or sets a value indicating whether this row is selected
+        /// </summary>
         public bool IsSelected
         {
             get => ViewModel?.IsSelected ?? false;
@@ -52,6 +103,9 @@ namespace AIDevGallery.Controls.Evaluate
         }
 
         private bool _isHovered;
+        /// <summary>
+        /// Gets a value indicating whether this row is hovered
+        /// </summary>
         public bool IsHovered
         {
             get => _isHovered;
@@ -62,9 +116,19 @@ namespace AIDevGallery.Controls.Evaluate
             }
         }
 
+        /// <summary>
+        /// Event raised when the item is clicked
+        /// </summary>
         public event EventHandler<EvaluationListItemViewModel>? ItemClicked;
+        
+        /// <summary>
+        /// Event raised when the item is double-clicked
+        /// </summary>
         public event EventHandler<EvaluationListItemViewModel>? ItemDoubleClicked;
 
+        /// <summary>
+        /// Initializes a new instance of the EvaluationListRow control
+        /// </summary>
         public EvaluationListRow()
         {
             this.InitializeComponent();
@@ -181,6 +245,11 @@ namespace AIDevGallery.Controls.Evaluate
         }
 
         // Helper methods for x:Bind
+        /// <summary>
+        /// Gets the workflow icon for the specified workflow type
+        /// </summary>
+        /// <param name="workflow">The workflow type</param>
+        /// <returns>The icon emoji for the workflow</returns>
         public string GetWorkflowIcon(EvaluationWorkflow workflow)
         {
             return workflow switch
@@ -190,6 +259,11 @@ namespace AIDevGallery.Controls.Evaluate
             };
         }
 
+        /// <summary>
+        /// Gets the workflow glyph for the specified workflow type
+        /// </summary>
+        /// <param name="workflow">The workflow type</param>
+        /// <returns>The glyph character for the workflow</returns>
         public string GetWorkflowGlyph(EvaluationWorkflow workflow)
         {
             return workflow switch
@@ -199,6 +273,11 @@ namespace AIDevGallery.Controls.Evaluate
             };
         }
 
+        /// <summary>
+        /// Gets a formatted date string for display
+        /// </summary>
+        /// <param name="date">The date to format</param>
+        /// <returns>A human-readable relative date string</returns>
         public string GetFormattedDate(DateTime date)
         {
             var timeSpan = DateTime.Now - date;
@@ -212,6 +291,10 @@ namespace AIDevGallery.Controls.Evaluate
             };
         }
 
+        /// <summary>
+        /// Gets the criteria display string
+        /// </summary>
+        /// <returns>A comma-separated list of criteria names</returns>
         public string GetCriteriaDisplay()
         {
             if (ViewModel?.CriteriaNames == null || !ViewModel.CriteriaNames.Any())
@@ -223,6 +306,11 @@ namespace AIDevGallery.Controls.Evaluate
             return string.Join(", ", criteria);
         }
 
+        /// <summary>
+        /// Gets a star rating representation for the given score
+        /// </summary>
+        /// <param name="score">The score to convert to stars</param>
+        /// <returns>A string of star characters representing the rating</returns>
         public string GetStarRating(double score)
         {
             var fullStars = (int)Math.Floor(score);
@@ -239,6 +327,11 @@ namespace AIDevGallery.Controls.Evaluate
             return stars;
         }
 
+        /// <summary>
+        /// Gets the progress text for display
+        /// </summary>
+        /// <param name="progress">The progress value</param>
+        /// <returns>A formatted progress string</returns>
         public string GetProgressText(double? progress)
         {
             if (!progress.HasValue)
@@ -249,11 +342,22 @@ namespace AIDevGallery.Controls.Evaluate
             return $"{progress:F0}%";
         }
 
+        /// <summary>
+        /// Gets the progress value for the progress bar
+        /// </summary>
+        /// <param name="progress">The nullable progress value</param>
+        /// <returns>The progress value or 0.0 if null</returns>
         public double GetProgressValue(double? progress)
         {
             return progress ?? 0.0;
         }
 
+        /// <summary>
+        /// Gets the background brush for the row based on its state
+        /// </summary>
+        /// <param name="isHovered">Whether the row is hovered</param>
+        /// <param name="isSelected">Whether the row is selected</param>
+        /// <returns>The appropriate background brush</returns>
         public Brush GetRowBackground(bool isHovered, bool isSelected)
         {
             if (isSelected)
@@ -270,6 +374,9 @@ namespace AIDevGallery.Controls.Evaluate
             }
         }
 
+        /// <summary>
+        /// Event for property change notifications
+        /// </summary>
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -278,6 +385,10 @@ namespace AIDevGallery.Controls.Evaluate
         }
 
         // Accessibility helper methods
+        /// <summary>
+        /// Gets the accessible name for screen readers
+        /// </summary>
+        /// <returns>A descriptive name for accessibility</returns>
         public string GetAccessibleName()
         {
             if (ViewModel == null) return "Evaluation item";
@@ -294,6 +405,10 @@ namespace AIDevGallery.Controls.Evaluate
             return $"{EvaluationName}, {status}, {ItemCount} items, {ModelName}";
         }
 
+        /// <summary>
+        /// Gets the accessible description for screen readers
+        /// </summary>
+        /// <returns>A detailed description for accessibility</returns>
         public string GetAccessibleDescription()
         {
             if (ViewModel == null) return string.Empty;

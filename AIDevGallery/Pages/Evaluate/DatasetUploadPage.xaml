@@ -100,9 +100,7 @@
                     AllowDrop="True"
                     DragOver="DropZone_DragOver"
                     Drop="DropZone_Drop"
-                    DragLeave="DropZone_DragLeave"
-                    AutomationProperties.Name="Dataset drop zone"
-                    AutomationProperties.HelpText="Drag and drop a JSONL file or image folder here">
+                    DragLeave="DropZone_DragLeave">
                     
                     <Border.BorderBrush>
                         <SolidColorBrush x:Name="DropZoneBorderBrush" Color="{ThemeResource ControlStrokeColorDefault}" Opacity="0.5" />
@@ -158,14 +156,11 @@
                             VerticalAlignment="Center"
                             Spacing="16"
                             Visibility="Collapsed">
-                            <ProgressRing IsActive="True" 
-                                          AutomationProperties.Name="Loading"
-                                          AutomationProperties.LiveSetting="Assertive"/>
+                            <ProgressRing IsActive="True" />
                             <TextBlock 
                                 x:Name="LoadingText"
                                 Text="Validating dataset..."
-                                Style="{StaticResource BodyTextBlockStyle}"
-                                AutomationProperties.LiveSetting="Polite" />
+                                Style="{StaticResource BodyTextBlockStyle}" />
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -210,9 +205,7 @@
                         AllowDrop="True"
                         DragOver="ImageDropZone_DragOver"
                         Drop="ImageDropZone_Drop"
-                        DragLeave="ImageDropZone_DragLeave"
-                        AutomationProperties.Name="Image folder drop zone"
-                        AutomationProperties.HelpText="Drag and drop a folder containing images here, or use the browse button below">
+                        DragLeave="ImageDropZone_DragLeave">
                         
                         <Border.BorderBrush>
                             <SolidColorBrush x:Name="ImageDropZoneBorderBrush" Color="{ThemeResource ControlStrokeColorDefault}" Opacity="0.5" />
@@ -252,10 +245,7 @@
                                 <FontIcon Glyph="&#xE73E;" FontSize="32" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
                                 <TextBlock x:Name="ImageFolderPathText" Style="{StaticResource BodyTextBlockStyle}" />
                                 <TextBlock x:Name="ImageCountText" Style="{StaticResource CaptionTextBlockStyle}" />
-                                <Button Content="Change folder" 
-                                        Click="ChangeImageFolder_Click"
-                                        AutomationProperties.Name="Change image folder"
-                                        AutomationProperties.HelpText="Select a different folder containing images" />
+                                <Button Content="Change folder" Click="ChangeImageFolder_Click" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -278,9 +268,7 @@
                         Drop="JsonlDropZone_Drop"
                         DragLeave="JsonlDropZone_DragLeave"
                         IsHitTestVisible="False"
-                        Opacity="0.5"
-                        AutomationProperties.Name="JSONL file drop zone"
-                        AutomationProperties.HelpText="After uploading images, drag and drop a JSONL file containing responses here">
+                        Opacity="0.5">
                         
                         <Border.BorderBrush>
                             <SolidColorBrush x:Name="JsonlDropZoneBorderBrush" Color="{ThemeResource ControlStrokeColorDefault}" Opacity="0.5" />
@@ -334,10 +322,7 @@
                                 <FontIcon Glyph="&#xE73E;" FontSize="32" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
                                 <TextBlock x:Name="JsonlFilePathText" Style="{StaticResource BodyTextBlockStyle}" />
                                 <TextBlock x:Name="JsonlEntryCountText" Style="{StaticResource CaptionTextBlockStyle}" />
-                                <Button Content="Change file" 
-                                        Click="ChangeJsonlFile_Click"
-                                        AutomationProperties.Name="Change JSONL file"
-                                        AutomationProperties.HelpText="Select a different JSONL file with responses" />
+                                <Button Content="Change file" Click="ChangeJsonlFile_Click" />
                             </StackPanel>
                         </Grid>
                     </Border>

@@ -28,6 +28,9 @@ public sealed partial class SelectEvaluationTypePage : Page
 
     private EvaluationType? selectedEvaluationType;
 
+    /// <summary>
+    /// Initializes a new instance of the SelectEvaluationTypePage class
+    /// </summary>
     public SelectEvaluationTypePage()
     {
         this.InitializeComponent();
@@ -86,6 +89,10 @@ public sealed partial class SelectEvaluationTypePage : Page
     /// </summary>
     private EvaluationWizardState? _wizardState;
 
+    /// <summary>
+    /// Called when the page is navigated to
+    /// </summary>
+    /// <param name="e">Navigation event arguments</param>
     protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
@@ -101,6 +108,10 @@ public sealed partial class SelectEvaluationTypePage : Page
         UpdateParentDialogState();
     }
 
+    /// <summary>
+    /// Called when navigating away from this page
+    /// </summary>
+    /// <param name="e">Navigation cancellation event arguments</param>
     protected override void OnNavigatingFrom(Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
     {
         base.OnNavigatingFrom(e);

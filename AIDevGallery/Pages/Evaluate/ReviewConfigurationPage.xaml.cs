@@ -21,7 +21,15 @@ namespace AIDevGallery.Pages.Evaluate
     /// </summary>
     public sealed partial class ReviewConfigurationPage : Page
     {
+        /// <summary>
+        /// Delegate for validation changed events
+        /// </summary>
+        /// <param name="isValid">True if validation passed, false otherwise</param>
         public delegate void ValidationChangedEventHandler(bool isValid);
+        
+        /// <summary>
+        /// Event raised when validation state changes
+        /// </summary>
         public event ValidationChangedEventHandler? ValidationChanged;
         
         // Configuration data
@@ -34,6 +42,9 @@ namespace AIDevGallery.Pages.Evaluate
         // For navigation back to specific steps
         private Frame? _wizardFrame;
         
+        /// <summary>
+        /// Initializes a new instance of the ReviewConfigurationPage class
+        /// </summary>
         public ReviewConfigurationPage()
         {
             this.InitializeComponent();
@@ -53,6 +64,10 @@ namespace AIDevGallery.Pages.Evaluate
             });
         }
         
+        /// <summary>
+        /// Called when the page is navigated to
+        /// </summary>
+        /// <param name="e">Navigation event arguments</param>
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);

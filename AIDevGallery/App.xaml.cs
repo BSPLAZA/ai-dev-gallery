@@ -4,6 +4,7 @@
 using AIDevGallery.Helpers;
 using AIDevGallery.Models;
 using AIDevGallery.Samples;
+using AIDevGallery.Services.Evaluate;
 using AIDevGallery.Telemetry;
 using AIDevGallery.Utils;
 using Microsoft.UI.Xaml;
