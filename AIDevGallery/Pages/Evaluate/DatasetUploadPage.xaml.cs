@@ -78,6 +78,10 @@ namespace AIDevGallery.Pages.Evaluate
             this.Loaded += (s, e) => DispatcherQueue.TryEnqueue(() => UpdateParentDialogState());
         }
 
+        /// <summary>
+        /// Called when the page is navigated to
+        /// </summary>
+        /// <param name="e">Navigation event arguments</param>
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -90,6 +94,10 @@ namespace AIDevGallery.Pages.Evaluate
             }
         }
 
+        /// <summary>
+        /// Called when navigating away from this page
+        /// </summary>
+        /// <param name="e">Navigation cancellation event arguments</param>
         protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
         {
             base.OnNavigatingFrom(e);
@@ -1851,6 +1859,9 @@ namespace AIDevGallery.Pages.Evaluate
             }
         }
 
+        /// <summary>
+        /// Resets the page to its initial state
+        /// </summary>
         public void Reset()
         {
             _datasetConfig = null;
@@ -1879,6 +1890,9 @@ namespace AIDevGallery.Pages.Evaluate
 
         #region INotifyPropertyChanged
 
+        /// <summary>
+        /// Event raised when a property value changes
+        /// </summary>
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

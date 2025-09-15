@@ -28,6 +28,9 @@ public sealed partial class WorkflowSelectionPage : Page
 
     private EvaluationWorkflow selectedWorkflow = EvaluationWorkflow.TestModel; // Default selection
 
+    /// <summary>
+    /// Initializes a new instance of the WorkflowSelectionPage class
+    /// </summary>
     public WorkflowSelectionPage()
     {
         this.InitializeComponent();
@@ -123,6 +126,10 @@ public sealed partial class WorkflowSelectionPage : Page
         UpdateParentDialogState();
     }
 
+    /// <summary>
+    /// Called when navigating away from this page
+    /// </summary>
+    /// <param name="e">Navigation cancellation event arguments</param>
     protected override void OnNavigatingFrom(Microsoft.UI.Xaml.Navigation.NavigatingCancelEventArgs e)
     {
         base.OnNavigatingFrom(e);

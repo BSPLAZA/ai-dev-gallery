@@ -204,8 +204,19 @@ internal enum EvaluationType
 [JsonConverter(typeof(JsonStringEnumConverter<EvaluationWorkflow>))]
 public enum EvaluationWorkflow
 {
+    /// <summary>
+    /// Generate responses and evaluate them
+    /// </summary>
     TestModel,          // Generate responses + evaluate
+
+    /// <summary>
+    /// Evaluate existing responses
+    /// </summary>
     EvaluateResponses,  // Evaluate existing responses
+
+    /// <summary>
+    /// Import completed evaluation results
+    /// </summary>
     ImportResults       // Import completed results
 }
 
@@ -215,12 +226,39 @@ public enum EvaluationWorkflow
 [JsonConverter(typeof(JsonStringEnumConverter<EvaluationStatus>))]
 public enum EvaluationStatus
 {
+    /// <summary>
+    /// Evaluation is being configured
+    /// </summary>
     Draft,      // Being configured
+
+    /// <summary>
+    /// Evaluation is ready to run
+    /// </summary>
     Ready,      // Ready to run
+
+    /// <summary>
+    /// Evaluation is currently executing
+    /// </summary>
     Running,    // Currently executing
+
+    /// <summary>
+    /// Evaluation finished successfully
+    /// </summary>
     Completed,  // Finished successfully
+
+    /// <summary>
+    /// Evaluation execution failed
+    /// </summary>
     Failed,     // Execution failed
+
+    /// <summary>
+    /// Evaluation was stopped by user
+    /// </summary>
     Cancelled,  // Stopped by user
+
+    /// <summary>
+    /// Evaluation was imported from external JSONL file
+    /// </summary>
     Imported    // Imported from external JSONL file
 }
 
